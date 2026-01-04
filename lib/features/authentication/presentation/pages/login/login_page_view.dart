@@ -1,0 +1,162 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:learnify_lms/features/authentication/presentation/pages/login/widgets/create_account_button.dart';
+import 'package:learnify_lms/features/authentication/presentation/pages/login/widgets/divider_text.dart';
+import 'package:learnify_lms/features/authentication/presentation/pages/login/widgets/header.dart';
+import 'package:learnify_lms/features/authentication/presentation/pages/login/widgets/login_background.dart';
+import 'package:learnify_lms/features/authentication/presentation/pages/login/widgets/login_title.dart';
+import 'package:learnify_lms/features/authentication/presentation/pages/login/widgets/optionsRow.dart';
+
+import '../../../../../core/theme/app_colors.dart';
+import '../../bloc/auth_bloc.dart';
+import '../../bloc/auth_event.dart';
+import '../../bloc/auth_state.dart';
+import '../../widgets/custom_divider_with_text.dart';
+import '../../widgets/emailField.dart';
+import '../../widgets/passwordField.dart';
+import '../../widgets/primary_button.dart';
+import '../../widgets/social_login_buttons.dart';
+
+class LoginPageView extends StatefulWidget {
+  const LoginPageView({super.key});
+
+  @override
+  State<LoginPageView> createState() => LoginPageViewState();
+}
+
+class LoginPageViewState extends State<LoginPageView> {
+  final _formKey = GlobalKey<FormState>();
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+
+  bool _obscurePassword = true;
+  bool _rememberMe = false;
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  void _onLoginPressed() {
+    if (_formKey.currentState!.validate()) {
+      context.read<AuthBloc>().add(
+        LoginEvent(
+          email: _emailController.text.trim(),
+          password: _passwordController.text,
+        ),
+      );
+    }
+  }
+
+  void _onGuestLoginPressed() {
+    // إضافة حدث تسجيل الدخول كضيف إلى الـ Bloc
+    context.read<AuthBloc>().add(GuestLoginEvent());
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppColors.white,
+      body: Stack(
+        children: [
+          const LoginBackground(),
+          BlocListener<AuthBloc, AuthState>(
+            listener: _authListener,
+            child: SafeArea(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(24),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      const SizedBox(height: 40),
+                      const Header(),
+                      const SizedBox(height: 50),
+                      const LoginTitle(),
+                      const SizedBox(height: 18),
+                      EmailField(controller: _emailController),
+                      const SizedBox(height: 25),
+                      PasswordField(
+                        controller: _passwordController,
+                        obscure: _obscurePassword,
+                        onToggleVisibility: () {
+                          setState(() {
+                            _obscurePassword = !_obscurePassword;
+                          });
+                        },
+                      ),
+                      const SizedBox(height: 42),
+                      BlocBuilder<AuthBloc, AuthState>(
+                        builder: (context, state) {
+                          final isLoading = state is AuthLoading;
+
+                          return PrimaryButton(
+                            text: 'تسجيل الدخول',
+                            isLoading: isLoading,
+                            onPressed: isLoading ? null : _onLoginPressed,
+                          );
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      OptionsRow(
+                        rememberMe: _rememberMe,
+                        onRememberChanged: (v) =>
+                            setState(() => _rememberMe = v),
+                      ),
+                      const SizedBox(height: 24),
+                      const CustomDividerWithText(text: "أو التسجيل بواسطة"),
+                      const SizedBox(height: 24),
+                      const SocialLoginButtons(),
+                      const SizedBox(height: 40),
+                      const CreateAccountButton(),
+
+                      // 🆕 زر الدخول كضيف
+                      const SizedBox(height: 16),
+                      TextButton.icon(
+                        onPressed: _onGuestLoginPressed,
+                        icon: const Icon(
+                          Icons.visibility_outlined,
+                          color: AppColors.textSecondary,
+                          size: 20,
+                        ),
+                        label: const Text(
+                          'تصفح كضيف',
+                          style: TextStyle(
+                            fontFamily: 'Cairo',
+                            color: AppColors.textSecondary,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _authListener(BuildContext context, AuthState state) {
+    if (state is AuthError) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(state.message),
+          backgroundColor: AppColors.error,
+        ),
+      );
+    } else if (state is AuthAuthenticated) {
+      // Navigate to home - server handles verification
+      Navigator.of(context).pushNamedAndRemoveUntil(
+        '/home',
+        (route) => false,
+      );
+    }
+  }
+}

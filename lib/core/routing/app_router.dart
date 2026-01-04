@@ -1,0 +1,151 @@
+import 'package:flutter/material.dart';
+import '../../features/about/presentation/pages/about_page.dart';
+import '../../features/authentication/presentation/pages/change_password_page.dart';
+import '../../features/authentication/presentation/pages/email_verification_page.dart';
+import '../../features/authentication/presentation/pages/register/complete_profile_page.dart';
+import '../../features/authentication/presentation/pages/forgot_password/create_new_password_page.dart';
+import '../../features/authentication/presentation/pages/forgot_password/forgot_password_page.dart';
+import '../../features/authentication/presentation/pages/forgot_password/otp_verification_page.dart';
+import '../../features/authentication/presentation/pages/login/login_page.dart';
+import '../../features/authentication/presentation/pages/register/register_page.dart';
+import '../../features/certificates/presentation/pages/certificates_page.dart';
+import '../../features/courses/presentation/pages/all_courses_page.dart';
+import '../../features/home/presentation/pages/home_page.dart';
+import '../../features/lessons/presentation/pages/lesson_player_page.dart';
+import '../../features/menu/presentation/pages/menu_page.dart';
+import '../../features/profile/presentation/pages/profile_page.dart';
+import '../../features/splash/presentation/pages/splash_page.dart';
+import '../../features/subscriptions/presentation/pages/subscriptions_page.dart';
+
+class AppRouter {
+  static const String splash = '/';
+  static const String login = '/login';
+  static const String register = '/register';
+  static const String forgotPassword = '/forgot-password';
+  static const String createNewPassword = '/create-new-password';
+  static const String otpVerification = '/otp-verification';
+  static const String emailVerification = '/email-verification';
+  static const String changePassword = '/change-password';
+  static const String completeProfile = '/complete-profile';
+  static const String home = '/home';
+  static const String menu = '/menu';
+  static const String profile = '/profile';
+  static const String subscriptions = '/subscriptions';
+  static const String certificates = '/certificates';
+  static const String courses = '/courses';
+  static const String lesson = '/lesson';
+  static const String about = '/about';
+
+  static Route<dynamic> generateRoute(RouteSettings settings) {
+    switch (settings.name) {
+      case splash:
+        return MaterialPageRoute(builder: (_) => const SplashPage());
+
+      case login:
+        return MaterialPageRoute(builder: (_) => const LoginPage());
+
+      case register:
+        return MaterialPageRoute(builder: (_) => const RegisterPage());
+
+      case forgotPassword:
+        return MaterialPageRoute(builder: (_) => const ForgotPasswordPage());
+
+      case createNewPassword:
+        final args = settings.arguments as Map<String, dynamic>?;
+        return MaterialPageRoute(
+          builder: (_) => CreateNewPasswordPage(
+            resetToken: args?['resetToken'] ?? '',
+            email: args?['email'],
+            otp: args?['otp'],
+          ),
+        );
+
+      case otpVerification:
+        final args = settings.arguments as Map<String, dynamic>;
+        return MaterialPageRoute(
+          builder: (_) => OtpVerificationPage(
+            email: args['email'],
+          ),
+        );
+
+      case emailVerification:
+        final args = settings.arguments as Map<String, dynamic>;
+        return MaterialPageRoute(
+          builder: (_) => EmailVerificationPage(
+            email: args['email'],
+          ),
+        );
+
+      case changePassword:
+        return MaterialPageRoute(builder: (_) => const ChangePasswordPage());
+
+      case completeProfile:
+        final args = settings.arguments as Map<String, dynamic>?;
+        return MaterialPageRoute(
+          builder: (_) => CompleteProfilePage(
+            email: args?['email'] ?? '',
+            name: args?['name'],
+            providerId: args?['providerId'] ?? 'google',
+          ),
+        );
+
+      case home:
+        return MaterialPageRoute(builder: (_) => const HomePage());
+
+      case menu:
+        return MaterialPageRoute(builder: (_) => const MenuPage());
+
+      case profile:
+        return MaterialPageRoute(builder: (_) => const ProfilePage());
+
+      case subscriptions:
+        return MaterialPageRoute(builder: (_) => const SubscriptionsPage());
+
+      case certificates:
+        return MaterialPageRoute(builder: (_) => const CertificatesPage());
+
+      case courses:
+        final args = settings.arguments as Map<String, dynamic>?;
+        return MaterialPageRoute(
+          builder: (_) => AllCoursesPage(
+            categoryId: args?['categoryId'],
+            specialtyId: args?['specialtyId'],
+            title: args?['title'],
+          ),
+        );
+
+      case lesson:
+        final args = settings.arguments as Map<String, dynamic>;
+        return MaterialPageRoute(
+          builder: (_) => LessonPlayerPage(
+            lessonId: args['lessonId'],
+            lesson: args['lesson'],
+          ),
+        );
+
+      case about:
+        return MaterialPageRoute(builder: (_) => const AboutPage());
+
+      default:
+        return MaterialPageRoute(
+          builder: (context) => Scaffold(
+            body: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.error_outline, size: 48, color: Colors.red),
+                  const SizedBox(height: 16),
+                  Text(
+                    'الصفحة غير موجودة',
+                    style: Theme.of(context).textTheme.headlineSmall,
+                  ),
+                  const SizedBox(height: 8),
+                  Text('No route defined for ${settings.name}'),
+                ],
+              ),
+            ),
+          ),
+        );
+    }
+  }
+}
