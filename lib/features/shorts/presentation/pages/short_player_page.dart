@@ -139,79 +139,79 @@ class _ShortVideoPlayer extends StatelessWidget {
           ),
         ),
 
-        // Top Tags
+        // Gradient overlay at bottom
         Positioned(
-          top: MediaQuery.of(context).padding.top + 16,
-          left: 16,
-          right: 16,
-          child: _buildTags(),
+          bottom: 0,
+          left: 0,
+          right: 0,
+          height: 300,
+          child: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.bottomCenter,
+                end: Alignment.topCenter,
+                colors: [
+                  Colors.black.withOpacity(0.8),
+                  Colors.transparent,
+                ],
+              ),
+            ),
+          ),
         ),
 
         // Left Side Actions (Like, Share)
         Positioned(
           left: 16,
-          bottom: 120,
+          bottom: 140,
           child: _buildSideActions(),
         ),
 
-        // Bottom Info
+        // Right Side - Channel Info
         Positioned(
           right: 16,
-          left: 80,
+          bottom: 140,
+          child: _buildChannelInfo(),
+        ),
+
+        // Bottom Subscribe Button
+        Positioned(
+          left: 24,
+          right: 24,
           bottom: 40,
-          child: _buildBottomInfo(context),
+          child: _buildSubscribeButton(context),
         ),
       ],
-    );
-  }
-
-  Widget _buildTags() {
-    return Row(
-      children: video.tags.map((tag) {
-        return Container(
-          margin: const EdgeInsets.only(left: 8),
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          decoration: BoxDecoration(
-            color: tag == 'برمجة' 
-                ? AppColors.primary 
-                : Colors.white.withOpacity(0.2),
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: Text(
-            tag,
-            style: TextStyle(
-              fontFamily: 'Cairo',
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: tag == 'برمجة' ? Colors.white : Colors.white,
-            ),
-          ),
-        );
-      }).toList(),
     );
   }
 
   Widget _buildSideActions() {
     return Column(
       children: [
-        // Like Button
+        // Like Button with count
         GestureDetector(
           onTap: onLike,
           child: Column(
             children: [
-              Icon(
-                isLiked ? Icons.favorite : Icons.favorite_border,
-                color: isLiked ? Colors.red : Colors.white,
-                size: 32,
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.15),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.favorite,
+                  color: isLiked ? Colors.red : Colors.white,
+                  size: 28,
+                ),
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: 6),
               Text(
-                video.formattedLikes,
+                _formatCount(video.likesCount),
                 style: const TextStyle(
                   fontFamily: 'Cairo',
-                  fontSize: 12,
+                  fontSize: 13,
                   color: Colors.white,
-                  fontWeight: FontWeight.w600,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
             ],
@@ -222,20 +222,31 @@ class _ShortVideoPlayer extends StatelessWidget {
         GestureDetector(
           onTap: onShare,
           child: Column(
-            children: const [
-              Icon(
-                Icons.reply,
-                color: Colors.white,
-                size: 32,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.15),
+                  shape: BoxShape.circle,
+                ),
+                child: Transform(
+                  alignment: Alignment.center,
+                  transform: Matrix4.rotationY(3.14159), // Mirror the icon
+                  child: const Icon(
+                    Icons.reply,
+                    color: Colors.white,
+                    size: 28,
+                  ),
+                ),
               ),
-              SizedBox(height: 4),
-              Text(
+              const SizedBox(height: 6),
+              const Text(
                 'مشاركة',
                 style: TextStyle(
                   fontFamily: 'Cairo',
-                  fontSize: 12,
+                  fontSize: 13,
                   color: Colors.white,
-                  fontWeight: FontWeight.w600,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
             ],
@@ -245,94 +256,96 @@ class _ShortVideoPlayer extends StatelessWidget {
     );
   }
 
-  Widget _buildBottomInfo(BuildContext context) {
+  Widget _buildChannelInfo() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
-        // Channel Info
+        // Channel name with icon
         Row(
-          mainAxisAlignment: MainAxisAlignment.end,
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Row(
-                  children: [
-                    Text(
-                      video.channelName,
-                      style: const TextStyle(
-                        fontFamily: 'Cairo',
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Container(
-                      padding: const EdgeInsets.all(2),
-                      decoration: const BoxDecoration(
-                        color: Colors.white,
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(
-                        Icons.chat_bubble,
-                        color: AppColors.textSecondary,
-                        size: 16,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  video.description,
-                  style: TextStyle(
-                    fontFamily: 'Cairo',
-                    fontSize: 13,
-                    color: Colors.white.withOpacity(0.9),
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  textAlign: TextAlign.right,
-                ),
-              ],
-            ),
-          ],
-        ),
-        const SizedBox(height: 16),
-        // Subscribe Button
-        SizedBox(
-          width: double.infinity,
-          child: ElevatedButton(
-            onPressed: () {
-              // TODO: Implement subscribe
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('تم الاشتراك بنجاح'),
-                  backgroundColor: AppColors.success,
-                ),
-              );
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              padding: const EdgeInsets.symmetric(vertical: 14),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(25),
-              ),
-            ),
-            child: const Text(
-              'اشترك من هنا',
-              style: TextStyle(
+            Text(
+              video.channelName,
+              style: const TextStyle(
                 fontFamily: 'Cairo',
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
                 color: Colors.white,
               ),
             ),
+            const SizedBox(width: 8),
+            Container(
+              width: 28,
+              height: 28,
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: const Icon(
+                Icons.remove,
+                color: Colors.white,
+                size: 18,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        // Description/Title
+        SizedBox(
+          width: 200,
+          child: Text(
+            video.description,
+            style: TextStyle(
+              fontFamily: 'Cairo',
+              fontSize: 13,
+              color: Colors.white.withOpacity(0.9),
+              height: 1.4,
+            ),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.right,
           ),
         ),
       ],
     );
   }
+
+  Widget _buildSubscribeButton(BuildContext context) {
+    return ElevatedButton(
+      onPressed: () {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('تم الاشتراك بنجاح'),
+            backgroundColor: AppColors.success,
+          ),
+        );
+      },
+      style: ElevatedButton.styleFrom(
+        backgroundColor: AppColors.primary,
+        padding: const EdgeInsets.symmetric(vertical: 14),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(30),
+        ),
+        elevation: 4,
+      ),
+      child: const Text(
+        'اشترك من هنا',
+        style: TextStyle(
+          fontFamily: 'Cairo',
+          fontSize: 16,
+          fontWeight: FontWeight.bold,
+          color: Colors.white,
+        ),
+      ),
+    );
+  }
+
+  String _formatCount(int count) {
+    if (count >= 1000000) {
+      return '${(count / 1000000).toStringAsFixed(1)}M';
+    } else if (count >= 1000) {
+      return '${(count / 1000).toStringAsFixed(1)}k';
+    }
+    return count.toString();
+  }
 }
-
-
