@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../../core/di/injection_container.dart';
 import '../../../../core/theme/app_colors.dart';
-import '../../domain/entities/short_video.dart';
-import '../widgets/shorts_grid.dart';
-import 'short_player_page.dart';
+import '../../../reels/domain/entities/reel.dart';
+import '../../../reels/presentation/bloc/reels_bloc.dart';
+import '../../../reels/presentation/bloc/reels_event.dart';
+import '../../../reels/presentation/bloc/reels_state.dart';
+import '../../../reels/presentation/pages/reels_feed_page.dart';
+import '../widgets/reels_grid.dart';
 
 class ShortsPage extends StatefulWidget {
   const ShortsPage({super.key});
@@ -13,136 +18,11 @@ class ShortsPage extends StatefulWidget {
 
 class _ShortsPageState extends State<ShortsPage> with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  
-  // Sample data - Replace with actual API data
-  final List<ShortVideo> _myVideos = [
-    ShortVideo(
-      id: 1,
-      title: 'تعلم كيفية نطق الحروف',
-      description: 'درس ممتع لتعلم نطق الحروف العربية',
-      thumbnailUrl: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=400',
-      videoUrl: '',
-      channelName: 'ليرنفاي',
-      channelAvatarUrl: '',
-      viewsCount: 1500000,
-      likesCount: 19600,
-      tags: ['برمجة', 'رسم', 'انجلش', 'عام'],
-      createdAt: DateTime.now(),
-    ),
-    ShortVideo(
-      id: 2,
-      title: 'تعلم البرمجة للأطفال',
-      description: 'مقدمة في البرمجة للمبتدئين',
-      thumbnailUrl: 'https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=400',
-      videoUrl: '',
-      channelName: 'ليرنفاي',
-      channelAvatarUrl: '',
-      viewsCount: 1500000,
-      likesCount: 12000,
-      tags: ['برمجة'],
-      createdAt: DateTime.now(),
-    ),
-    ShortVideo(
-      id: 3,
-      title: 'رسم للمبتدئين',
-      description: 'تعلم أساسيات الرسم',
-      thumbnailUrl: 'https://images.unsplash.com/photo-1503023345310-bd7c1de61c7d?w=400',
-      videoUrl: '',
-      channelName: 'ليرنفاي',
-      channelAvatarUrl: '',
-      viewsCount: 1500000,
-      likesCount: 8500,
-      tags: ['رسم'],
-      createdAt: DateTime.now(),
-    ),
-    ShortVideo(
-      id: 4,
-      title: 'تعلم الإنجليزية',
-      description: 'كلمات إنجليزية جديدة',
-      thumbnailUrl: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=400',
-      videoUrl: '',
-      channelName: 'ليرنفاي',
-      channelAvatarUrl: '',
-      viewsCount: 1500000,
-      likesCount: 15000,
-      tags: ['انجلش'],
-      createdAt: DateTime.now(),
-    ),
-    ShortVideo(
-      id: 5,
-      title: 'مغامرة في الصحراء',
-      description: 'رحلة استكشافية ممتعة',
-      thumbnailUrl: 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=400',
-      videoUrl: '',
-      channelName: 'ليرنفاي',
-      channelAvatarUrl: '',
-      viewsCount: 1500000,
-      likesCount: 22000,
-      tags: ['عام'],
-      createdAt: DateTime.now(),
-    ),
-    ShortVideo(
-      id: 6,
-      title: 'الطبيعة الخلابة',
-      description: 'مناظر طبيعية رائعة',
-      thumbnailUrl: 'https://images.unsplash.com/photo-1501854140801-50d01698950b?w=400',
-      videoUrl: '',
-      channelName: 'ليرنفاي',
-      channelAvatarUrl: '',
-      viewsCount: 1500000,
-      likesCount: 18000,
-      tags: ['عام'],
-      createdAt: DateTime.now(),
-    ),
-    ShortVideo(
-      id: 7,
-      title: 'ألوان الحياة',
-      description: 'تعلم الألوان بطريقة ممتعة',
-      thumbnailUrl: 'https://images.unsplash.com/photo-1518837695005-2083093ee35b?w=400',
-      videoUrl: '',
-      channelName: 'ليرنفاي',
-      channelAvatarUrl: '',
-      viewsCount: 800000,
-      likesCount: 9500,
-      tags: ['رسم'],
-      createdAt: DateTime.now(),
-    ),
-    ShortVideo(
-      id: 8,
-      title: 'نباتات جميلة',
-      description: 'تعرف على النباتات',
-      thumbnailUrl: 'https://images.unsplash.com/photo-1459411552884-841db9b3cc2a?w=400',
-      videoUrl: '',
-      channelName: 'ليرنفاي',
-      channelAvatarUrl: '',
-      viewsCount: 650000,
-      likesCount: 7200,
-      tags: ['عام'],
-      createdAt: DateTime.now(),
-    ),
-    ShortVideo(
-      id: 9,
-      title: 'عالم الحيوانات',
-      description: 'تعرف على الحيوانات الأليفة',
-      thumbnailUrl: 'https://images.unsplash.com/photo-1574158622682-e40e69881006?w=400',
-      videoUrl: '',
-      channelName: 'ليرنفاي',
-      channelAvatarUrl: '',
-      viewsCount: 2100000,
-      likesCount: 25000,
-      tags: ['عام'],
-      createdAt: DateTime.now(),
-    ),
-  ];
-
-  final List<ShortVideo> _likedVideos = [];
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
-    // Add some liked videos
-    _likedVideos.addAll(_myVideos.take(3));
   }
 
   @override
@@ -153,36 +33,204 @@ class _ShortsPageState extends State<ShortsPage> with SingleTickerProviderStateM
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: SafeArea(
+    return BlocProvider(
+      create: (_) => sl<ReelsBloc>()..add(const LoadReelsFeedEvent(perPage: 20)),
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        body: SafeArea(
+          child: Column(
+            children: [
+              const SizedBox(height: 16),
+              // Logo
+              _buildHeader(),
+              const SizedBox(height: 24),
+              // Tabs
+              _buildTabs(),
+              const SizedBox(height: 16),
+              // Content
+              Expanded(
+                child: BlocBuilder<ReelsBloc, ReelsState>(
+                  builder: (context, state) {
+                    return TabBarView(
+                      controller: _tabController,
+                      children: [
+                        _buildMyVideosTab(context, state),
+                        _buildLikedVideosTab(context, state),
+                      ],
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMyVideosTab(BuildContext context, ReelsState state) {
+    if (state is ReelsLoading) {
+      return const Center(
+        child: CircularProgressIndicator(
+          color: AppColors.primary,
+        ),
+      );
+    }
+
+    if (state is ReelsError) {
+      return Center(
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            Icon(
+              Icons.error_outline,
+              size: 64,
+              color: Colors.grey[400],
+            ),
             const SizedBox(height: 16),
-            // Logo
-            _buildHeader(),
-            const SizedBox(height: 24),
-            // Tabs
-            _buildTabs(),
+            Text(
+              state.message,
+              style: TextStyle(
+                fontFamily: 'Cairo',
+                fontSize: 14,
+                color: Colors.grey[600],
+              ),
+              textAlign: TextAlign.center,
+            ),
             const SizedBox(height: 16),
-            // Content
-            Expanded(
-              child: TabBarView(
-                controller: _tabController,
-                children: [
-                  ShortsGrid(
-                    videos: _myVideos,
-                    onVideoTap: _onVideoTap,
-                  ),
-                  ShortsGrid(
-                    videos: _likedVideos,
-                    onVideoTap: _onVideoTap,
-                  ),
-                ],
+            ElevatedButton(
+              onPressed: () {
+                context.read<ReelsBloc>().add(const LoadReelsFeedEvent(perPage: 20));
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
+                ),
+              ),
+              child: const Text(
+                'إعادة المحاولة',
+                style: TextStyle(
+                  fontFamily: 'Cairo',
+                  color: Colors.white,
+                ),
               ),
             ),
           ],
         ),
+      );
+    }
+
+    if (state is ReelsEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.video_library_outlined,
+              size: 80,
+              color: Colors.grey[400],
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'لا توجد فيديوهات',
+              style: TextStyle(
+                fontFamily: 'Cairo',
+                fontSize: 16,
+                color: Colors.grey[600],
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (state is ReelsLoaded) {
+      return ReelsGrid(
+        reels: state.reels,
+        onReelTap: (reel, index) => _onVideoTap(context, state.reels, index),
+        onLoadMore: state.hasMore && !state.isLoadingMore
+            ? () => context.read<ReelsBloc>().add(const LoadMoreReelsEvent())
+            : null,
+        isLoadingMore: state.isLoadingMore,
+        // Pass real-time state for updates
+        likedReels: state.likedReels,
+        viewCounts: state.viewCounts,
+        likeCounts: state.likeCounts,
+      );
+    }
+
+    return const SizedBox.shrink();
+  }
+
+  Widget _buildLikedVideosTab(BuildContext context, ReelsState state) {
+    if (state is ReelsLoaded) {
+      // Filter liked videos
+      final likedReels = state.reels.where((reel) {
+        return state.likedReels[reel.id] == true || reel.liked;
+      }).toList();
+
+      if (likedReels.isEmpty) {
+        return Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.favorite_border,
+                size: 80,
+                color: Colors.grey[400],
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'لا توجد فيديوهات مفضلة',
+                style: TextStyle(
+                  fontFamily: 'Cairo',
+                  fontSize: 16,
+                  color: Colors.grey[600],
+                ),
+              ),
+            ],
+          ),
+        );
+      }
+
+      return ReelsGrid(
+        reels: likedReels,
+        onReelTap: (reel, index) => _onVideoTap(context, likedReels, index),
+        // Pass real-time state for updates
+        likedReels: state.likedReels,
+        viewCounts: state.viewCounts,
+        likeCounts: state.likeCounts,
+      );
+    }
+
+    if (state is ReelsLoading) {
+      return const Center(
+        child: CircularProgressIndicator(
+          color: AppColors.primary,
+        ),
+      );
+    }
+
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.favorite_border,
+            size: 80,
+            color: Colors.grey[400],
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'لا توجد فيديوهات مفضلة',
+            style: TextStyle(
+              fontFamily: 'Cairo',
+              fontSize: 16,
+              color: Colors.grey[600],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -208,7 +256,7 @@ class _ShortsPageState extends State<ShortsPage> with SingleTickerProviderStateM
               errorBuilder: (context, error, stackTrace) {
                 return Container(
                   color: AppColors.primary.withOpacity(0.1),
-                  child: Center(
+                  child: const Center(
                     child: Text(
                       'L',
                       style: TextStyle(
@@ -267,11 +315,11 @@ class _ShortsPageState extends State<ShortsPage> with SingleTickerProviderStateM
           fontSize: 14,
           fontWeight: FontWeight.w500,
         ),
-        tabs: [
+        tabs: const [
           Tab(
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
-              children: const [
+              children: [
                 Icon(Icons.play_arrow_outlined, size: 20),
                 SizedBox(width: 6),
                 Text('My Videos'),
@@ -281,7 +329,7 @@ class _ShortsPageState extends State<ShortsPage> with SingleTickerProviderStateM
           Tab(
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
-              children: const [
+              children: [
                 Icon(Icons.favorite_border, size: 20),
                 SizedBox(width: 6),
                 Text('Liked'),
@@ -293,17 +341,15 @@ class _ShortsPageState extends State<ShortsPage> with SingleTickerProviderStateM
     );
   }
 
-  void _onVideoTap(ShortVideo video, int index) {
+  void _onVideoTap(BuildContext context, List<Reel> reels, int index) {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => ShortPlayerPage(
-          videos: _tabController.index == 0 ? _myVideos : _likedVideos,
-          initialIndex: index,
+        builder: (_) => BlocProvider.value(
+          value: context.read<ReelsBloc>(),
+          child: ReelsFeedPage(initialIndex: index),
         ),
       ),
     );
   }
 }
-
-

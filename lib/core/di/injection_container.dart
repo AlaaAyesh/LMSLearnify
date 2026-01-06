@@ -47,6 +47,13 @@ import '../../features/chapters/data/repositories/chapter_repository_impl.dart';
 import '../../features/chapters/domain/repositories/chapter_repository.dart';
 import '../../features/chapters/domain/usecases/get_chapter_by_id_usecase.dart';
 import '../../features/chapters/presentation/bloc/chapter_bloc.dart';
+import '../../features/reels/data/datasources/reels_remote_datasource.dart';
+import '../../features/reels/data/repositories/reels_repository_impl.dart';
+import '../../features/reels/domain/repositories/reels_repository.dart';
+import '../../features/reels/domain/usecases/get_reels_feed_usecase.dart';
+import '../../features/reels/domain/usecases/record_reel_view_usecase.dart';
+import '../../features/reels/domain/usecases/toggle_reel_like_usecase.dart';
+import '../../features/reels/presentation/bloc/reels_bloc.dart';
 import '../network/dio_client.dart';
 import '../services/guest_service.dart';
 import '../storage/hive_service.dart';
@@ -78,6 +85,7 @@ Future<void> initDependencies() async {
   _initCourses();
   _initLessons();
   _initChapters();
+  _initReels();
 }
 
 void _initAuth() {
@@ -272,6 +280,34 @@ void _initChapters() {
   sl.registerFactory(
         () => ChapterBloc(
       getChapterByIdUseCase: sl(),
+    ),
+  );
+}
+
+void _initReels() {
+  // Data Sources
+  sl.registerLazySingleton<ReelsRemoteDataSource>(
+        () => ReelsRemoteDataSourceImpl(sl()),
+  );
+
+  // Repository
+  sl.registerLazySingleton<ReelsRepository>(
+        () => ReelsRepositoryImpl(
+      remoteDataSource: sl(),
+    ),
+  );
+
+  // Use Cases
+  sl.registerLazySingleton(() => GetReelsFeedUseCase(sl()));
+  sl.registerLazySingleton(() => RecordReelViewUseCase(sl()));
+  sl.registerLazySingleton(() => ToggleReelLikeUseCase(sl()));
+
+  // Bloc
+  sl.registerFactory(
+        () => ReelsBloc(
+      getReelsFeedUseCase: sl(),
+      recordReelViewUseCase: sl(),
+      toggleReelLikeUseCase: sl(),
     ),
   );
 }

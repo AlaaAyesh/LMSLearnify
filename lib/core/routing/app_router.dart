@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../features/about/presentation/pages/about_page.dart';
 import '../../features/authentication/presentation/pages/change_password_page.dart';
 import '../../features/authentication/presentation/pages/email_verification_page.dart';
@@ -14,8 +15,12 @@ import '../../features/home/presentation/pages/home_page.dart';
 import '../../features/lessons/presentation/pages/lesson_player_page.dart';
 import '../../features/menu/presentation/pages/menu_page.dart';
 import '../../features/profile/presentation/pages/profile_page.dart';
+import '../../features/reels/presentation/bloc/reels_bloc.dart';
+import '../../features/reels/presentation/bloc/reels_event.dart';
+import '../../features/reels/presentation/pages/reels_feed_page.dart';
 import '../../features/splash/presentation/pages/splash_page.dart';
 import '../../features/subscriptions/presentation/pages/subscriptions_page.dart';
+import '../di/injection_container.dart';
 
 class AppRouter {
   static const String splash = '/';
@@ -35,6 +40,7 @@ class AppRouter {
   static const String courses = '/courses';
   static const String lesson = '/lesson';
   static const String about = '/about';
+  static const String reelsFeed = '/reels-feed';
 
   static Route<dynamic> generateRoute(RouteSettings settings) {
     switch (settings.name) {
@@ -125,6 +131,17 @@ class AppRouter {
 
       case about:
         return MaterialPageRoute(builder: (_) => const AboutPage());
+
+      case reelsFeed:
+        final args = settings.arguments as Map<String, dynamic>?;
+        return MaterialPageRoute(
+          builder: (_) => BlocProvider(
+            create: (_) => sl<ReelsBloc>()..add(const LoadReelsFeedEvent(perPage: 10)),
+            child: ReelsFeedPage(
+              initialIndex: args?['initialIndex'] ?? 0,
+            ),
+          ),
+        );
 
       default:
         return MaterialPageRoute(
