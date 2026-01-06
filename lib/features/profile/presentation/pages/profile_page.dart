@@ -368,43 +368,23 @@ class _AuthenticatedProfilePageState extends State<_AuthenticatedProfilePage> {
   }
 
   Widget _buildProfileAvatar(User user) {
-    return Stack(
-      children: [
-        CircleAvatar(
-          radius: 50,
-          backgroundColor: AppColors.primary.withOpacity(0.1),
-          backgroundImage:
-              user.avatarUrl != null && user.avatarUrl!.isNotEmpty
-                  ? NetworkImage(user.avatarUrl!)
-                  : null,
-          child: user.avatarUrl == null || user.avatarUrl!.isEmpty
-              ? Text(
-                  user.name.isNotEmpty ? user.name[0].toUpperCase() : 'U',
-                  style: const TextStyle(
-                    fontSize: 40,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.primary,
-                  ),
-                )
+    return CircleAvatar(
+      radius: 50,
+      backgroundColor: AppColors.primary.withOpacity(0.1),
+      backgroundImage:
+          user.avatarUrl != null && user.avatarUrl!.isNotEmpty
+              ? NetworkImage(user.avatarUrl!)
               : null,
-        ),
-        Positioned(
-          bottom: 0,
-          right: 0,
-          child: Container(
-            padding: const EdgeInsets.all(4),
-            decoration: const BoxDecoration(
-              color: AppColors.primary,
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(
-              Icons.camera_alt,
-              size: 20,
-              color: Colors.white,
-            ),
-          ),
-        ),
-      ],
+      child: user.avatarUrl == null || user.avatarUrl!.isEmpty
+          ? Text(
+              user.name.isNotEmpty ? user.name[0].toUpperCase() : 'U',
+              style: const TextStyle(
+                fontSize: 40,
+                fontWeight: FontWeight.bold,
+                color: AppColors.primary,
+              ),
+            )
+          : null,
     );
   }
 

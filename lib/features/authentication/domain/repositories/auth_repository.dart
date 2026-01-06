@@ -56,8 +56,14 @@ abstract class AuthRepository {
   Future<Either<Failure, User>> handleGoogleCallback({required String code});
   
   /// Mobile OAuth login with access token from native SDK
+  /// Optionally includes profile data for first-time registration
   Future<Either<Failure, User>> mobileOAuthLogin({
     required String provider,
     required String accessToken,
+    String? name,
+    String? phone,
+    int? specialtyId,
+    String? gender,
+    String? birthday,
   });
 }

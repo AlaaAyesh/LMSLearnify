@@ -66,15 +66,17 @@ class SocialLoginNeedsCompletion extends AuthState {
   final String email;
   final String? name;
   final String providerId;
+  final String accessToken; // Google/Apple token to be used after profile completion
 
   const SocialLoginNeedsCompletion({
     required this.email,
     this.name,
     required this.providerId,
+    required this.accessToken,
   });
 
   @override
-  List<Object?> get props => [email, name, providerId];
+  List<Object?> get props => [email, name, providerId, accessToken];
 }
 
 // Google OAuth states

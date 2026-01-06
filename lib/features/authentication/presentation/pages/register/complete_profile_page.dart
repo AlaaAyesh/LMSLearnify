@@ -19,12 +19,14 @@ class CompleteProfilePage extends StatelessWidget {
   final String email;
   final String? name;
   final String providerId; // google | apple
+  final String accessToken; // OAuth token for registration
 
   const CompleteProfilePage({
     super.key,
     required this.email,
     this.name,
     required this.providerId,
+    required this.accessToken,
   });
 
   @override
@@ -35,6 +37,7 @@ class CompleteProfilePage extends StatelessWidget {
         email: email,
         name: name,
         providerId: providerId,
+        accessToken: accessToken,
       ),
     );
   }
@@ -44,11 +47,13 @@ class _CompleteProfileView extends StatefulWidget {
   final String email;
   final String? name;
   final String providerId;
+  final String accessToken;
 
   const _CompleteProfileView({
     required this.email,
     this.name,
     required this.providerId,
+    required this.accessToken,
   });
 
   @override
@@ -184,6 +189,7 @@ class _CompleteProfileViewState extends State<_CompleteProfileView> {
               gender: selectedGender,
               birthday: _getBirthdayString(),
               providerId: widget.providerId,
+              accessToken: widget.accessToken,
             ),
           );
     }

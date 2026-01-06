@@ -283,11 +283,21 @@ class AuthRepositoryImpl implements AuthRepository {
   Future<Either<Failure, User>> mobileOAuthLogin({
     required String provider,
     required String accessToken,
+    String? name,
+    String? phone,
+    int? specialtyId,
+    String? gender,
+    String? birthday,
   }) async {
     try {
       final loginResponse = await remoteDataSource.mobileOAuthLogin(
         provider: provider,
         accessToken: accessToken,
+        name: name,
+        phone: phone,
+        specialtyId: specialtyId,
+        gender: gender,
+        birthday: birthday,
       );
 
       // Save access token

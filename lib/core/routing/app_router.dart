@@ -92,6 +92,7 @@ class AppRouter {
             email: args?['email'] ?? '',
             name: args?['name'],
             providerId: args?['providerId'] ?? 'google',
+            accessToken: args?['accessToken'] ?? '',
           ),
         );
 

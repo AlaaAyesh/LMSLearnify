@@ -14,7 +14,7 @@ class ApiConstants {
   // OAuth Endpoints
   static const String googleAuth = 'auth/google';
   static const String googleCallback = 'auth/google/callback';
-  static const String mobileOAuthLogin = 'auth/mobile/oauth-login';
+  static const String mobileOAuthLogin = 'auth/mobile/login';
   
   // Email Verification Endpoints
   static const String sendEmailOtp = 'auth/email/send-otp';

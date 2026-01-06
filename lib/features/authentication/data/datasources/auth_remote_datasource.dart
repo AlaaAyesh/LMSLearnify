@@ -35,9 +35,15 @@ abstract class AuthRemoteDataSource {
   /// Mobile OAuth login with access token from native SDK
   /// [provider] - OAuth provider name (google, facebook)
   /// [accessToken] - Access token from OAuth provider
+  /// Optionally includes profile data for first-time registration
   Future<LoginResponseModel> mobileOAuthLogin({
     required String provider,
     required String accessToken,
+    String? name,
+    String? phone,
+    int? specialtyId,
+    String? gender,
+    String? birthday,
   });
 }
 
@@ -312,7 +318,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   
   /// Parse OAuth response which has a different format than standard login
   LoginResponseModel _parseOAuthResponse(Map<String, dynamic> json) {
-    // OAuth response format: { "user": {...}, "token": "...", "message": "..." }
+    // Mobile OAuth response format: { "user": {...}, "access_token": "...", "token_type": "...", "message": "..." }
     // Standard format: { "status": "success", "data": { "user": {...}, "access_token": "..." } }
     
     // Check if it's standard format first
@@ -320,9 +326,11 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       return LoginResponseModel.fromJson(json);
     }
     
-    // Handle OAuth callback format
+    // Handle OAuth response format (user and access_token at root level)
     final userData = json['user'] as Map<String, dynamic>?;
-    final token = json['token'] as String?;
+    // Support both 'access_token' and 'token' keys
+    final token = (json['access_token'] ?? json['token']) as String?;
+    final tokenType = (json['token_type'] as String?) ?? 'Bearer';
     
     if (userData == null) {
       throw ServerException(
@@ -341,7 +349,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       'data': {
         'user': userData,
         'access_token': token,
-        'token_type': 'Bearer',
+        'token_type': tokenType,
       }
     });
   }
@@ -350,14 +358,29 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   Future<LoginResponseModel> mobileOAuthLogin({
     required String provider,
     required String accessToken,
+    String? name,
+    String? phone,
+    int? specialtyId,
+    String? gender,
+    String? birthday,
   }) async {
     try {
+      // Build form data with required fields
+      final Map<String, dynamic> formFields = {
+        'provider': provider,
+        'access_token': accessToken,
+      };
+
+      // Add optional profile fields if provided (for first-time registration)
+      if (name != null) formFields['name'] = name;
+      if (phone != null) formFields['phone'] = phone;
+      if (specialtyId != null) formFields['specialty_id'] = specialtyId;
+      if (gender != null) formFields['gender'] = gender;
+      if (birthday != null) formFields['birthday'] = birthday;
+
       final response = await dioClient.post(
         ApiConstants.mobileOAuthLogin,
-        data: FormData.fromMap({
-          'provider': provider,
-          'access_token': accessToken,
-        }),
+        data: FormData.fromMap(formFields),
         options: Options(
           contentType: 'multipart/form-data',
         ),

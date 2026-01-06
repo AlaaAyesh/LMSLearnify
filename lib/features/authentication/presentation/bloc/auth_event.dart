@@ -62,6 +62,7 @@ class CompleteProfileEvent extends AuthEvent {
   final String gender;
   final String? birthday;
   final String providerId;
+  final String accessToken; // Google/Apple token for registration
 
   const CompleteProfileEvent({
     required this.name,
@@ -72,10 +73,11 @@ class CompleteProfileEvent extends AuthEvent {
     required this.gender,
     this.birthday,
     required this.providerId,
+    required this.accessToken,
   });
 
   @override
-  List<Object?> get props => [name, email, phone, role, specialtyId, gender, birthday, providerId];
+  List<Object?> get props => [name, email, phone, role, specialtyId, gender, birthday, providerId, accessToken];
 }
 
 class LogoutEvent extends AuthEvent {}

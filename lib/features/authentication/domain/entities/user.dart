@@ -45,6 +45,15 @@ class User extends Equatable {
 
   String get fullName => name;
 
+  /// Check if the user has completed their profile (required for social login users)
+  bool get isProfileComplete {
+    return phone != null && 
+           phone!.isNotEmpty && 
+           specialtyId != null && 
+           birthday != null && 
+           birthday!.isNotEmpty;
+  }
+
   @override
   List<Object?> get props => [
         id,

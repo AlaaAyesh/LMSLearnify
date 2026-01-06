@@ -85,18 +85,15 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   ) async {
     emit(AuthLoading());
 
-    // TODO: Implement actual social login with Firebase/Google/Apple
-    // For now, simulate the flow
+    // For Google, use NativeGoogleSignInEvent instead
+    // For Apple, implementation pending
+    if (event.provider == 'apple') {
+      emit(const AuthError('تسجيل الدخول عبر Apple غير متاح حالياً'));
+      return;
+    }
 
-    // Simulate API call
-    await Future.delayed(const Duration(seconds: 1));
-
-    // Simulate incomplete profile scenario
-    emit(const SocialLoginNeedsCompletion(
-      email: 'user@gmail.com',
-      name: null,
-      providerId: 'google',
-    ));
+    // Fallback error for unknown providers
+    emit(const AuthError('مزود تسجيل الدخول غير مدعوم'));
   }
 
   Future<void> _onCompleteProfile(
@@ -105,12 +102,11 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   ) async {
     emit(AuthLoading());
 
-    final result = await registerUseCase(
+    // Register with social provider token + complete profile data
+    final result = await authRepository.mobileOAuthLogin(
+      provider: event.providerId,
+      accessToken: event.accessToken,
       name: event.name,
-      email: event.email,
-      password: '', // No password for social login
-      passwordConfirmation: '',
-      role: event.role,
       phone: event.phone,
       specialtyId: event.specialtyId,
       gender: event.gender,
@@ -338,22 +334,40 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
       // Get authentication details
       final GoogleSignInAuthentication auth = await account.authentication;
+      final String? idToken = auth.idToken;
       final String? accessToken = auth.accessToken;
 
-      if (accessToken == null || accessToken.isEmpty) {
+      // Prefer ID token for backend authentication, fallback to access token
+      final String? tokenToSend = idToken ?? accessToken;
+
+      if (tokenToSend == null || tokenToSend.isEmpty) {
         emit(const AuthError('فشل في الحصول على رمز الوصول'));
         return;
       }
 
-      // Send access token to backend
+      // Try to login first - check if user already exists
       final result = await authRepository.mobileOAuthLogin(
         provider: 'google',
-        accessToken: accessToken,
+        accessToken: tokenToSend,
       );
 
       result.fold(
         (failure) => emit(AuthError(failure.message)),
-        (user) => emit(AuthAuthenticated(user)),
+        (user) {
+          // Check if user profile is complete
+          if (user.isProfileComplete) {
+            // Existing user with complete profile - go to home
+            emit(AuthAuthenticated(user));
+          } else {
+            // New user or incomplete profile - show complete profile page
+            emit(SocialLoginNeedsCompletion(
+              email: account.email,
+              name: account.displayName,
+              providerId: 'google',
+              accessToken: tokenToSend,
+            ));
+          }
+        },
       );
     } catch (e) {
       // Handle specific Google Sign-In errors
