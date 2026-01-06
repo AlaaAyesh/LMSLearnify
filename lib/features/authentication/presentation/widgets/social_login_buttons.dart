@@ -26,6 +26,16 @@ class SocialLoginButtons extends StatelessWidget {
           );
         } else if (state is AuthAuthenticated) {
           Navigator.of(context).pushReplacementNamed('/home');
+        } else if (state is AuthError) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                state.message,
+                style: const TextStyle(fontFamily: 'Cairo'),
+              ),
+              backgroundColor: Colors.red,
+            ),
+          );
         }
       },
       child: Row(
@@ -43,9 +53,8 @@ class SocialLoginButtons extends StatelessWidget {
           SocialButton(
             asset: 'assets/icons/google.svg',
             onTap: () {
-              context.read<AuthBloc>().add(
-                    const SocialLoginEvent(provider: 'google'),
-                  );
+              // Use native Google Sign-In
+              context.read<AuthBloc>().add(NativeGoogleSignInEvent());
             },
           ),
         ],

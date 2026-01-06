@@ -242,4 +242,70 @@ class AuthRepositoryImpl implements AuthRepository {
       return Left(CacheFailure('فشل الدخول كضيف'));
     }
   }
+
+  @override
+  Future<Either<Failure, String>> getGoogleAuthUrl() async {
+    try {
+      final url = await remoteDataSource.getGoogleAuthUrl();
+      return Right(url);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    } catch (e) {
+      return Left(ServerFailure('حدث خطأ غير متوقع: $e'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, User>> handleGoogleCallback({required String code}) async {
+    try {
+      final loginResponse = await remoteDataSource.handleGoogleCallback(code);
+
+      // Save access token
+      await localDataSource.saveTokens(
+        accessToken: loginResponse.accessToken,
+      );
+
+      // Cache user data
+      await localDataSource.cacheUser(loginResponse.user);
+
+      // Disable guest mode when user logs in via Google
+      await guestService.disableGuestMode();
+
+      return Right(loginResponse.user);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    } catch (e) {
+      return Left(ServerFailure('حدث خطأ غير متوقع: $e'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, User>> mobileOAuthLogin({
+    required String provider,
+    required String accessToken,
+  }) async {
+    try {
+      final loginResponse = await remoteDataSource.mobileOAuthLogin(
+        provider: provider,
+        accessToken: accessToken,
+      );
+
+      // Save access token
+      await localDataSource.saveTokens(
+        accessToken: loginResponse.accessToken,
+      );
+
+      // Cache user data
+      await localDataSource.cacheUser(loginResponse.user);
+
+      // Disable guest mode when user logs in via OAuth
+      await guestService.disableGuestMode();
+
+      return Right(loginResponse.user);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    } catch (e) {
+      return Left(ServerFailure('حدث خطأ غير متوقع: $e'));
+    }
+  }
 }

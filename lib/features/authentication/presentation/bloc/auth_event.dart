@@ -140,3 +140,32 @@ class ChangePasswordEvent extends AuthEvent {
 
 // Guest login event
 class GuestLoginEvent extends AuthEvent {}
+
+// Google OAuth events (WebView flow)
+class GoogleSignInEvent extends AuthEvent {}
+
+class GoogleCallbackEvent extends AuthEvent {
+  final String code;
+
+  const GoogleCallbackEvent({required this.code});
+
+  @override
+  List<Object?> get props => [code];
+}
+
+// Mobile OAuth events (Native SDK flow)
+class MobileOAuthLoginEvent extends AuthEvent {
+  final String provider; // 'google' or 'facebook'
+  final String accessToken;
+
+  const MobileOAuthLoginEvent({
+    required this.provider,
+    required this.accessToken,
+  });
+
+  @override
+  List<Object?> get props => [provider, accessToken];
+}
+
+// Native Google Sign-In event
+class NativeGoogleSignInEvent extends AuthEvent {}

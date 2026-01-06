@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import '../../domain/repositories/auth_repository.dart';
 import '../../domain/usecases/login_usecase.dart';
 import '../../domain/usecases/register_usecase.dart';
@@ -31,7 +32,17 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<CheckEmailVerificationEvent>(_onCheckEmailVerification);
     on<ChangePasswordEvent>(_onChangePassword);
     on<GuestLoginEvent>(_onGuestLogin);
+    on<GoogleSignInEvent>(_onGoogleSignIn);
+    on<GoogleCallbackEvent>(_onGoogleCallback);
+    on<MobileOAuthLoginEvent>(_onMobileOAuthLogin);
+    on<NativeGoogleSignInEvent>(_onNativeGoogleSignIn);
   }
+
+  // Google Sign-In instance
+  final GoogleSignIn _googleSignIn = GoogleSignIn(
+    scopes: ['email', 'profile'],
+    serverClientId: '91869598940-gndd1i75dk53hhu101e3hr2o9o4d5u0j.apps.googleusercontent.com',
+  );
 
   Future<void> _onLogin(LoginEvent event, Emitter<AuthState> emit) async {
     emit(AuthLoading());
@@ -256,5 +267,123 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       (failure) => emit(AuthError(failure.message)),
       (user) => emit(AuthAuthenticated(user)),
     );
+  }
+
+  // Google OAuth handlers
+  Future<void> _onGoogleSignIn(
+    GoogleSignInEvent event,
+    Emitter<AuthState> emit,
+  ) async {
+    emit(AuthLoading());
+
+    final result = await authRepository.getGoogleAuthUrl();
+
+    result.fold(
+      (failure) => emit(AuthError(failure.message)),
+      (url) => emit(GoogleAuthUrlLoaded(url: url)),
+    );
+  }
+
+  Future<void> _onGoogleCallback(
+    GoogleCallbackEvent event,
+    Emitter<AuthState> emit,
+  ) async {
+    emit(AuthLoading());
+
+    final result = await authRepository.handleGoogleCallback(code: event.code);
+
+    result.fold(
+      (failure) => emit(AuthError(failure.message)),
+      (user) => emit(AuthAuthenticated(user)),
+    );
+  }
+
+  // Mobile OAuth login handler
+  Future<void> _onMobileOAuthLogin(
+    MobileOAuthLoginEvent event,
+    Emitter<AuthState> emit,
+  ) async {
+    emit(AuthLoading());
+
+    final result = await authRepository.mobileOAuthLogin(
+      provider: event.provider,
+      accessToken: event.accessToken,
+    );
+
+    result.fold(
+      (failure) => emit(AuthError(failure.message)),
+      (user) => emit(AuthAuthenticated(user)),
+    );
+  }
+
+  // Native Google Sign-In handler
+  Future<void> _onNativeGoogleSignIn(
+    NativeGoogleSignInEvent event,
+    Emitter<AuthState> emit,
+  ) async {
+    emit(AuthLoading());
+
+    try {
+      // Sign out first to ensure fresh sign-in
+      await _googleSignIn.signOut();
+      
+      // Trigger Google Sign-In
+      final GoogleSignInAccount? account = await _googleSignIn.signIn();
+      
+      if (account == null) {
+        // User cancelled sign-in
+        emit(const AuthError('تم إلغاء تسجيل الدخول'));
+        return;
+      }
+
+      // Get authentication details
+      final GoogleSignInAuthentication auth = await account.authentication;
+      final String? accessToken = auth.accessToken;
+
+      if (accessToken == null || accessToken.isEmpty) {
+        emit(const AuthError('فشل في الحصول على رمز الوصول'));
+        return;
+      }
+
+      // Send access token to backend
+      final result = await authRepository.mobileOAuthLogin(
+        provider: 'google',
+        accessToken: accessToken,
+      );
+
+      result.fold(
+        (failure) => emit(AuthError(failure.message)),
+        (user) => emit(AuthAuthenticated(user)),
+      );
+    } catch (e) {
+      // Handle specific Google Sign-In errors
+      final errorMessage = _parseGoogleSignInError(e.toString());
+      emit(AuthError(errorMessage));
+    }
+  }
+
+  /// Parse Google Sign-In errors to user-friendly messages
+  String _parseGoogleSignInError(String error) {
+    if (error.contains('ApiException: 10')) {
+      // DEVELOPER_ERROR - SHA-1 or package name not configured
+      return 'خطأ في إعدادات التطبيق. يرجى التواصل مع الدعم الفني.';
+    } else if (error.contains('ApiException: 7')) {
+      // NETWORK_ERROR
+      return 'خطأ في الاتصال بالإنترنت. يرجى المحاولة مرة أخرى.';
+    } else if (error.contains('ApiException: 12501')) {
+      // SIGN_IN_CANCELLED
+      return 'تم إلغاء تسجيل الدخول';
+    } else if (error.contains('ApiException: 12502')) {
+      // SIGN_IN_CURRENTLY_IN_PROGRESS
+      return 'عملية تسجيل الدخول قيد التنفيذ';
+    } else if (error.contains('ApiException: 12500')) {
+      // SIGN_IN_FAILED
+      return 'فشل تسجيل الدخول. يرجى المحاولة مرة أخرى.';
+    } else if (error.contains('sign_in_canceled')) {
+      return 'تم إلغاء تسجيل الدخول';
+    } else if (error.contains('network_error')) {
+      return 'خطأ في الاتصال بالإنترنت';
+    }
+    return 'خطأ في تسجيل الدخول. يرجى المحاولة مرة أخرى.';
   }
 }

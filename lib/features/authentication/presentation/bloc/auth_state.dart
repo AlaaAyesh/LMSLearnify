@@ -76,3 +76,13 @@ class SocialLoginNeedsCompletion extends AuthState {
   @override
   List<Object?> get props => [email, name, providerId];
 }
+
+// Google OAuth states
+class GoogleAuthUrlLoaded extends AuthState {
+  final String url;
+
+  const GoogleAuthUrlLoaded({required this.url});
+
+  @override
+  List<Object?> get props => [url];
+}

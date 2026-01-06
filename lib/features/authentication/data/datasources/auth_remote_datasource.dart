@@ -25,6 +25,20 @@ abstract class AuthRemoteDataSource {
     required String newPassword,
     required String passwordConfirmation,
   });
+  
+  /// Get Google OAuth URL for authentication
+  Future<String> getGoogleAuthUrl();
+  
+  /// Handle Google OAuth callback and authenticate user
+  Future<LoginResponseModel> handleGoogleCallback(String code);
+  
+  /// Mobile OAuth login with access token from native SDK
+  /// [provider] - OAuth provider name (google, facebook)
+  /// [accessToken] - Access token from OAuth provider
+  Future<LoginResponseModel> mobileOAuthLogin({
+    required String provider,
+    required String accessToken,
+  });
 }
 
 class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
@@ -229,6 +243,148 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     } on DioException catch (e) {
       throw ServerException(
         message: e.response?.data['message'] ?? 'كلمة المرور الحالية غير صحيحة',
+        statusCode: e.response?.statusCode,
+      );
+    }
+  }
+
+  @override
+  Future<String> getGoogleAuthUrl() async {
+    try {
+      final response = await dioClient.get(ApiConstants.googleAuth);
+
+      if (response.statusCode == 200) {
+        final url = response.data['url'];
+        if (url != null && url is String) {
+          return url;
+        }
+        throw ServerException(
+          message: 'لم يتم الحصول على رابط المصادقة',
+          statusCode: response.statusCode,
+        );
+      }
+
+      throw ServerException(
+        message: response.data['message'] ?? 'خطأ في الحصول على رابط Google',
+        statusCode: response.statusCode,
+      );
+    } on DioException catch (e) {
+      throw ServerException(
+        message: e.response?.data['message'] ?? 'خطأ في الاتصال بالخادم',
+        statusCode: e.response?.statusCode,
+      );
+    }
+  }
+
+  @override
+  Future<LoginResponseModel> handleGoogleCallback(String code) async {
+    try {
+      final response = await dioClient.get(
+        ApiConstants.googleCallback,
+        queryParameters: {'code': code},
+      );
+
+      if (response.statusCode == 200) {
+        // Handle OAuth callback response format:
+        // { "user": {...}, "token": "...", "message": "..." }
+        return _parseOAuthResponse(response.data);
+      }
+
+      throw ServerException(
+        message: response.data['message'] ?? response.data['error'] ?? 'خطأ في تسجيل الدخول عبر Google',
+        statusCode: response.statusCode,
+      );
+    } on DioException catch (e) {
+      String errorMessage = 'خطأ في الاتصال بالخادم';
+      
+      if (e.response?.data != null) {
+        errorMessage = e.response?.data['error'] ?? 
+                       e.response?.data['message'] ?? 
+                       errorMessage;
+      }
+      
+      throw ServerException(
+        message: errorMessage,
+        statusCode: e.response?.statusCode,
+      );
+    }
+  }
+  
+  /// Parse OAuth response which has a different format than standard login
+  LoginResponseModel _parseOAuthResponse(Map<String, dynamic> json) {
+    // OAuth response format: { "user": {...}, "token": "...", "message": "..." }
+    // Standard format: { "status": "success", "data": { "user": {...}, "access_token": "..." } }
+    
+    // Check if it's standard format first
+    if (json.containsKey('data') && json['data'] is Map) {
+      return LoginResponseModel.fromJson(json);
+    }
+    
+    // Handle OAuth callback format
+    final userData = json['user'] as Map<String, dynamic>?;
+    final token = json['token'] as String?;
+    
+    if (userData == null) {
+      throw ServerException(
+        message: json['error'] ?? 'فشل في الحصول على بيانات المستخدم',
+      );
+    }
+    
+    if (token == null || token.isEmpty) {
+      throw ServerException(
+        message: 'فشل في الحصول على رمز الوصول',
+      );
+    }
+    
+    // Convert OAuth response to standard format
+    return LoginResponseModel.fromJson({
+      'data': {
+        'user': userData,
+        'access_token': token,
+        'token_type': 'Bearer',
+      }
+    });
+  }
+
+  @override
+  Future<LoginResponseModel> mobileOAuthLogin({
+    required String provider,
+    required String accessToken,
+  }) async {
+    try {
+      final response = await dioClient.post(
+        ApiConstants.mobileOAuthLogin,
+        data: FormData.fromMap({
+          'provider': provider,
+          'access_token': accessToken,
+        }),
+        options: Options(
+          contentType: 'multipart/form-data',
+        ),
+      );
+
+      if (response.statusCode == 200) {
+        // Handle both standard and OAuth response formats
+        return _parseOAuthResponse(response.data);
+      }
+
+      throw ServerException(
+        message: response.data['message'] ?? response.data['error'] ?? 'خطأ في تسجيل الدخول',
+        statusCode: response.statusCode,
+      );
+    } on DioException catch (e) {
+      String errorMessage = 'خطأ في الاتصال بالخادم';
+      
+      if (e.response?.statusCode == 401) {
+        errorMessage = e.response?.data['error'] ?? 'رمز الوصول غير صالح';
+      } else if (e.response?.data != null) {
+        errorMessage = e.response?.data['message'] ?? 
+                       e.response?.data['error'] ?? 
+                       errorMessage;
+      }
+      
+      throw ServerException(
+        message: errorMessage,
         statusCode: e.response?.statusCode,
       );
     }

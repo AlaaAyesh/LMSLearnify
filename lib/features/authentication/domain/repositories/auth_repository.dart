@@ -48,4 +48,16 @@ abstract class AuthRepository {
   Future<Either<Failure, bool>> isLoggedIn();
   
   Future<Either<Failure, User>> loginAsGuest();
+  
+  /// Get Google OAuth URL for authentication
+  Future<Either<Failure, String>> getGoogleAuthUrl();
+  
+  /// Handle Google OAuth callback and authenticate user
+  Future<Either<Failure, User>> handleGoogleCallback({required String code});
+  
+  /// Mobile OAuth login with access token from native SDK
+  Future<Either<Failure, User>> mobileOAuthLogin({
+    required String provider,
+    required String accessToken,
+  });
 }
