@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:learnify_lms/core/theme/app_text_styles.dart';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:learnify_lms/features/authentication/presentation/widgets/social_button.dart';
 
@@ -32,7 +34,7 @@ class SocialLoginButtons extends StatelessWidget {
             SnackBar(
               content: Text(
                 state.message,
-                style: const TextStyle(fontFamily: 'Cairo'),
+                style: TextStyle(fontFamily: cairoFontFamily),
               ),
               backgroundColor: Colors.red,
             ),
@@ -45,12 +47,11 @@ class SocialLoginButtons extends StatelessWidget {
           SocialButton(
             asset: 'assets/icons/apple.svg',
             onTap: () {
-              context.read<AuthBloc>().add(
-                    const SocialLoginEvent(provider: 'apple'),
-                  );
+              // Use native Apple Sign-In
+              context.read<AuthBloc>().add(NativeAppleSignInEvent());
             },
           ),
-          const SizedBox(width: 24),
+          SizedBox(width: 24),
           SocialButton(
             asset: 'assets/icons/google.svg',
             onTap: () {
@@ -63,3 +64,6 @@ class SocialLoginButtons extends StatelessWidget {
     );
   }
 }
+
+
+

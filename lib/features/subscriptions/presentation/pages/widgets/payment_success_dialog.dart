@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:learnify_lms/core/theme/app_text_styles.dart';
+
 
 import '../../../../../core/theme/app_colors.dart';
 
@@ -26,33 +28,33 @@ class PaymentSuccessDialog extends StatelessWidget {
               size: 60,
             ),
           ),
-          const SizedBox(height: 16),
-          const Text(
+          SizedBox(height: 16),
+          Text(
             'تم الاشتراك بنجاح!',
             style: TextStyle(
-              fontFamily: 'Cairo',
+              fontFamily: cairoFontFamily,
               fontSize: 20,
               fontWeight: FontWeight.bold,
             ),
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 8),
-          const Text(
+          SizedBox(height: 8),
+          Text(
             'يمكنك الآن الوصول لجميع الكورسات',
             style: TextStyle(
-              fontFamily: 'Cairo',
+              fontFamily: cairoFontFamily,
               color: AppColors.textSecondary,
             ),
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 24),
+          SizedBox(height: 24),
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
               onPressed: onContinue,
-              child: const Text(
+              child: Text(
                 'ابدأ التعلم',
-                style: TextStyle(fontFamily: 'Cairo'),
+                style: TextStyle(fontFamily: cairoFontFamily),
               ),
             ),
           ),
@@ -61,3 +63,6 @@ class PaymentSuccessDialog extends StatelessWidget {
     );
   }
 }
+
+
+

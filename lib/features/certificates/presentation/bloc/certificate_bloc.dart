@@ -96,3 +96,5 @@ class CertificateBloc extends Bloc<CertificateEvent, CertificateState> {
   }
 }
 
+
+

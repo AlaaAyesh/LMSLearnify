@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:learnify_lms/core/theme/app_text_styles.dart';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/di/injection_container.dart';
@@ -61,7 +63,7 @@ class _CertificatesPageContent extends StatelessWidget {
             },
             builder: (context, state) {
               if (state is CertificateLoading) {
-                return const Center(
+                return Center(
                   child: CircularProgressIndicator(),
                 );
               }
@@ -79,7 +81,7 @@ class _CertificatesPageContent extends StatelessWidget {
               }
 
               // Initial state - show loading
-              return const Center(
+              return Center(
                 child: CircularProgressIndicator(),
               );
             },
@@ -132,7 +134,7 @@ class _CertificatesPageContent extends StatelessWidget {
             size: 80,
             color: Colors.grey[400],
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: 16),
           Text(
             'لا توجد شهادات حتى الآن',
             style: TextStyle(
@@ -141,7 +143,7 @@ class _CertificatesPageContent extends StatelessWidget {
               fontWeight: FontWeight.w500,
             ),
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: 8),
           Text(
             'أكمل الدورات للحصول على شهادات',
             style: TextStyle(
@@ -149,7 +151,7 @@ class _CertificatesPageContent extends StatelessWidget {
               color: Colors.grey[500],
             ),
           ),
-          const SizedBox(height: 24),
+          SizedBox(height: 24),
           ElevatedButton.icon(
             onPressed: () {
               context.read<CertificateBloc>().add(LoadOwnedCertificatesEvent());
@@ -182,17 +184,17 @@ class _CertificatesPageContent extends StatelessWidget {
             size: 80,
             color: isAuthError ? AppColors.primary : Colors.red[400],
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: 16),
           Text(
             isAuthError ? 'يرجى تسجيل الدخول' : 'حدث خطأ',
             style: TextStyle(
               fontSize: 18,
-              fontFamily: 'Cairo',
+              fontFamily: cairoFontFamily,
               color: Colors.grey[600],
               fontWeight: FontWeight.w500,
             ),
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: 8),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 32),
             child: Text(
@@ -200,12 +202,12 @@ class _CertificatesPageContent extends StatelessWidget {
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 14,
-                fontFamily: 'Cairo',
+                fontFamily: cairoFontFamily,
                 color: Colors.grey[500],
               ),
             ),
           ),
-          const SizedBox(height: 24),
+          SizedBox(height: 24),
           if (isAuthError)
             ElevatedButton.icon(
               onPressed: () {
@@ -213,7 +215,7 @@ class _CertificatesPageContent extends StatelessWidget {
                     .pushReplacementNamed('/login');
               },
               icon: const Icon(Icons.login),
-              label: const Text('تسجيل الدخول', style: TextStyle(fontFamily: 'Cairo')),
+              label: Text('تسجيل الدخول', style: TextStyle(fontFamily: cairoFontFamily)),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
                 foregroundColor: Colors.white,
@@ -229,7 +231,7 @@ class _CertificatesPageContent extends StatelessWidget {
                 context.read<CertificateBloc>().add(LoadOwnedCertificatesEvent());
               },
               icon: const Icon(Icons.refresh),
-              label: const Text('إعادة المحاولة', style: TextStyle(fontFamily: 'Cairo')),
+              label: Text('إعادة المحاولة', style: TextStyle(fontFamily: cairoFontFamily)),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
                 foregroundColor: Colors.white,
@@ -267,7 +269,7 @@ class _CertificatesPageContent extends StatelessWidget {
           );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
+        SnackBar(
           content: Text('رابط التحميل غير متوفر'),
           backgroundColor: Colors.orange,
         ),
@@ -282,3 +284,6 @@ class _CertificatesPageContent extends StatelessWidget {
     }
   }
 }
+
+
+

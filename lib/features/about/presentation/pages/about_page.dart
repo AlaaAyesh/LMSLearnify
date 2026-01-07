@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:learnify_lms/core/theme/app_text_styles.dart';
+
 import 'package:learnify_lms/core/widgets/info_card.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -33,10 +35,10 @@ class AboutPage extends StatelessWidget {
                       return Container(
                         height: 100,
                         alignment: Alignment.center,
-                        child: const Text(
+                        child: Text(
                           'Learnify',
                           style: TextStyle(
-                            fontFamily: 'Cairo',
+                            fontFamily: cairoFontFamily,
                             fontSize: 32,
                             fontWeight: FontWeight.bold,
                             color: AppColors.primary,
@@ -51,7 +53,7 @@ class AboutPage extends StatelessWidget {
                     text: AppConstants.aboutAppText,
                   ),
 
-                  const SizedBox(height: 20),
+                  SizedBox(height: 20),
                 ],
               ),
             ),
@@ -61,3 +63,6 @@ class AboutPage extends StatelessWidget {
     );
   }
 }
+
+
+

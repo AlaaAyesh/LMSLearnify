@@ -21,3 +21,5 @@ class Partner extends Equatable {
   List<Object?> get props => [id, name, active, imageUrl];
 }
 
+
+

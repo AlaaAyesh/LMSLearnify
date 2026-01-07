@@ -51,3 +51,5 @@ class _AnimatedLogoState extends State<AnimatedLogo>
     );
   }
 }
+
+

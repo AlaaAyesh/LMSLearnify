@@ -71,3 +71,5 @@ class HomeData extends Equatable {
       ];
 }
 
+
+

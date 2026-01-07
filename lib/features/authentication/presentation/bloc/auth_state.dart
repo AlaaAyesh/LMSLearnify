@@ -88,3 +88,5 @@ class GoogleAuthUrlLoaded extends AuthState {
   @override
   List<Object?> get props => [url];
 }
+
+

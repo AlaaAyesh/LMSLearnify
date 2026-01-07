@@ -6,3 +6,5 @@ class CardColors {
 
   CardColors({required this.background, required this.border});
 }
+
+

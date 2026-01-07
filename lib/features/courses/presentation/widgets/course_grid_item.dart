@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:learnify_lms/core/theme/app_text_styles.dart';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../home/domain/entities/course.dart';
@@ -60,8 +62,8 @@ class CourseGridItem extends StatelessWidget {
                       course.nameAr,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        fontFamily: 'Cairo',
+                      style: TextStyle(
+                        fontFamily: cairoFontFamily,
                         fontSize: 13,
                         fontWeight: FontWeight.bold,
                         color: AppColors.textPrimary,
@@ -83,11 +85,11 @@ class CourseGridItem extends StatelessWidget {
                                 size: 14,
                                 color: AppColors.warning,
                               ),
-                              const SizedBox(width: 2),
+                              SizedBox(width: 2),
                               Text(
                                 course.reviewsAvg!,
-                                style: const TextStyle(
-                                  fontFamily: 'Cairo',
+                                style: TextStyle(
+                                  fontFamily: cairoFontFamily,
                                   fontSize: 11,
                                   fontWeight: FontWeight.w600,
                                   color: AppColors.textSecondary,
@@ -217,10 +219,10 @@ class CourseGridItem extends StatelessWidget {
                 color: AppColors.warning,
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: const Text(
+              child: Text(
                 'قريباً',
                 style: TextStyle(
-                  fontFamily: 'Cairo',
+                  fontFamily: cairoFontFamily,
                   fontSize: 10,
                   fontWeight: FontWeight.bold,
                   color: Colors.white,
@@ -234,10 +236,10 @@ class CourseGridItem extends StatelessWidget {
                 color: AppColors.success,
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: const Text(
+              child: Text(
                 'متاح',
                 style: TextStyle(
-                  fontFamily: 'Cairo',
+                  fontFamily: cairoFontFamily,
                   fontSize: 10,
                   fontWeight: FontWeight.bold,
                   color: Colors.white,
@@ -245,14 +247,14 @@ class CourseGridItem extends StatelessWidget {
               ),
             ),
           if (course.userHasCertificate) ...[
-            const SizedBox(height: 4),
+            SizedBox(height: 4),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
                 color: AppColors.primary,
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: const Row(
+              child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Icon(
@@ -264,7 +266,7 @@ class CourseGridItem extends StatelessWidget {
                   Text(
                     'شهادة',
                     style: TextStyle(
-                      fontFamily: 'Cairo',
+                      fontFamily: cairoFontFamily,
                       fontSize: 10,
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
@@ -290,10 +292,10 @@ class CourseGridItem extends StatelessWidget {
           color: AppColors.success.withOpacity(0.1),
           borderRadius: BorderRadius.circular(4),
         ),
-        child: const Text(
+        child: Text(
           'مجاني',
           style: TextStyle(
-            fontFamily: 'Cairo',
+            fontFamily: cairoFontFamily,
             fontSize: 11,
             fontWeight: FontWeight.bold,
             color: AppColors.success,
@@ -307,19 +309,19 @@ class CourseGridItem extends StatelessWidget {
         if (hasDiscount) ...[
           Text(
             '${course.priceBeforeDiscount}',
-            style: const TextStyle(
-              fontFamily: 'Cairo',
+            style: TextStyle(
+              fontFamily: cairoFontFamily,
               fontSize: 10,
               color: AppColors.textSecondary,
               decoration: TextDecoration.lineThrough,
             ),
           ),
-          const SizedBox(width: 4),
+          SizedBox(width: 4),
         ],
         Text(
           '${course.price} جم',
-          style: const TextStyle(
-            fontFamily: 'Cairo',
+          style: TextStyle(
+            fontFamily: cairoFontFamily,
             fontSize: 12,
             fontWeight: FontWeight.bold,
             color: AppColors.primary,
@@ -329,5 +331,8 @@ class CourseGridItem extends StatelessWidget {
     );
   }
 }
+
+
+
 
 

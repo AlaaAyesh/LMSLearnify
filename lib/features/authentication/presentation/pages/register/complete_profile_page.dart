@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:learnify_lms/core/theme/app_text_styles.dart';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:learnify_lms/features/authentication/presentation/pages/login/widgets/login_background.dart';
@@ -156,7 +158,7 @@ class _CompleteProfileViewState extends State<_CompleteProfileView> {
       // Check age validity
       if (calculatedAge == null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
+          SnackBar(
             content: Text('يرجى إدخال تاريخ الميلاد'),
             backgroundColor: AppColors.error,
           ),
@@ -217,7 +219,7 @@ class _CompleteProfileViewState extends State<_CompleteProfileView> {
             color: isValidAge ? AppColors.success : AppColors.error,
             size: 20,
           ),
-          const SizedBox(width: 12),
+          SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -225,7 +227,7 @@ class _CompleteProfileViewState extends State<_CompleteProfileView> {
                 Text(
                   'العمر: $calculatedAge سنة',
                   style: TextStyle(
-                    fontFamily: 'Cairo',
+                    fontFamily: cairoFontFamily,
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
                     color: isValidAge ? AppColors.success : AppColors.error,
@@ -235,7 +237,7 @@ class _CompleteProfileViewState extends State<_CompleteProfileView> {
                   Text(
                     'الفئة العمرية: $specialtyName',
                     style: TextStyle(
-                      fontFamily: 'Cairo',
+                      fontFamily: cairoFontFamily,
                       fontSize: 12,
                       color: isValidAge
                           ? AppColors.success.withOpacity(0.8)
@@ -247,7 +249,7 @@ class _CompleteProfileViewState extends State<_CompleteProfileView> {
                     AgeSpecialtyHelper.getAgeValidationMessage(calculatedAge!) ??
                         'العمر غير صالح',
                     style: TextStyle(
-                      fontFamily: 'Cairo',
+                      fontFamily: cairoFontFamily,
                       fontSize: 12,
                       color: AppColors.error.withOpacity(0.8),
                     ),
@@ -324,7 +326,7 @@ class _CompleteProfileViewState extends State<_CompleteProfileView> {
                     key: formKey,
                     child: Column(
                       children: [
-                        const SizedBox(height: 50),
+                        SizedBox(height: 50),
 
                         /// Same Register Header
                         const RegisterHeader(
@@ -332,11 +334,11 @@ class _CompleteProfileViewState extends State<_CompleteProfileView> {
                           highlight: 'لنبدأ!',
                         ),
 
-                        const SizedBox(height: 45),
+                        SizedBox(height: 45),
 
                         /// Name
                         NameField(controller: nameController),
-                        const SizedBox(height: 16),
+                        SizedBox(height: 16),
 
                         /// Phone
                         PhoneField(
@@ -345,7 +347,7 @@ class _CompleteProfileViewState extends State<_CompleteProfileView> {
                           onCountryChanged: (v) =>
                               setState(() => countryCode = v),
                         ),
-                        const SizedBox(height: 16),
+                        SizedBox(height: 16),
 
                         /// Birthday
                         BirthdayField(
@@ -356,15 +358,15 @@ class _CompleteProfileViewState extends State<_CompleteProfileView> {
 
                         // Show calculated age and specialty
                         if (calculatedAge != null) ...[
-                          const SizedBox(height: 8),
+                          SizedBox(height: 8),
                           _buildAgeSpecialtyInfo(),
                         ],
-                        const SizedBox(height: 16),
+                        SizedBox(height: 16),
 
                         /// Gender
                         _buildGenderSelector(),
 
-                        const SizedBox(height: 32),
+                        SizedBox(height: 32),
 
                         /// Button (same register button)
                         BlocBuilder<AuthBloc, AuthState>(
@@ -379,7 +381,7 @@ class _CompleteProfileViewState extends State<_CompleteProfileView> {
                           },
                         ),
 
-                        const SizedBox(height: 30),
+                        SizedBox(height: 30),
                       ],
                     ),
                   ),
@@ -408,3 +410,6 @@ class _CompleteProfileViewState extends State<_CompleteProfileView> {
     }
   }
 }
+
+
+

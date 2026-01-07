@@ -28,3 +28,5 @@ class UnauthorizedException implements Exception {
 
   UnauthorizedException({required this.message});
 }
+
+

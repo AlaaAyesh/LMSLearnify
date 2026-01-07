@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:learnify_lms/core/theme/app_text_styles.dart';
+
 
 import '../../../../../../core/theme/app_colors.dart';
 
@@ -23,10 +25,10 @@ class OptionsRow extends StatelessWidget {
               onChanged: (v) => onRememberChanged(v ?? false),
               activeColor: AppColors.primary,
             ),
-            const Text(
+            Text(
               'تذكرني',
               style: TextStyle(
-                fontFamily: 'Cairo',
+                fontFamily: cairoFontFamily,
                 color: AppColors.textSecondary,
               ),
             ),
@@ -35,10 +37,10 @@ class OptionsRow extends StatelessWidget {
         TextButton(
           onPressed: () =>
               Navigator.of(context).pushNamed('/forgot-password'),
-          child: const Text(
+          child: Text(
             'هل نسيت كلمة المرور؟',
             style: TextStyle(
-              fontFamily: 'Cairo',
+              fontFamily: cairoFontFamily,
               color: AppColors.textSecondary,
             ),
           ),
@@ -47,3 +49,6 @@ class OptionsRow extends StatelessWidget {
     );
   }
 }
+
+
+

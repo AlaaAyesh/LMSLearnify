@@ -44,3 +44,5 @@ class HiveService {
     await box.clear();
   }
 }
+
+

@@ -6,10 +6,12 @@ class ForgotPasswordSubtitle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Text(
+    return Text(
       'من فضلك إدخل البريد الإلكتروني المسجل مسبقاً لدينا',
       style: AppTextStyles.bodyMedium,
       textAlign: TextAlign.center,
     );
   }
 }
+
+

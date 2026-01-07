@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:learnify_lms/core/theme/app_text_styles.dart';
+
 
 import '../../../../../../core/theme/app_colors.dart';
 
@@ -18,7 +20,7 @@ class CreateAccountButton extends StatelessWidget {
         child: InkWell(
           onTap: () => Navigator.of(context).pushNamed('/register'),
           borderRadius: BorderRadius.circular(16),
-          child: const Padding(
+          child: Padding(
             padding: EdgeInsets.symmetric(horizontal: 16),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -27,7 +29,7 @@ class CreateAccountButton extends StatelessWidget {
                 Text(
                   'إنشاء حساب جديد',
                   style: TextStyle(
-                    fontFamily: 'Cairo',
+                    fontFamily: cairoFontFamily,
                     fontSize: 16,
                     fontWeight: FontWeight.w700,
                     color: AppColors.textPrimary,
@@ -46,3 +48,6 @@ class CreateAccountButton extends StatelessWidget {
     );
   }
 }
+
+
+

@@ -7,10 +7,12 @@ class LoginTitle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Text(
+    return Text(
       'تسجيل الدخول',
       style: AppTextStyles.headlineMedium,
       textAlign: TextAlign.right,
     );
   }
 }
+
+

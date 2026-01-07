@@ -1,5 +1,10 @@
+import 'dart:convert';
+import 'dart:math';
+
+import 'package:crypto/crypto.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import '../../domain/repositories/auth_repository.dart';
 import '../../domain/usecases/login_usecase.dart';
 import '../../domain/usecases/register_usecase.dart';
@@ -36,6 +41,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<GoogleCallbackEvent>(_onGoogleCallback);
     on<MobileOAuthLoginEvent>(_onMobileOAuthLogin);
     on<NativeGoogleSignInEvent>(_onNativeGoogleSignIn);
+    on<NativeAppleSignInEvent>(_onNativeAppleSignIn);
   }
 
   // Google Sign-In instance
@@ -400,4 +406,115 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     }
     return 'خطأ في تسجيل الدخول. يرجى المحاولة مرة أخرى.';
   }
+
+  // Native Apple Sign-In handler
+  Future<void> _onNativeAppleSignIn(
+    NativeAppleSignInEvent event,
+    Emitter<AuthState> emit,
+  ) async {
+    emit(AuthLoading());
+
+    try {
+      // Check if Apple Sign-In is available
+      final isAvailable = await SignInWithApple.isAvailable();
+      if (!isAvailable) {
+        emit(const AuthError('تسجيل الدخول عبر Apple غير متاح على هذا الجهاز'));
+        return;
+      }
+
+      // Generate nonce for security
+      final rawNonce = _generateNonce();
+      final nonce = _sha256ofString(rawNonce);
+
+      // Request Apple Sign-In
+      final credential = await SignInWithApple.getAppleIDCredential(
+        scopes: [
+          AppleIDAuthorizationScopes.email,
+          AppleIDAuthorizationScopes.fullName,
+        ],
+        nonce: nonce,
+      );
+
+      // Get the identity token
+      final identityToken = credential.identityToken;
+      
+      if (identityToken == null || identityToken.isEmpty) {
+        emit(const AuthError('فشل في الحصول على رمز الوصول'));
+        return;
+      }
+
+      // Get user info from credential (only available on first sign-in)
+      final String? email = credential.email;
+      final String? givenName = credential.givenName;
+      final String? familyName = credential.familyName;
+      final String? fullName = (givenName != null || familyName != null)
+          ? '${givenName ?? ''} ${familyName ?? ''}'.trim()
+          : null;
+
+      // Try to login first - check if user already exists
+      final result = await authRepository.mobileOAuthLogin(
+        provider: 'apple',
+        accessToken: identityToken,
+      );
+
+      result.fold(
+        (failure) => emit(AuthError(failure.message)),
+        (user) {
+          // Check if user profile is complete
+          if (user.isProfileComplete) {
+            // Existing user with complete profile - go to home
+            emit(AuthAuthenticated(user));
+          } else {
+            // New user or incomplete profile - show complete profile page
+            emit(SocialLoginNeedsCompletion(
+              email: email ?? user.email,
+              name: fullName ?? user.name,
+              providerId: 'apple',
+              accessToken: identityToken,
+            ));
+          }
+        },
+      );
+    } on SignInWithAppleAuthorizationException catch (e) {
+      final errorMessage = _parseAppleSignInError(e);
+      emit(AuthError(errorMessage));
+    } catch (e) {
+      emit(AuthError('خطأ في تسجيل الدخول. يرجى المحاولة مرة أخرى.'));
+    }
+  }
+
+  /// Generate a random nonce string
+  String _generateNonce([int length = 32]) {
+    const charset = '0123456789ABCDEFGHIJKLMNOPQRSTUVXYZabcdefghijklmnopqrstuvwxyz-._';
+    final random = Random.secure();
+    return List.generate(length, (_) => charset[random.nextInt(charset.length)]).join();
+  }
+
+  /// SHA256 hash of a string
+  String _sha256ofString(String input) {
+    final bytes = utf8.encode(input);
+    final digest = sha256.convert(bytes);
+    return digest.toString();
+  }
+
+  /// Parse Apple Sign-In errors to user-friendly messages
+  String _parseAppleSignInError(SignInWithAppleAuthorizationException e) {
+    switch (e.code) {
+      case AuthorizationErrorCode.canceled:
+        return 'تم إلغاء تسجيل الدخول';
+      case AuthorizationErrorCode.failed:
+        return 'فشل تسجيل الدخول. يرجى المحاولة مرة أخرى.';
+      case AuthorizationErrorCode.invalidResponse:
+        return 'استجابة غير صالحة من Apple';
+      case AuthorizationErrorCode.notHandled:
+        return 'لم يتم التعامل مع الطلب';
+      case AuthorizationErrorCode.notInteractive:
+        return 'تسجيل الدخول غير تفاعلي';
+      case AuthorizationErrorCode.unknown:
+      default:
+        return 'خطأ غير معروف. يرجى المحاولة مرة أخرى.';
+    }
+  }
 }
+
+

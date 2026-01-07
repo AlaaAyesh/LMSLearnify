@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:learnify_lms/core/theme/app_text_styles.dart';
+
 
 import '../../../../../../core/theme/app_colors.dart';
 
@@ -10,10 +12,10 @@ class HaveAccountRow extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        const Text(
+        Text(
           'هل لديك حساب؟ ',
           style: TextStyle(
-            fontFamily: 'Cairo',
+            fontFamily: cairoFontFamily,
             color: AppColors.textSecondary,
             fontSize: 14,
           ),
@@ -25,10 +27,10 @@ class HaveAccountRow extends StatelessWidget {
             minimumSize: const Size(0, 0),
             tapTargetSize: MaterialTapTargetSize.shrinkWrap,
           ),
-          child: const Text(
+          child: Text(
             'اضغط من هنا',
             style: TextStyle(
-              fontFamily: 'Cairo',
+              fontFamily: cairoFontFamily,
               color: AppColors.primary,
               fontWeight: FontWeight.w600,
               fontSize: 14,
@@ -39,3 +41,6 @@ class HaveAccountRow extends StatelessWidget {
     );
   }
 }
+
+
+

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:learnify_lms/core/theme/app_text_styles.dart';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/custom_app_bar.dart';
@@ -44,11 +46,11 @@ class CategoriesPage extends StatelessWidget {
             size: 80,
             color: Colors.grey[400],
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: 16),
           Text(
             'لا توجد تصنيفات',
             style: TextStyle(
-              fontFamily: 'Cairo',
+              fontFamily: cairoFontFamily,
               fontSize: 18,
               color: Colors.grey[600],
               fontWeight: FontWeight.w500,
@@ -157,14 +159,14 @@ class _CategoryGridItem extends StatelessWidget {
                     ),
             ),
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: 12),
           Text(
             category.nameAr,
             textAlign: TextAlign.center,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-              fontFamily: 'Cairo',
+            style: TextStyle(
+              fontFamily: cairoFontFamily,
               fontSize: 14,
               fontWeight: FontWeight.w600,
               color: AppColors.textPrimary,
@@ -175,4 +177,7 @@ class _CategoryGridItem extends StatelessWidget {
     );
   }
 }
+
+
+
 

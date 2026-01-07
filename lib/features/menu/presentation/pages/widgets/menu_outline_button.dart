@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:learnify_lms/core/theme/app_text_styles.dart';
+
 class MenuOutlineButton extends StatelessWidget {
   final String text;
   final VoidCallback onTap;
@@ -25,14 +27,14 @@ class MenuOutlineButton extends StatelessWidget {
           children: [
             Text(
               text,
-              style: const TextStyle(
+              style: TextStyle(
                 color: Colors.black,
-                fontFamily: 'Cairo',
+                fontFamily: cairoFontFamily,
                 fontSize: 22,
                 fontWeight: FontWeight.bold,
               ),
             ),
-            const SizedBox(width: 24),
+            SizedBox(width: 24),
             const Icon(Icons.arrow_forward_rounded,size: 24,),
 
 
@@ -42,3 +44,6 @@ class MenuOutlineButton extends StatelessWidget {
     );
   }
 }
+
+
+

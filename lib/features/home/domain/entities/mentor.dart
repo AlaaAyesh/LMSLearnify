@@ -23,3 +23,5 @@ class Mentor extends Equatable {
   List<Object?> get props => [id, name, email, avatarUrl, coursesCount, studentsCount, rating];
 }
 
+
+

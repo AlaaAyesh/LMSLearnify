@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:learnify_lms/core/theme/app_text_styles.dart';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -82,7 +84,7 @@ class _GoogleOAuthWebViewPageState extends State<GoogleOAuthWebViewPage> {
         SnackBar(
           content: Text(
             errorMessage,
-            style: const TextStyle(fontFamily: 'Cairo'),
+            style: TextStyle(fontFamily: cairoFontFamily),
           ),
           backgroundColor: Colors.red,
         ),
@@ -103,10 +105,10 @@ class _GoogleOAuthWebViewPageState extends State<GoogleOAuthWebViewPage> {
     } else {
       // No code found - show error
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
+        SnackBar(
           content: Text(
             'فشل في الحصول على رمز المصادقة',
-            style: TextStyle(fontFamily: 'Cairo'),
+            style: TextStyle(fontFamily: cairoFontFamily),
           ),
           backgroundColor: Colors.red,
         ),
@@ -128,7 +130,7 @@ class _GoogleOAuthWebViewPageState extends State<GoogleOAuthWebViewPage> {
             SnackBar(
               content: Text(
                 state.message,
-                style: const TextStyle(fontFamily: 'Cairo'),
+                style: TextStyle(fontFamily: cairoFontFamily),
               ),
               backgroundColor: Colors.red,
             ),
@@ -144,10 +146,10 @@ class _GoogleOAuthWebViewPageState extends State<GoogleOAuthWebViewPage> {
             icon: const Icon(Icons.close, color: AppColors.textPrimary),
             onPressed: () => Navigator.of(context).pop(),
           ),
-          title: const Text(
+          title: Text(
             'تسجيل الدخول بـ Google',
             style: TextStyle(
-              fontFamily: 'Cairo',
+              fontFamily: cairoFontFamily,
               color: AppColors.textPrimary,
               fontSize: 18,
               fontWeight: FontWeight.w600,
@@ -159,7 +161,7 @@ class _GoogleOAuthWebViewPageState extends State<GoogleOAuthWebViewPage> {
           children: [
             WebViewWidget(controller: _controller),
             if (_isLoading)
-              const Center(
+              Center(
                 child: CircularProgressIndicator(
                   color: AppColors.primary,
                 ),
@@ -170,4 +172,7 @@ class _GoogleOAuthWebViewPageState extends State<GoogleOAuthWebViewPage> {
     );
   }
 }
+
+
+
 

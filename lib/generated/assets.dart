@@ -39,3 +39,5 @@ class Assets {
   static const String imagesWhatsapp = 'assets/images/whatsapp.png';
 
 }
+
+

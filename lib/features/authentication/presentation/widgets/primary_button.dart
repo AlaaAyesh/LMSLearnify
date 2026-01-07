@@ -35,7 +35,7 @@ class PrimaryButton extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
         ),
         child: isLoading
-            ? const SizedBox(
+            ? SizedBox(
           height: 28,
           width: 26,
           child: CircularProgressIndicator(
@@ -52,3 +52,5 @@ class PrimaryButton extends StatelessWidget {
     );
   }
 }
+
+

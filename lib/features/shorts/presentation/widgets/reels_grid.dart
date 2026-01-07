@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:learnify_lms/core/theme/app_text_styles.dart';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../reels/domain/entities/reel.dart';
@@ -37,11 +39,11 @@ class ReelsGrid extends StatelessWidget {
               size: 80,
               color: Colors.grey[400],
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
             Text(
               'لا توجد فيديوهات',
               style: TextStyle(
-                fontFamily: 'Cairo',
+                fontFamily: cairoFontFamily,
                 fontSize: 16,
                 color: Colors.grey[600],
               ),
@@ -70,7 +72,7 @@ class ReelsGrid extends StatelessWidget {
         itemCount: reels.length + (isLoadingMore ? 1 : 0),
         itemBuilder: (context, index) {
           if (index >= reels.length) {
-            return const Center(
+            return Center(
               child: Padding(
                 padding: EdgeInsets.all(16),
                 child: CircularProgressIndicator(
@@ -135,7 +137,7 @@ class _ReelTile extends StatelessWidget {
               fit: BoxFit.cover,
               placeholder: (context, url) => Container(
                 color: AppColors.primary.withOpacity(0.1),
-                child: const Center(
+                child: Center(
                   child: CircularProgressIndicator(
                     color: AppColors.primary,
                     strokeWidth: 2,
@@ -175,12 +177,12 @@ class _ReelTile extends StatelessWidget {
                       color: Colors.white,
                       size: 14,
                     ),
-                    const SizedBox(width: 4),
+                    SizedBox(width: 4),
                     Expanded(
                       child: Text(
                         _formatViews(viewCount),
-                        style: const TextStyle(
-                          fontFamily: 'Cairo',
+                        style: TextStyle(
+                          fontFamily: cairoFontFamily,
                           fontSize: 10,
                           color: Colors.white,
                           fontWeight: FontWeight.w500,
@@ -216,3 +218,6 @@ class _ReelTile extends StatelessWidget {
     );
   }
 }
+
+
+

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:learnify_lms/core/theme/app_text_styles.dart';
+
 
 import '../../../../../core/theme/app_colors.dart';
 class PaymentButton extends StatelessWidget {
@@ -19,10 +21,10 @@ class PaymentButton extends StatelessWidget {
             borderRadius: BorderRadius.circular(12),
           ),
         ),
-        child: const Text(
+        child: Text(
           'الدفع',
           style: TextStyle(
-            fontFamily: 'Cairo',
+            fontFamily: cairoFontFamily,
             fontSize: 18,
             color: Colors.white,
             fontWeight: FontWeight.bold,
@@ -32,3 +34,6 @@ class PaymentButton extends StatelessWidget {
     );
   }
 }
+
+
+

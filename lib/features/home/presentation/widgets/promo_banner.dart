@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:learnify_lms/core/theme/app_text_styles.dart';
+
 import '../../../../core/theme/app_colors.dart';
 
 class PromoBanner extends StatelessWidget {
@@ -43,23 +45,23 @@ class PromoBanner extends StatelessWidget {
         children: [
           Text(
             title,
-            style: const TextStyle(
-              fontFamily: 'Cairo',
+            style: TextStyle(
+              fontFamily: cairoFontFamily,
               fontSize: 20,
               fontWeight: FontWeight.bold,
               color: Colors.white,
             ),
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: 8),
           Text(
             subtitle,
             style: TextStyle(
-              fontFamily: 'Cairo',
+              fontFamily: cairoFontFamily,
               fontSize: 14,
               color: Colors.white.withOpacity(0.9),
             ),
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: 16),
           ElevatedButton(
             onPressed: onButtonPressed,
             style: ElevatedButton.styleFrom(
@@ -73,8 +75,8 @@ class PromoBanner extends StatelessWidget {
             ),
             child: Text(
               buttonText,
-              style: const TextStyle(
-                fontFamily: 'Cairo',
+              style: TextStyle(
+                fontFamily: cairoFontFamily,
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -84,4 +86,7 @@ class PromoBanner extends StatelessWidget {
     );
   }
 }
+
+
+
 

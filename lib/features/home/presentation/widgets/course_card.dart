@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:learnify_lms/core/theme/app_text_styles.dart';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../domain/entities/course.dart';
@@ -48,7 +50,7 @@ class CourseCard extends StatelessWidget {
                           placeholder: (context, url) => Container(
                             height: 120,
                             color: AppColors.primary.withOpacity(0.1),
-                            child: const Center(
+                            child: Center(
                               child: CircularProgressIndicator(
                                 strokeWidth: 2,
                                 color: AppColors.primary,
@@ -68,7 +70,7 @@ class CourseCard extends StatelessWidget {
                       : Container(
                           height: 120,
                           color: AppColors.primary.withOpacity(0.1),
-                          child: const Center(
+                          child: Center(
                             child: Icon(
                               Icons.play_circle_outline,
                               size: 40,
@@ -88,10 +90,10 @@ class CourseCard extends StatelessWidget {
                         color: AppColors.warning,
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: const Text(
+                      child: Text(
                         'قريباً',
                         style: TextStyle(
-                          fontFamily: 'Cairo',
+                          fontFamily: cairoFontFamily,
                           fontSize: 10,
                           fontWeight: FontWeight.bold,
                           color: Colors.white,
@@ -110,10 +112,10 @@ class CourseCard extends StatelessWidget {
                         color: AppColors.success,
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: const Text(
+                      child: Text(
                         'متاح',
                         style: TextStyle(
-                          fontFamily: 'Cairo',
+                          fontFamily: cairoFontFamily,
                           fontSize: 10,
                           fontWeight: FontWeight.bold,
                           color: Colors.white,
@@ -134,46 +136,46 @@ class CourseCard extends StatelessWidget {
                     course.nameAr,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontFamily: 'Cairo',
+                    style: TextStyle(
+                      fontFamily: cairoFontFamily,
                       fontSize: 14,
                       fontWeight: FontWeight.bold,
                       color: AppColors.textPrimary,
                     ),
                   ),
-                  const SizedBox(height: 4),
+                  SizedBox(height: 4),
                   // Specialty (Age group)
                   if (course.specialty != null)
                     Text(
                       course.specialty!.nameAr,
                       style: TextStyle(
-                        fontFamily: 'Cairo',
+                        fontFamily: cairoFontFamily,
                         fontSize: 12,
                         color: AppColors.textSecondary,
                       ),
                     ),
-                  const SizedBox(height: 8),
+                  SizedBox(height: 8),
                   // Price
                   Row(
                     children: [
                       if (course.hasDiscount) ...[
                         Text(
                           '${course.priceBeforeDiscount} ر.س',
-                          style: const TextStyle(
-                            fontFamily: 'Cairo',
+                          style: TextStyle(
+                            fontFamily: cairoFontFamily,
                             fontSize: 11,
                             color: AppColors.textSecondary,
                             decoration: TextDecoration.lineThrough,
                           ),
                         ),
-                        const SizedBox(width: 4),
+                        SizedBox(width: 4),
                       ],
                       Text(
                         course.price != null && course.price!.isNotEmpty
                             ? '${course.price} ر.س'
                             : 'مجاني',
                         style: TextStyle(
-                          fontFamily: 'Cairo',
+                          fontFamily: cairoFontFamily,
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
                           color: course.price == null || course.price!.isEmpty || course.price == '0'
@@ -192,4 +194,7 @@ class CourseCard extends StatelessWidget {
     );
   }
 }
+
+
+
 

@@ -202,6 +202,7 @@ void _initSubscriptions() {
       getSubscriptionByIdUseCase: sl(),
       createSubscriptionUseCase: sl(),
       updateSubscriptionUseCase: sl(),
+      subscriptionRepository: sl(),
     ),
   );
 }
@@ -311,3 +312,5 @@ void _initReels() {
     ),
   );
 }
+
+

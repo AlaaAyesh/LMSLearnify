@@ -118,7 +118,7 @@ class _OtpVerificationPageContentState
   void _handleResetPassword() {
     if (_otp.length != 6) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
+        SnackBar(
           content: Text('الرجاء إدخال رمز التحقق المكون من 6 أرقام'),
           backgroundColor: AppColors.error,
         ),
@@ -171,7 +171,7 @@ class _OtpVerificationPageContentState
                 );
               } else if (state is PasswordResetSuccess) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
+                  SnackBar(
                     content: Text('تم تغيير كلمة المرور بنجاح'),
                     backgroundColor: AppColors.success,
                   ),
@@ -182,7 +182,7 @@ class _OtpVerificationPageContentState
                 );
               } else if (state is ForgotPasswordSuccess) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
+                  SnackBar(
                     content: Text('تم إعادة إرسال رمز التحقق'),
                     backgroundColor: AppColors.success,
                   ),
@@ -197,14 +197,14 @@ class _OtpVerificationPageContentState
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      const SizedBox(height: 20),
+                      SizedBox(height: 20),
                       // Title
-                      const Text(
+                      Text(
                         'التحقق من البريد',
                         style: AppTextStyles.displayMedium,
                         textAlign: TextAlign.center,
                       ),
-                      const SizedBox(height: 12),
+                      SizedBox(height: 12),
                       // Subtitle
                       Text(
                         'أدخل رمز التحقق المرسل إلى\n${widget.email}',
@@ -213,7 +213,7 @@ class _OtpVerificationPageContentState
                         ),
                         textAlign: TextAlign.center,
                       ),
-                      const SizedBox(height: 32),
+                      SizedBox(height: 32),
 
                       // OTP Input Fields
                       Directionality(
@@ -273,18 +273,18 @@ class _OtpVerificationPageContentState
                           }),
                         ),
                       ),
-                      const SizedBox(height: 16),
+                      SizedBox(height: 16),
 
                       // Resend Timer
                       Center(
                         child: _canResend
                             ? TextButton(
                                 onPressed: _resendOtp,
-                                child: const Text(
+                                child: Text(
                                   'إعادة إرسال الرمز',
                                   style: TextStyle(
                                     color: AppColors.primary,
-                                    fontFamily: 'Cairo',
+                                    fontFamily: cairoFontFamily,
                                     fontWeight: FontWeight.w600,
                                   ),
                                 ),
@@ -296,10 +296,10 @@ class _OtpVerificationPageContentState
                                 ),
                               ),
                       ),
-                      const SizedBox(height: 32),
+                      SizedBox(height: 32),
 
                       // Divider
-                      const Row(
+                      Row(
                         children: [
                           Expanded(child: Divider()),
                           Padding(
@@ -308,7 +308,7 @@ class _OtpVerificationPageContentState
                               'كلمة المرور الجديدة',
                               style: TextStyle(
                                 color: AppColors.textSecondary,
-                                fontFamily: 'Cairo',
+                                fontFamily: cairoFontFamily,
                                 fontSize: 14,
                               ),
                             ),
@@ -316,7 +316,7 @@ class _OtpVerificationPageContentState
                           Expanded(child: Divider()),
                         ],
                       ),
-                      const SizedBox(height: 24),
+                      SizedBox(height: 24),
 
                       // New Password Field
                       TextFormField(
@@ -325,8 +325,8 @@ class _OtpVerificationPageContentState
                         textInputAction: TextInputAction.next,
                         decoration: InputDecoration(
                           hintText: 'كلمة المرور الجديدة',
-                          hintStyle: const TextStyle(
-                            fontFamily: 'Cairo',
+                          hintStyle: TextStyle(
+                            fontFamily: cairoFontFamily,
                             color: AppColors.textSecondary,
                           ),
                           filled: true,
@@ -360,7 +360,7 @@ class _OtpVerificationPageContentState
                         ),
                         validator: _validatePassword,
                       ),
-                      const SizedBox(height: 16),
+                      SizedBox(height: 16),
 
                       // Confirm Password Field
                       TextFormField(
@@ -369,8 +369,8 @@ class _OtpVerificationPageContentState
                         textInputAction: TextInputAction.done,
                         decoration: InputDecoration(
                           hintText: 'تأكيد كلمة المرور',
-                          hintStyle: const TextStyle(
-                            fontFamily: 'Cairo',
+                          hintStyle: TextStyle(
+                            fontFamily: cairoFontFamily,
                             color: AppColors.textSecondary,
                           ),
                           filled: true,
@@ -405,7 +405,7 @@ class _OtpVerificationPageContentState
                         ),
                         validator: _validateConfirmPassword,
                       ),
-                      const SizedBox(height: 32),
+                      SizedBox(height: 32),
 
                       // Reset Password Button
                       BlocBuilder<AuthBloc, AuthState>(
@@ -429,4 +429,6 @@ class _OtpVerificationPageContentState
     );
   }
 }
+
+
 

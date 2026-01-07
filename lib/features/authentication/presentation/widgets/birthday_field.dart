@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:learnify_lms/core/theme/app_text_styles.dart';
+
 import 'package:flutter/services.dart';
 import '../../../../core/theme/app_colors.dart';
 
@@ -19,16 +21,16 @@ class BirthdayField extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           'تاريخ الميلاد',
           style: TextStyle(
-            fontFamily: 'Cairo',
+            fontFamily: cairoFontFamily,
             fontSize: 14,
             fontWeight: FontWeight.w500,
             color: AppColors.textSecondary,
           ),
         ),
-        const SizedBox(height: 8),
+        SizedBox(height: 8),
         Row(
           children: [
             // Year Field
@@ -50,7 +52,7 @@ class BirthdayField extends StatelessWidget {
                 },
               ),
             ),
-            const SizedBox(width: 12),
+            SizedBox(width: 12),
             // Month Field
             Expanded(
               flex: 1,
@@ -70,7 +72,7 @@ class BirthdayField extends StatelessWidget {
                 },
               ),
             ),
-            const SizedBox(width: 12),
+            SizedBox(width: 12),
             // Day Field
             Expanded(
               flex: 1,
@@ -112,8 +114,8 @@ class BirthdayField extends StatelessWidget {
       ],
       decoration: InputDecoration(
         hintText: hint,
-        hintStyle: const TextStyle(
-          fontFamily: 'Cairo',
+        hintStyle: TextStyle(
+          fontFamily: cairoFontFamily,
           fontSize: 14,
           color: AppColors.textSecondary,
         ),
@@ -142,4 +144,7 @@ class BirthdayField extends StatelessWidget {
     );
   }
 }
+
+
+
 

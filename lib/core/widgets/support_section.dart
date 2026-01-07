@@ -1,38 +1,70 @@
 import 'package:flutter/material.dart';
+import 'package:learnify_lms/core/theme/app_text_styles.dart';
+import 'package:url_launcher/url_launcher.dart';
+
 import '../theme/app_colors.dart';
 import '../../features/subscriptions/presentation/pages/widgets/payment_method_icon.dart';
 
 class SupportSection extends StatelessWidget {
-  final VoidCallback? onTap;
+  static const String _whatsappNumber = '201068875327';
+  
+  const SupportSection({super.key});
 
-  const SupportSection({
-    super.key,
-    this.onTap,
-  });
+  Future<void> _openWhatsApp(BuildContext context) async {
+    // Try WhatsApp native URL first
+    final Uri whatsappNative = Uri.parse('whatsapp://send?phone=$_whatsappNumber');
+    
+    try {
+      bool launched = await launchUrl(whatsappNative);
+      if (launched) return;
+    } catch (_) {}
+    
+    // Fallback to wa.me link
+    final Uri waMe = Uri.parse('https://wa.me/$_whatsappNumber');
+    try {
+      bool launched = await launchUrl(waMe, mode: LaunchMode.externalApplication);
+      if (launched) return;
+    } catch (_) {}
+    
+    // Fallback to api.whatsapp.com
+    final Uri apiWhatsapp = Uri.parse('https://api.whatsapp.com/send?phone=$_whatsappNumber');
+    try {
+      await launchUrl(apiWhatsapp, mode: LaunchMode.externalApplication);
+    } catch (_) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('لم يتم العثور على تطبيق واتساب', style: TextStyle(fontFamily: cairoFontFamily)),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
-        const Text(
+        Text(
           'لديك مشاكل أو استفسارات ؟',
           style: TextStyle(
-            fontFamily: 'Cairo',
+            fontFamily: cairoFontFamily,
             fontSize: 16,
             color: AppColors.textPrimary,
           ),
         ),
-        const SizedBox(height: 8),
+        SizedBox(height: 8),
         GestureDetector(
-          onTap: onTap,
-          child: const Row(
+          onTap: () => _openWhatsApp(context),
+          child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
 
               Text(
                 'تواصل معنا من هنا',
                 style: TextStyle(
-                  fontFamily: 'Cairo',
+                  fontFamily: cairoFontFamily,
                   fontSize: 14,
                   color: AppColors.textPrimary,
                 ),
@@ -48,3 +80,6 @@ class SupportSection extends StatelessWidget {
     );
   }
 }
+
+
+

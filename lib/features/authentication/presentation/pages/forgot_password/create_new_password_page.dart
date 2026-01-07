@@ -118,7 +118,7 @@ class _CreateNewPasswordPageContentState
             );
           } else if (state is PasswordResetSuccess) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
+              SnackBar(
                 content: Text('تم تغيير كلمة المرور بنجاح'),
                 backgroundColor: AppColors.success,
               ),
@@ -141,13 +141,13 @@ class _CreateNewPasswordPageContentState
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const SizedBox(height: 20),
-                    const Text(
+                    SizedBox(height: 20),
+                    Text(
                       'إنشاء كلمة مرور جديدة',
                       style: AppTextStyles.displayMedium,
                       textAlign: TextAlign.center,
                     ),
-                    const SizedBox(height: 40),
+                    SizedBox(height: 40),
 
                     // New Password
                     CustomTextField(
@@ -174,7 +174,7 @@ class _CreateNewPasswordPageContentState
                       ),
                       validator: Validators.password,
                     ),
-                    const SizedBox(height: 16),
+                    SizedBox(height: 16),
 
                     // Confirm Password
                     CustomTextField(
@@ -201,7 +201,7 @@ class _CreateNewPasswordPageContentState
                       ),
                       validator: _validateConfirmPassword,
                     ),
-                    const SizedBox(height: 32),
+                    SizedBox(height: 32),
 
                     // Save Button
                     PrimaryButton(
@@ -219,3 +219,5 @@ class _CreateNewPasswordPageContentState
     );
   }
 }
+
+

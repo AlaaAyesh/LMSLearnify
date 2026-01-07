@@ -10,3 +10,5 @@ abstract class LessonRepository {
   Future<Either<Failure, void>> markLessonAsViewed({required int id});
 }
 
+
+

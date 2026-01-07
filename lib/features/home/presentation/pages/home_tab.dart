@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:learnify_lms/core/theme/app_text_styles.dart';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/di/injection_container.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -46,7 +48,7 @@ class _HomeTabContent extends StatelessWidget {
             child: BlocBuilder<HomeBloc, HomeState>(
               builder: (context, state) {
                 if (state is HomeLoading) {
-                  return const Center(
+                  return Center(
                     child: CircularProgressIndicator(
                       color: AppColors.primary,
                     ),
@@ -61,7 +63,7 @@ class _HomeTabContent extends StatelessWidget {
                   return _buildContent(context, state.homeData);
                 }
 
-                return const Center(
+                return Center(
                   child: CircularProgressIndicator(
                     color: AppColors.primary,
                   ),
@@ -85,7 +87,7 @@ class _HomeTabContent extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
 
             // Promo Banner
             PromoBanner(
@@ -96,7 +98,7 @@ class _HomeTabContent extends StatelessWidget {
                 // Navigate to courses
               },
             ),
-            const SizedBox(height: 24),
+            SizedBox(height: 24),
 
             // Banners with auto-rotation
             if (homeData.banners.isNotEmpty) ...[
@@ -107,7 +109,7 @@ class _HomeTabContent extends StatelessWidget {
                   // Handle banner tap
                 },
               ),
-              const SizedBox(height: 24),
+              SizedBox(height: 24),
             ],
 
             // Categories Section
@@ -116,7 +118,7 @@ class _HomeTabContent extends StatelessWidget {
                 title: 'التصنيفات',
                 onSeeAll: () => _navigateToCategoriesPage(context, homeData),
               ),
-              const SizedBox(height: 12),
+              SizedBox(height: 12),
               SizedBox(
                 height: 120,
                 child: ListView.builder(
@@ -135,13 +137,13 @@ class _HomeTabContent extends StatelessWidget {
                   },
                 ),
               ),
-              const SizedBox(height: 24),
+              SizedBox(height: 24),
             ],
 
             // Popular/Most Watched Courses
             if (homeData.popularCourses.isNotEmpty || homeData.latestCourses.isNotEmpty) ...[
               const SectionHeader(title: 'الأكثر مشاهدة'),
-              const SizedBox(height: 12),
+              SizedBox(height: 12),
               SizedBox(
                 height: 200,
                 child: ListView.builder(
@@ -161,7 +163,7 @@ class _HomeTabContent extends StatelessWidget {
                   },
                 ),
               ),
-              const SizedBox(height: 24),
+              SizedBox(height: 24),
             ],
 
             // Courses by Category
@@ -177,12 +179,12 @@ class _HomeTabContent extends StatelessWidget {
                   // Navigate to free courses
                 },
               ),
-              const SizedBox(height: 12),
+              SizedBox(height: 12),
               _buildCoursesGrid(context, homeData.freeCourses),
-              const SizedBox(height: 24),
+              SizedBox(height: 24),
             ],
 
-            const SizedBox(height: 100),
+            SizedBox(height: 100),
           ],
         ),
       ),
@@ -199,9 +201,9 @@ class _HomeTabContent extends StatelessWidget {
           title: 'دورات ${category.nameAr}',
           onSeeAll: () => _navigateToSingleCategory(context, category, courses),
         ),
-        const SizedBox(height: 12),
+        SizedBox(height: 12),
         _buildCoursesGrid(context, courses),
-        const SizedBox(height: 24),
+        SizedBox(height: 24),
       ],
     );
   }
@@ -235,7 +237,7 @@ class _HomeTabContent extends StatelessWidget {
   void _onCourseTap(BuildContext context, Course course) {
     if (course.soon) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
+        SnackBar(
           content: Text('هذه الدورة قادمة قريباً'),
           backgroundColor: AppColors.warning,
         ),
@@ -272,35 +274,35 @@ class _HomeTabContent extends StatelessWidget {
               size: 80,
               color: Colors.red[400],
             ),
-            const SizedBox(height: 16),
-            const Text(
+            SizedBox(height: 16),
+            Text(
               'حدث خطأ',
               style: TextStyle(
-                fontFamily: 'Cairo',
+                fontFamily: cairoFontFamily,
                 fontSize: 18,
                 fontWeight: FontWeight.w500,
                 color: AppColors.textPrimary,
               ),
             ),
-            const SizedBox(height: 8),
+            SizedBox(height: 8),
             Text(
               message,
               textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontFamily: 'Cairo',
+              style: TextStyle(
+                fontFamily: cairoFontFamily,
                 fontSize: 14,
                 color: AppColors.textSecondary,
               ),
             ),
-            const SizedBox(height: 24),
+            SizedBox(height: 24),
             ElevatedButton.icon(
               onPressed: () {
                 context.read<HomeBloc>().add(LoadHomeDataEvent());
               },
               icon: const Icon(Icons.refresh),
-              label: const Text(
+              label: Text(
                 'إعادة المحاولة',
-                style: TextStyle(fontFamily: 'Cairo'),
+                style: TextStyle(fontFamily: cairoFontFamily),
               ),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
@@ -317,4 +319,7 @@ class _HomeTabContent extends StatelessWidget {
     );
   }
 }
+
+
+
 

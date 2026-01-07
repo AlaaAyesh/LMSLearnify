@@ -48,3 +48,5 @@ class PartnerModel extends Partner {
   }
 }
 
+
+

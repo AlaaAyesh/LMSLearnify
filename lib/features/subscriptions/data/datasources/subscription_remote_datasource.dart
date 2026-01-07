@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import '../../../../core/constants/api_constants.dart';
 import '../../../../core/error/exceptions.dart';
 import '../../../../core/network/dio_client.dart';
+import '../models/payment_model.dart';
 import '../models/subscription_model.dart';
 
 abstract class SubscriptionRemoteDataSource {
@@ -20,6 +21,10 @@ abstract class SubscriptionRemoteDataSource {
   /// Update an existing subscription
   /// Throws [ServerException] on failure
   Future<SubscriptionModel> updateSubscription(int id, UpdateSubscriptionRequest request);
+
+  /// Process a payment for a subscription or course
+  /// Throws [ServerException] on failure
+  Future<PaymentResponseModel> processPayment(ProcessPaymentRequest request);
 }
 
 class SubscriptionRemoteDataSourceImpl implements SubscriptionRemoteDataSource {
@@ -167,6 +172,30 @@ class SubscriptionRemoteDataSourceImpl implements SubscriptionRemoteDataSource {
       );
     } on DioException catch (e) {
       throw _handleDioError(e, 'فشل في تحديث الاشتراك');
+    }
+  }
+
+  @override
+  Future<PaymentResponseModel> processPayment(ProcessPaymentRequest request) async {
+    try {
+      final response = await dioClient.post(
+        ApiConstants.processPayment,
+        data: FormData.fromMap(request.toFormData()),
+        options: Options(
+          contentType: 'multipart/form-data',
+        ),
+      );
+
+      if (response.statusCode == 200) {
+        return PaymentResponseModel.fromJson(response.data);
+      }
+
+      throw ServerException(
+        message: response.data['message'] ?? 'فشل في معالجة الدفع',
+        statusCode: response.statusCode,
+      );
+    } on DioException catch (e) {
+      throw _handleDioError(e, 'فشل في معالجة الدفع');
     }
   }
 

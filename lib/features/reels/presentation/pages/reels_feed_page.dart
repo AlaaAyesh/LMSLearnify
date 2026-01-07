@@ -1,5 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:learnify_lms/core/theme/app_text_styles.dart';
+
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/di/injection_container.dart';
@@ -77,10 +79,10 @@ class _ReelsFeedPageState extends State<ReelsFeedPage> {
           ),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
+        title: Text(
           'Reels',
           style: TextStyle(
-            fontFamily: 'Cairo',
+            fontFamily: cairoFontFamily,
             color: Colors.white,
             fontSize: 20,
             fontWeight: FontWeight.bold,
@@ -91,7 +93,7 @@ class _ReelsFeedPageState extends State<ReelsFeedPage> {
       body: BlocBuilder<ReelsBloc, ReelsState>(
         builder: (context, state) {
           if (state is ReelsLoading) {
-            return const Center(
+            return Center(
               child: CircularProgressIndicator(
                 color: AppColors.primary,
               ),
@@ -108,17 +110,17 @@ class _ReelsFeedPageState extends State<ReelsFeedPage> {
                     color: Colors.white54,
                     size: 64,
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: 16),
                   Text(
                     state.message,
-                    style: const TextStyle(
-                      fontFamily: 'Cairo',
+                    style: TextStyle(
+                      fontFamily: cairoFontFamily,
                       color: Colors.white70,
                       fontSize: 16,
                     ),
                     textAlign: TextAlign.center,
                   ),
-                  const SizedBox(height: 24),
+                  SizedBox(height: 24),
                   ElevatedButton(
                     onPressed: () {
                       context.read<ReelsBloc>().add(const LoadReelsFeedEvent());
@@ -133,10 +135,10 @@ class _ReelsFeedPageState extends State<ReelsFeedPage> {
                         borderRadius: BorderRadius.circular(24),
                       ),
                     ),
-                    child: const Text(
+                    child: Text(
                       'إعادة المحاولة',
                       style: TextStyle(
-                        fontFamily: 'Cairo',
+                        fontFamily: cairoFontFamily,
                         color: Colors.white,
                       ),
                     ),
@@ -147,7 +149,7 @@ class _ReelsFeedPageState extends State<ReelsFeedPage> {
           }
 
           if (state is ReelsEmpty) {
-            return const Center(
+            return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -160,7 +162,7 @@ class _ReelsFeedPageState extends State<ReelsFeedPage> {
                   Text(
                     'لا توجد فيديوهات حالياً',
                     style: TextStyle(
-                      fontFamily: 'Cairo',
+                      fontFamily: cairoFontFamily,
                       color: Colors.white70,
                       fontSize: 16,
                     ),
@@ -196,7 +198,7 @@ class _ReelsFeedPageState extends State<ReelsFeedPage> {
       itemBuilder: (context, index) {
         // Loading indicator at the end
         if (index >= state.reels.length) {
-          return const Center(
+          return Center(
             child: CircularProgressIndicator(
               color: AppColors.primary,
             ),
@@ -233,10 +235,10 @@ class _ReelsFeedPageState extends State<ReelsFeedPage> {
 
   void _shareReel(Reel reel) {
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
+      SnackBar(
         content: Text(
           'مشاركة الفيديو',
-          style: TextStyle(fontFamily: 'Cairo'),
+          style: TextStyle(fontFamily: cairoFontFamily),
         ),
         backgroundColor: AppColors.primary,
       ),
@@ -250,7 +252,7 @@ class _ReelsFeedPageState extends State<ReelsFeedPage> {
         SnackBar(
           content: Text(
             'الذهاب إلى الكورس: ${reel.redirectLink}',
-            style: const TextStyle(fontFamily: 'Cairo'),
+            style: TextStyle(fontFamily: cairoFontFamily),
           ),
           backgroundColor: AppColors.primary,
         ),
@@ -258,3 +260,6 @@ class _ReelsFeedPageState extends State<ReelsFeedPage> {
     }
   }
 }
+
+
+

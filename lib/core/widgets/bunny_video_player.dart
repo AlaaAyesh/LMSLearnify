@@ -113,7 +113,7 @@ class _BunnyVideoPlayerState extends State<BunnyVideoPlayer> {
           children: [
             WebViewWidget(controller: controller),
             if (_isLoading)
-              const Center(
+              Center(
                 child: CircularProgressIndicator(
                   color: Colors.white,
                 ),
@@ -124,4 +124,6 @@ class _BunnyVideoPlayerState extends State<BunnyVideoPlayer> {
     );
   }
 }
+
+
 

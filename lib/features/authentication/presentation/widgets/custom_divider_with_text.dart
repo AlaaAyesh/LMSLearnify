@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:learnify_lms/core/theme/app_text_styles.dart';
+
 import '../../../../../../core/theme/app_colors.dart';
 
 class CustomDividerWithText extends StatelessWidget {
@@ -32,8 +34,8 @@ class CustomDividerWithText extends StatelessWidget {
           child: Text(
             text,
             style: textStyle ??
-                const TextStyle(
-                  fontFamily: 'Cairo',
+                TextStyle(
+                  fontFamily: cairoFontFamily,
                   color: AppColors.textSecondary,
                   fontSize: 13,
                 ),
@@ -49,3 +51,6 @@ class CustomDividerWithText extends StatelessWidget {
     );
   }
 }
+
+
+

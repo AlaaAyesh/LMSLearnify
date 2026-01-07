@@ -22,7 +22,7 @@ class PaymentMethodIcon extends StatelessWidget {
               fontWeight: FontWeight.bold
           ),
         ),
-        const SizedBox(width: 4,),
+        SizedBox(width: 4,),
         Image.asset(
           imagePath,
           width:width?? 32,
@@ -35,3 +35,5 @@ class PaymentMethodIcon extends StatelessWidget {
     );
   }
 }
+
+

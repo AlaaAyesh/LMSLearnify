@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:learnify_lms/core/theme/app_text_styles.dart';
+
 import '../theme/app_colors.dart';
 
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
@@ -34,8 +36,8 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
 
             Text(
               title,
-              style: const TextStyle(
-                fontFamily: 'Cairo',
+              style: TextStyle(
+                fontFamily: cairoFontFamily,
                 fontSize: 22,
                 fontWeight: FontWeight.bold,
                 color: AppColors.primary,
@@ -85,3 +87,6 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
     );
   }
 }
+
+
+

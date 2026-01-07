@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:learnify_lms/core/theme/app_text_styles.dart';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:learnify_lms/features/authentication/presentation/pages/login/widgets/create_account_button.dart';
 import 'package:learnify_lms/features/authentication/presentation/pages/login/widgets/divider_text.dart';
@@ -72,13 +74,13 @@ class LoginPageViewState extends State<LoginPageView> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      const SizedBox(height: 40),
+                      SizedBox(height: 40),
                       const Header(),
-                      const SizedBox(height: 50),
+                      SizedBox(height: 50),
                       const LoginTitle(),
-                      const SizedBox(height: 18),
+                      SizedBox(height: 18),
                       EmailField(controller: _emailController),
-                      const SizedBox(height: 25),
+                      SizedBox(height: 25),
                       PasswordField(
                         controller: _passwordController,
                         obscure: _obscurePassword,
@@ -88,7 +90,7 @@ class LoginPageViewState extends State<LoginPageView> {
                           });
                         },
                       ),
-                      const SizedBox(height: 42),
+                      SizedBox(height: 42),
                       BlocBuilder<AuthBloc, AuthState>(
                         builder: (context, state) {
                           final isLoading = state is AuthLoading;
@@ -100,21 +102,21 @@ class LoginPageViewState extends State<LoginPageView> {
                           );
                         },
                       ),
-                      const SizedBox(height: 16),
+                      SizedBox(height: 16),
                       OptionsRow(
                         rememberMe: _rememberMe,
                         onRememberChanged: (v) =>
                             setState(() => _rememberMe = v),
                       ),
-                      const SizedBox(height: 24),
+                      SizedBox(height: 24),
                       const CustomDividerWithText(text: "أو التسجيل بواسطة"),
-                      const SizedBox(height: 24),
+                      SizedBox(height: 24),
                       const SocialLoginButtons(),
-                      const SizedBox(height: 40),
+                      SizedBox(height: 40),
                       const CreateAccountButton(),
 
                       // 🆕 زر الدخول كضيف
-                      const SizedBox(height: 16),
+                      SizedBox(height: 16),
                       TextButton.icon(
                         onPressed: _onGuestLoginPressed,
                         icon: const Icon(
@@ -122,10 +124,10 @@ class LoginPageViewState extends State<LoginPageView> {
                           color: AppColors.textSecondary,
                           size: 20,
                         ),
-                        label: const Text(
+                        label: Text(
                           'تصفح كضيف',
                           style: TextStyle(
-                            fontFamily: 'Cairo',
+                            fontFamily: cairoFontFamily,
                             color: AppColors.textSecondary,
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
@@ -152,11 +154,23 @@ class LoginPageViewState extends State<LoginPageView> {
         ),
       );
     } else if (state is AuthAuthenticated) {
-      // Navigate to home - server handles verification
-      Navigator.of(context).pushNamedAndRemoveUntil(
-        '/home',
-        (route) => false,
-      );
+      // Check if we came from subscriptions page (or another page that needs return)
+      final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+      final returnTo = args?['returnTo'] as String?;
+      
+      if (returnTo == 'subscriptions') {
+        // Return true to indicate successful login
+        Navigator.of(context).pop(true);
+      } else {
+        // Navigate to home - server handles verification
+        Navigator.of(context).pushNamedAndRemoveUntil(
+          '/home',
+          (route) => false,
+        );
+      }
     }
   }
 }
+
+
+

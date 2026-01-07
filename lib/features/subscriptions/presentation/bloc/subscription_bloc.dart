@@ -1,4 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../data/models/payment_model.dart';
+import '../../domain/repositories/subscription_repository.dart';
 import '../../domain/usecases/create_subscription_usecase.dart';
 import '../../domain/usecases/get_subscription_by_id_usecase.dart';
 import '../../domain/usecases/get_subscriptions_usecase.dart';
@@ -11,12 +13,14 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
   final GetSubscriptionByIdUseCase getSubscriptionByIdUseCase;
   final CreateSubscriptionUseCase createSubscriptionUseCase;
   final UpdateSubscriptionUseCase updateSubscriptionUseCase;
+  final SubscriptionRepository subscriptionRepository;
 
   SubscriptionBloc({
     required this.getSubscriptionsUseCase,
     required this.getSubscriptionByIdUseCase,
     required this.createSubscriptionUseCase,
     required this.updateSubscriptionUseCase,
+    required this.subscriptionRepository,
   }) : super(SubscriptionInitial()) {
     on<LoadSubscriptionsEvent>(_onLoadSubscriptions);
     on<LoadSubscriptionByIdEvent>(_onLoadSubscriptionById);
@@ -25,6 +29,7 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
     on<CreateSubscriptionEvent>(_onCreateSubscription);
     on<UpdateSubscriptionEvent>(_onUpdateSubscription);
     on<ClearSubscriptionStateEvent>(_onClearState);
+    on<ProcessPaymentEvent>(_onProcessPayment);
   }
 
   Future<void> _onLoadSubscriptions(
@@ -137,6 +142,46 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
     Emitter<SubscriptionState> emit,
   ) {
     emit(SubscriptionInitial());
+  }
+
+  Future<void> _onProcessPayment(
+    ProcessPaymentEvent event,
+    Emitter<SubscriptionState> emit,
+  ) async {
+    emit(PaymentProcessing());
+
+    final request = ProcessPaymentRequest(
+      service: event.service,
+      currency: event.currency,
+      courseId: event.courseId,
+      subscriptionId: event.subscriptionId,
+      phone: event.phone,
+      couponCode: event.couponCode,
+    );
+
+    final result = await subscriptionRepository.processPayment(request: request);
+
+    result.fold(
+      (failure) => emit(PaymentFailed(failure.message)),
+      (response) {
+        if (response.isSuccess) {
+          // Payment initiated - status is pending, waiting for confirmation
+          if (response.purchase.status == PaymentStatus.completed) {
+            emit(PaymentCompleted(
+              purchase: response.purchase,
+              message: response.dataMessage ?? 'تمت عملية الدفع بنجاح',
+            ));
+          } else {
+            emit(PaymentInitiated(
+              purchase: response.purchase,
+              message: response.dataMessage ?? 'تم بدء عملية الدفع',
+            ));
+          }
+        } else {
+          emit(PaymentFailed(response.message));
+        }
+      },
+    );
   }
 }
 

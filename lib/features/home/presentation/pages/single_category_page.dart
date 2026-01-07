@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:learnify_lms/core/theme/app_text_styles.dart';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/custom_app_bar.dart';
@@ -42,11 +44,11 @@ class SingleCategoryPage extends StatelessWidget {
             size: 80,
             color: Colors.grey[400],
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: 16),
           Text(
             'لا توجد دورات في هذا التصنيف',
             style: TextStyle(
-              fontFamily: 'Cairo',
+              fontFamily: cairoFontFamily,
               fontSize: 18,
               color: Colors.grey[600],
               fontWeight: FontWeight.w500,
@@ -141,10 +143,10 @@ class _CourseGridItem extends StatelessWidget {
                               color: AppColors.warning,
                               borderRadius: BorderRadius.circular(8),
                             ),
-                            child: const Text(
+                            child: Text(
                               'قريباً',
                               style: TextStyle(
-                                fontFamily: 'Cairo',
+                                fontFamily: cairoFontFamily,
                                 fontSize: 12,
                                 fontWeight: FontWeight.bold,
                                 color: Colors.white,
@@ -157,7 +159,7 @@ class _CourseGridItem extends StatelessWidget {
                 ),
               ),
             ),
-            const SizedBox(height: 10),
+            SizedBox(height: 10),
             SizedBox(
               width: 120,
               child: Text(
@@ -166,7 +168,7 @@ class _CourseGridItem extends StatelessWidget {
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
-                  fontFamily: 'Cairo',
+                  fontFamily: cairoFontFamily,
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
                   color: isComingSoon 
@@ -222,3 +224,6 @@ class _CourseGridItem extends StatelessWidget {
     );
   }
 }
+
+
+

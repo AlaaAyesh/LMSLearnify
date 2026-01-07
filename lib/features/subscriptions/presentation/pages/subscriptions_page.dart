@@ -4,20 +4,21 @@ import 'package:learnify_lms/features/subscriptions/presentation/pages/widgets/a
 import 'package:learnify_lms/features/subscriptions/presentation/pages/widgets/benefit_item.dart';
 import 'package:learnify_lms/features/subscriptions/presentation/pages/widgets/payment_button.dart';
 import 'package:learnify_lms/features/subscriptions/presentation/pages/widgets/payment_methods_row.dart';
-import 'package:learnify_lms/features/subscriptions/presentation/pages/widgets/payment_success_dialog.dart';
 import 'package:learnify_lms/features/subscriptions/presentation/pages/widgets/promo_code_text_field.dart';
 import 'package:learnify_lms/features/subscriptions/presentation/pages/widgets/subscription_plan_card.dart';
 import '../../../../core/di/injection_container.dart';
+import '../../../../core/services/currency_service.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/custom_app_bar.dart';
 import '../../../../core/widgets/custom_background.dart';
 import '../../../../core/widgets/support_section.dart';
-import '../../domain/entities/subscription.dart';
+import '../../../authentication/data/datasources/auth_local_datasource.dart';
 import '../../domain/entities/subscription_plan.dart';
 import '../bloc/subscription_bloc.dart';
 import '../bloc/subscription_event.dart';
 import '../bloc/subscription_state.dart';
+import 'payment_page.dart';
 
 class SubscriptionsPage extends StatelessWidget {
   /// When true, shows the back button in the app bar.
@@ -95,7 +96,7 @@ class _SubscriptionsPageContentState extends State<_SubscriptionsPageContent> {
             },
             builder: (context, state) {
               if (state is SubscriptionLoading) {
-                return const Center(
+                return Center(
                   child: CircularProgressIndicator(),
                 );
               }
@@ -113,7 +114,7 @@ class _SubscriptionsPageContentState extends State<_SubscriptionsPageContent> {
               }
 
               // Initial state - show loading
-              return const Center(
+              return Center(
                 child: CircularProgressIndicator(),
               );
             },
@@ -135,15 +136,15 @@ class _SubscriptionsPageContentState extends State<_SubscriptionsPageContent> {
               child: Column(
                 children: [
               _buildPlansList(context, state),
-                  const SizedBox(height: 24),
+                  SizedBox(height: 24),
                   _buildBenefitsList(),
-                  const SizedBox(height: 24),
+                  SizedBox(height: 24),
                   _buildPromoCodeSection(),
-                  const SizedBox(height: 24),
+                  SizedBox(height: 24),
               _buildPaymentSection(state),
-                  const SizedBox(height: 16),
+                  SizedBox(height: 16),
                   const SupportSection(),
-                  const SizedBox(height: 24),
+                  SizedBox(height: 24),
                 ],
               ),
             ),
@@ -152,6 +153,8 @@ class _SubscriptionsPageContentState extends State<_SubscriptionsPageContent> {
   }
 
   Widget _buildPlansList(BuildContext context, SubscriptionsLoaded state) {
+    final currencySymbol = CurrencyService.getCurrencySymbol();
+    
     return Column(
       children: List.generate(
         state.subscriptions.length,
@@ -172,7 +175,7 @@ class _SubscriptionsPageContentState extends State<_SubscriptionsPageContent> {
                 title: _getDurationTitle(subscription.duration),
                 originalPrice: subscription.priceBeforeDiscount,
                 discountedPrice: subscription.price,
-                currency: 'جم',
+                currency: currencySymbol,
                 description: _getDurationDescription(subscription.duration),
                 isRecommended: isRecommended,
               ),
@@ -221,19 +224,19 @@ class _SubscriptionsPageContentState extends State<_SubscriptionsPageContent> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           'هل لديك كوبون خصم؟',
           style: AppTextStyles.bodyLarge,
           textAlign: TextAlign.right,
         ),
-        const SizedBox(height: 8),
+        SizedBox(height: 8),
         Row(
           textDirection: TextDirection.rtl,
           children: [
             Expanded(
               child: PromoCodeTextField(controller: _promoController),
             ),
-            const SizedBox(width: 10),
+            SizedBox(width: 10),
             ApplyButton(onPressed: _applyPromoCode),
           ],
         ),
@@ -243,6 +246,7 @@ class _SubscriptionsPageContentState extends State<_SubscriptionsPageContent> {
 
   Widget _buildPaymentSection(SubscriptionsLoaded state) {
     final selectedSubscription = state.selectedSubscription;
+    final currencySymbol = CurrencyService.getCurrencySymbol();
     
     return Padding(
       padding: const EdgeInsets.all(16),
@@ -250,17 +254,79 @@ class _SubscriptionsPageContentState extends State<_SubscriptionsPageContent> {
         children: [
           if (selectedSubscription != null) ...[
             Text(
-              'المجموع: ${selectedSubscription.price} جم',
+              'المجموع: ${selectedSubscription.price} $currencySymbol',
               style: AppTextStyles.bodyLarge.copyWith(
                 fontWeight: FontWeight.bold,
               ),
             ),
-            const SizedBox(height: 8),
+            SizedBox(height: 8),
           ],
-          PaymentButton(onPressed: _showPaymentSuccessDialog),
-          const SizedBox(height: 16),
+          PaymentButton(onPressed: () => _processPayment(state)),
+          SizedBox(height: 16),
           const PaymentMethodsRow(),
         ],
+      ),
+    );
+  }
+
+  void _processPayment(SubscriptionsLoaded state) async {
+    final selectedSubscription = state.selectedSubscription;
+    if (selectedSubscription == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('يرجى اختيار باقة أولاً'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    // Check if user is authenticated (not guest)
+    final authLocalDataSource = sl<AuthLocalDataSource>();
+    final token = await authLocalDataSource.getAccessToken();
+    final isGuest = await authLocalDataSource.isGuestMode();
+    
+    final isAuthenticated = token != null && token.isNotEmpty && !isGuest;
+    
+    if (!isAuthenticated) {
+      // Save selected plan index before redirecting to login
+      final selectedIndex = state.selectedIndex;
+      final promoCode = state.appliedPromoCode;
+      
+      // Navigate to login with return info
+      final result = await Navigator.pushNamed(
+        context,
+        '/login',
+        arguments: {
+          'returnTo': 'subscriptions',
+          'selectedPlanIndex': selectedIndex,
+          'promoCode': promoCode,
+        },
+      );
+      
+      // After login success, reload subscriptions and restore selection
+      if (result == true && mounted) {
+        context.read<SubscriptionBloc>().add(const LoadSubscriptionsEvent());
+        // Restore selection after a brief delay for state to update
+        Future.delayed(const Duration(milliseconds: 500), () {
+          if (mounted) {
+            context.read<SubscriptionBloc>().add(
+              SelectSubscriptionEvent(index: selectedIndex),
+            );
+          }
+        });
+      }
+      return;
+    }
+
+    // User is authenticated - navigate to payment page
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => PaymentPage(
+          subscription: selectedSubscription,
+          promoCode: state.appliedPromoCode,
+        ),
       ),
     );
   }
@@ -275,7 +341,7 @@ class _SubscriptionsPageContentState extends State<_SubscriptionsPageContent> {
             size: 80,
             color: Colors.grey[400],
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: 16),
           Text(
             'لا توجد باقات متاحة حالياً',
             style: TextStyle(
@@ -284,7 +350,7 @@ class _SubscriptionsPageContentState extends State<_SubscriptionsPageContent> {
               fontWeight: FontWeight.w500,
             ),
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: 8),
           Text(
             'يرجى المحاولة لاحقاً',
             style: TextStyle(
@@ -292,7 +358,7 @@ class _SubscriptionsPageContentState extends State<_SubscriptionsPageContent> {
               color: Colors.grey[500],
             ),
           ),
-          const SizedBox(height: 24),
+          SizedBox(height: 24),
           ElevatedButton.icon(
             onPressed: () {
               context.read<SubscriptionBloc>().add(const LoadSubscriptionsEvent());
@@ -323,7 +389,7 @@ class _SubscriptionsPageContentState extends State<_SubscriptionsPageContent> {
             size: 80,
             color: Colors.red[400],
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: 16),
           Text(
             'حدث خطأ',
             style: TextStyle(
@@ -332,7 +398,7 @@ class _SubscriptionsPageContentState extends State<_SubscriptionsPageContent> {
               fontWeight: FontWeight.w500,
             ),
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: 8),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 32),
             child: Text(
@@ -344,7 +410,7 @@ class _SubscriptionsPageContentState extends State<_SubscriptionsPageContent> {
               ),
             ),
           ),
-          const SizedBox(height: 24),
+          SizedBox(height: 24),
           ElevatedButton.icon(
             onPressed: () {
               context.read<SubscriptionBloc>().add(const LoadSubscriptionsEvent());
@@ -373,20 +439,6 @@ class _SubscriptionsPageContentState extends State<_SubscriptionsPageContent> {
           );
     }
   }
-
-  void _showPaymentSuccessDialog() {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (ctx) => PaymentSuccessDialog(
-        onContinue: () {
-          Navigator.pop(ctx);
-          Navigator.of(context, rootNavigator: true).pushNamedAndRemoveUntil(
-            '/home',
-                (route) => false,
-          );
-        },
-      ),
-    );
-  }
 }
+
+

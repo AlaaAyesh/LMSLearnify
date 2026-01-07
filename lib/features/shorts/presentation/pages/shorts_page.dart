@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:learnify_lms/core/theme/app_text_styles.dart';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/di/injection_container.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -40,13 +42,13 @@ class _ShortsPageState extends State<ShortsPage> with SingleTickerProviderStateM
         body: SafeArea(
           child: Column(
             children: [
-              const SizedBox(height: 16),
+              SizedBox(height: 16),
               // Logo
               _buildHeader(),
-              const SizedBox(height: 24),
+              SizedBox(height: 24),
               // Tabs
               _buildTabs(),
-              const SizedBox(height: 16),
+              SizedBox(height: 16),
               // Content
               Expanded(
                 child: BlocBuilder<ReelsBloc, ReelsState>(
@@ -70,7 +72,7 @@ class _ShortsPageState extends State<ShortsPage> with SingleTickerProviderStateM
 
   Widget _buildMyVideosTab(BuildContext context, ReelsState state) {
     if (state is ReelsLoading) {
-      return const Center(
+      return Center(
         child: CircularProgressIndicator(
           color: AppColors.primary,
         ),
@@ -87,17 +89,17 @@ class _ShortsPageState extends State<ShortsPage> with SingleTickerProviderStateM
               size: 64,
               color: Colors.grey[400],
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
             Text(
               state.message,
               style: TextStyle(
-                fontFamily: 'Cairo',
+                fontFamily: cairoFontFamily,
                 fontSize: 14,
                 color: Colors.grey[600],
               ),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
             ElevatedButton(
               onPressed: () {
                 context.read<ReelsBloc>().add(const LoadReelsFeedEvent(perPage: 20));
@@ -108,10 +110,10 @@ class _ShortsPageState extends State<ShortsPage> with SingleTickerProviderStateM
                   borderRadius: BorderRadius.circular(20),
                 ),
               ),
-              child: const Text(
+              child: Text(
                 'إعادة المحاولة',
                 style: TextStyle(
-                  fontFamily: 'Cairo',
+                  fontFamily: cairoFontFamily,
                   color: Colors.white,
                 ),
               ),
@@ -131,11 +133,11 @@ class _ShortsPageState extends State<ShortsPage> with SingleTickerProviderStateM
               size: 80,
               color: Colors.grey[400],
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
             Text(
               'لا توجد فيديوهات',
               style: TextStyle(
-                fontFamily: 'Cairo',
+                fontFamily: cairoFontFamily,
                 fontSize: 16,
                 color: Colors.grey[600],
               ),
@@ -180,11 +182,11 @@ class _ShortsPageState extends State<ShortsPage> with SingleTickerProviderStateM
                 size: 80,
                 color: Colors.grey[400],
               ),
-              const SizedBox(height: 16),
+              SizedBox(height: 16),
               Text(
                 'لا توجد فيديوهات مفضلة',
                 style: TextStyle(
-                  fontFamily: 'Cairo',
+                  fontFamily: cairoFontFamily,
                   fontSize: 16,
                   color: Colors.grey[600],
                 ),
@@ -205,7 +207,7 @@ class _ShortsPageState extends State<ShortsPage> with SingleTickerProviderStateM
     }
 
     if (state is ReelsLoading) {
-      return const Center(
+      return Center(
         child: CircularProgressIndicator(
           color: AppColors.primary,
         ),
@@ -221,11 +223,11 @@ class _ShortsPageState extends State<ShortsPage> with SingleTickerProviderStateM
             size: 80,
             color: Colors.grey[400],
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: 16),
           Text(
             'لا توجد فيديوهات مفضلة',
             style: TextStyle(
-              fontFamily: 'Cairo',
+              fontFamily: cairoFontFamily,
               fontSize: 16,
               color: Colors.grey[600],
             ),
@@ -256,7 +258,7 @@ class _ShortsPageState extends State<ShortsPage> with SingleTickerProviderStateM
               errorBuilder: (context, error, stackTrace) {
                 return Container(
                   color: AppColors.primary.withOpacity(0.1),
-                  child: const Center(
+                  child: Center(
                     child: Text(
                       'L',
                       style: TextStyle(
@@ -271,23 +273,23 @@ class _ShortsPageState extends State<ShortsPage> with SingleTickerProviderStateM
             ),
           ),
         ),
-        const SizedBox(height: 12),
+        SizedBox(height: 12),
         // Title
-        const Text(
+        Text(
           'Learnify',
           style: TextStyle(
-            fontFamily: 'Cairo',
+            fontFamily: cairoFontFamily,
             fontSize: 22,
             fontWeight: FontWeight.bold,
             color: AppColors.textPrimary,
           ),
         ),
-        const SizedBox(height: 4),
+        SizedBox(height: 4),
         // Subtitle with emojis
-        const Text(
+        Text(
           'I love a colorful life 🧡🧡🧡',
           style: TextStyle(
-            fontFamily: 'Cairo',
+            fontFamily: cairoFontFamily,
             fontSize: 14,
             color: AppColors.textSecondary,
           ),
@@ -305,13 +307,13 @@ class _ShortsPageState extends State<ShortsPage> with SingleTickerProviderStateM
         indicatorWeight: 2,
         labelColor: AppColors.primary,
         unselectedLabelColor: AppColors.textSecondary,
-        labelStyle: const TextStyle(
-          fontFamily: 'Cairo',
+        labelStyle: TextStyle(
+          fontFamily: cairoFontFamily,
           fontSize: 14,
           fontWeight: FontWeight.w600,
         ),
-        unselectedLabelStyle: const TextStyle(
-          fontFamily: 'Cairo',
+        unselectedLabelStyle: TextStyle(
+          fontFamily: cairoFontFamily,
           fontSize: 14,
           fontWeight: FontWeight.w500,
         ),
@@ -342,8 +344,8 @@ class _ShortsPageState extends State<ShortsPage> with SingleTickerProviderStateM
   }
 
   void _onVideoTap(BuildContext context, List<Reel> reels, int index) {
-    Navigator.push(
-      context,
+    // Use rootNavigator to push above the bottom navigation bar
+    Navigator.of(context, rootNavigator: true).push(
       MaterialPageRoute(
         builder: (_) => BlocProvider.value(
           value: context.read<ReelsBloc>(),
@@ -353,3 +355,6 @@ class _ShortsPageState extends State<ShortsPage> with SingleTickerProviderStateM
     );
   }
 }
+
+
+

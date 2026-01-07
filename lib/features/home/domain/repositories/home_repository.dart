@@ -7,3 +7,5 @@ abstract class HomeRepository {
   Future<Either<Failure, HomeData>> getHomeData();
 }
 
+
+

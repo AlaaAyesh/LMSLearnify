@@ -7,3 +7,5 @@ abstract class ChapterRepository {
   Future<Either<Failure, Chapter>> getChapterById({required int id});
 }
 
+
+

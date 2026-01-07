@@ -1,5 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:learnify_lms/core/theme/app_text_styles.dart';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../domain/entities/banner.dart';
@@ -111,7 +113,7 @@ class _BannerCarouselState extends State<BannerCarousel> {
                             fit: BoxFit.cover,
                             placeholder: (context, url) => Container(
                               color: AppColors.primary.withOpacity(0.1),
-                              child: const Center(
+                              child: Center(
                                 child: CircularProgressIndicator(
                                   strokeWidth: 2,
                                   color: AppColors.primary,
@@ -181,8 +183,8 @@ class _BannerCarouselState extends State<BannerCarousel> {
                 padding: const EdgeInsets.only(top: 8),
                 child: Text(
                   banner.title!,
-                  style: const TextStyle(
-                    fontFamily: 'Cairo',
+                  style: TextStyle(
+                    fontFamily: cairoFontFamily,
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
@@ -195,4 +197,7 @@ class _BannerCarouselState extends State<BannerCarousel> {
     );
   }
 }
+
+
+
 

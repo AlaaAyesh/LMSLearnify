@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:learnify_lms/core/theme/app_text_styles.dart';
+
 import '../../../../../core/theme/app_colors.dart';
 import 'payment_method_icon.dart';
 
@@ -7,13 +9,13 @@ class PaymentMethodsRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Row(
+    return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Text(
           'طرق الدفع المتاحة',
           style: TextStyle(
-            fontFamily: 'Cairo',
+            fontFamily: cairoFontFamily,
             fontSize: 12,
             color: AppColors.textSecondary,
           ),
@@ -28,3 +30,6 @@ class PaymentMethodsRow extends StatelessWidget {
     );
   }
 }
+
+
+

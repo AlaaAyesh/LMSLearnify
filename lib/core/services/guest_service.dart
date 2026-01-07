@@ -44,3 +44,5 @@ class GuestService {
     return authFeatures.contains(feature);
   }
 }
+
+

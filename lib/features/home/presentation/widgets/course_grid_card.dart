@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:learnify_lms/core/theme/app_text_styles.dart';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../domain/entities/course.dart';
@@ -49,11 +51,11 @@ class CourseGridCard extends StatelessWidget {
                   if (course.soon)
                     Container(
                       color: Colors.black.withOpacity(0.5),
-                      child: const Center(
+                      child: Center(
                         child: Text(
                           'قريباً',
                           style: TextStyle(
-                            fontFamily: 'Cairo',
+                            fontFamily: cairoFontFamily,
                             fontSize: 12,
                             fontWeight: FontWeight.bold,
                             color: Colors.white,
@@ -65,14 +67,14 @@ class CourseGridCard extends StatelessWidget {
               ),
             ),
           ),
-          const SizedBox(height: 6),
+          SizedBox(height: 6),
           Text(
             course.nameAr,
             textAlign: TextAlign.center,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-              fontFamily: 'Cairo',
+            style: TextStyle(
+              fontFamily: cairoFontFamily,
               fontSize: 11,
               fontWeight: FontWeight.w600,
               color: AppColors.textPrimary,
@@ -126,4 +128,7 @@ class CourseGridCard extends StatelessWidget {
     );
   }
 }
+
+
+
 

@@ -17,3 +17,5 @@ class Specialty extends Equatable {
   List<Object?> get props => [id, nameAr, nameEn];
 }
 
+
+

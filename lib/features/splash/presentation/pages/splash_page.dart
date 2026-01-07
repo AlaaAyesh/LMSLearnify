@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:learnify_lms/core/theme/app_text_styles.dart';
+
 
 import '../../../../core/di/injection_container.dart';
 import '../../../../core/storage/secure_storage_service.dart';
@@ -82,18 +84,18 @@ class _SplashPageState extends State<SplashPage>
 
               // Logo and text
               const AnimatedLogo(),
-              const SizedBox(height: 30),
+              SizedBox(height: 30),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 50),
                 child: RichText(
                   textAlign: TextAlign.center,
                   textDirection: TextDirection.rtl,
-                  text: const TextSpan(
+                  text: TextSpan(
                     children: [
                       TextSpan(
                         text: 'مستقبل ابنك يبدأ\n',
                         style: TextStyle(
-                          fontFamily: 'Cairo',
+                          fontFamily: cairoFontFamily,
                           fontSize: 30,
                           fontWeight: FontWeight.bold,
                           color: Color(0xFF000000),
@@ -103,7 +105,7 @@ class _SplashPageState extends State<SplashPage>
                       TextSpan(
                         text: 'هنا 👋',
                         style: TextStyle(
-                          fontFamily: 'Cairo',
+                          fontFamily: cairoFontFamily,
                           fontSize: 30,
                           fontWeight: FontWeight.bold,
                           color: Color(0xFFFFFFFF),
@@ -124,3 +126,6 @@ class _SplashPageState extends State<SplashPage>
     );
   }
 }
+
+
+

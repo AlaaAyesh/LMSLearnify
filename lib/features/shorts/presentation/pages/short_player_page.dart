@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:learnify_lms/core/theme/app_text_styles.dart';
+
 import 'package:flutter/services.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -89,7 +91,7 @@ class _ShortPlayerPageState extends State<ShortPlayerPage> {
   void _shareVideo(ShortVideo video) {
     // TODO: Implement share functionality
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
+      SnackBar(
         content: Text('مشاركة الفيديو'),
         backgroundColor: AppColors.primary,
       ),
@@ -123,7 +125,7 @@ class _ShortVideoPlayer extends StatelessWidget {
           fit: BoxFit.cover,
           placeholder: (context, url) => Container(
             color: AppColors.primary,
-            child: const Center(
+            child: Center(
               child: CircularProgressIndicator(
                 color: Colors.white,
               ),
@@ -204,11 +206,11 @@ class _ShortVideoPlayer extends StatelessWidget {
                   size: 28,
                 ),
               ),
-              const SizedBox(height: 6),
+              SizedBox(height: 6),
               Text(
                 _formatCount(video.likesCount),
-                style: const TextStyle(
-                  fontFamily: 'Cairo',
+                style: TextStyle(
+                  fontFamily: cairoFontFamily,
                   fontSize: 13,
                   color: Colors.white,
                   fontWeight: FontWeight.bold,
@@ -217,7 +219,7 @@ class _ShortVideoPlayer extends StatelessWidget {
             ],
           ),
         ),
-        const SizedBox(height: 24),
+        SizedBox(height: 24),
         // Share Button
         GestureDetector(
           onTap: onShare,
@@ -239,11 +241,11 @@ class _ShortVideoPlayer extends StatelessWidget {
                   ),
                 ),
               ),
-              const SizedBox(height: 6),
-              const Text(
+              SizedBox(height: 6),
+              Text(
                 'مشاركة',
                 style: TextStyle(
-                  fontFamily: 'Cairo',
+                  fontFamily: cairoFontFamily,
                   fontSize: 13,
                   color: Colors.white,
                   fontWeight: FontWeight.bold,
@@ -266,14 +268,14 @@ class _ShortVideoPlayer extends StatelessWidget {
           children: [
             Text(
               video.channelName,
-              style: const TextStyle(
-                fontFamily: 'Cairo',
+              style: TextStyle(
+                fontFamily: cairoFontFamily,
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
                 color: Colors.white,
               ),
             ),
-            const SizedBox(width: 8),
+            SizedBox(width: 8),
             Container(
               width: 28,
               height: 28,
@@ -289,14 +291,14 @@ class _ShortVideoPlayer extends StatelessWidget {
             ),
           ],
         ),
-        const SizedBox(height: 8),
+        SizedBox(height: 8),
         // Description/Title
         SizedBox(
           width: 200,
           child: Text(
             video.description,
             style: TextStyle(
-              fontFamily: 'Cairo',
+              fontFamily: cairoFontFamily,
               fontSize: 13,
               color: Colors.white.withOpacity(0.9),
               height: 1.4,
@@ -314,7 +316,7 @@ class _ShortVideoPlayer extends StatelessWidget {
     return ElevatedButton(
       onPressed: () {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
+          SnackBar(
             content: Text('تم الاشتراك بنجاح'),
             backgroundColor: AppColors.success,
           ),
@@ -328,10 +330,10 @@ class _ShortVideoPlayer extends StatelessWidget {
         ),
         elevation: 4,
       ),
-      child: const Text(
+      child: Text(
         'اشترك من هنا',
         style: TextStyle(
-          fontFamily: 'Cairo',
+          fontFamily: cairoFontFamily,
           fontSize: 16,
           fontWeight: FontWeight.bold,
           color: Colors.white,
@@ -349,3 +351,6 @@ class _ShortVideoPlayer extends StatelessWidget {
     return count.toString();
   }
 }
+
+
+

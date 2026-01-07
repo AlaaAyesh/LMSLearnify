@@ -99,11 +99,11 @@ class _ChangePasswordPageContentState
           icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
           onPressed: () => Navigator.of(context).pop(),
         ),
-        title: const Text(
+        title: Text(
           'تغيير كلمة المرور',
           style: TextStyle(
             color: AppColors.textPrimary,
-            fontFamily: 'Cairo',
+            fontFamily: cairoFontFamily,
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -120,7 +120,7 @@ class _ChangePasswordPageContentState
             );
           } else if (state is PasswordChanged) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
+              SnackBar(
                 content: Text('تم تغيير كلمة المرور بنجاح'),
                 backgroundColor: AppColors.success,
               ),
@@ -136,7 +136,7 @@ class _ChangePasswordPageContentState
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const SizedBox(height: 20),
+                  SizedBox(height: 20),
                   // Icon
                   Container(
                     width: 80,
@@ -151,7 +151,7 @@ class _ChangePasswordPageContentState
                       color: AppColors.primary,
                     ),
                   ),
-                  const SizedBox(height: 24),
+                  SizedBox(height: 24),
                   // Subtitle
                   Text(
                     'أدخل كلمة المرور الحالية وكلمة المرور الجديدة',
@@ -160,7 +160,7 @@ class _ChangePasswordPageContentState
                     ),
                     textAlign: TextAlign.center,
                   ),
-                  const SizedBox(height: 32),
+                  SizedBox(height: 32),
 
                   // Current Password Field
                   _buildPasswordField(
@@ -174,10 +174,10 @@ class _ChangePasswordPageContentState
                     validator: _validateCurrentPassword,
                     textInputAction: TextInputAction.next,
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: 16),
 
                   // Divider
-                  const Padding(
+                  Padding(
                     padding: EdgeInsets.symmetric(vertical: 8),
                     child: Divider(),
                   ),
@@ -193,7 +193,7 @@ class _ChangePasswordPageContentState
                     validator: _validateNewPassword,
                     textInputAction: TextInputAction.next,
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: 16),
 
                   // Confirm Password Field
                   _buildPasswordField(
@@ -207,7 +207,7 @@ class _ChangePasswordPageContentState
                     validator: _validateConfirmPassword,
                     textInputAction: TextInputAction.done,
                   ),
-                  const SizedBox(height: 8),
+                  SizedBox(height: 8),
 
                   // Password hint
                   Text(
@@ -216,7 +216,7 @@ class _ChangePasswordPageContentState
                       color: AppColors.textSecondary,
                     ),
                   ),
-                  const SizedBox(height: 32),
+                  SizedBox(height: 32),
 
                   // Change Password Button
                   BlocBuilder<AuthBloc, AuthState>(
@@ -252,8 +252,8 @@ class _ChangePasswordPageContentState
       textInputAction: textInputAction,
       decoration: InputDecoration(
         hintText: hintText,
-        hintStyle: const TextStyle(
-          fontFamily: 'Cairo',
+        hintStyle: TextStyle(
+          fontFamily: cairoFontFamily,
           color: AppColors.textSecondary,
         ),
         filled: true,
@@ -301,4 +301,6 @@ class _ChangePasswordPageContentState
     );
   }
 }
+
+
 

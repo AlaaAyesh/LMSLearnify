@@ -21,3 +21,5 @@ class HomeBanner extends Equatable {
   List<Object?> get props => [id, title, description, imageUrl, linkUrl, isActive];
 }
 
+
+

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:learnify_lms/core/theme/app_text_styles.dart';
+
 import 'package:flutter/services.dart';
 
 import '../../../../core/theme/app_colors.dart';
@@ -45,17 +47,17 @@ class PhoneField extends StatelessWidget {
                     _getFlag(countryCode) ?? '🌍',
                     style: const TextStyle(fontSize: 20),
                   ),
-                  const SizedBox(width: 4),
+                  SizedBox(width: 4),
                   Text(
                     countryCode ?? '+20',
-                    style: const TextStyle(
-                      fontFamily: 'Cairo',
+                    style: TextStyle(
+                      fontFamily: cairoFontFamily,
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
                       color: AppColors.textPrimary,
                     ),
                   ),
-                  const SizedBox(width: 4),
+                  SizedBox(width: 4),
                   const Icon(
                     Icons.keyboard_arrow_down,
                     size: 18,
@@ -73,19 +75,19 @@ class PhoneField extends StatelessWidget {
                 controller: controller,
                 keyboardType: TextInputType.phone,
                 textAlign: TextAlign.left,
-                style: const TextStyle(
-                  fontFamily: 'Cairo',
+                style: TextStyle(
+                  fontFamily: cairoFontFamily,
                   fontSize: 16,
                   color: AppColors.textPrimary,
                 ),
                 inputFormatters: [
                   FilteringTextInputFormatter.digitsOnly,
                 ],
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   hintText: 'رقم الهاتف',
                   hintStyle: TextStyle(
                     color: AppColors.textHint,
-                    fontFamily: 'Cairo',
+                    fontFamily: cairoFontFamily,
                     fontSize: 14,
                   ),
                   border: InputBorder.none,
@@ -96,7 +98,7 @@ class PhoneField extends StatelessWidget {
             ),
           ),
           // Phone Icon
-          const Padding(
+          Padding(
             padding: EdgeInsets.only(right: 12),
             child: Icon(
               Icons.phone_outlined,
@@ -200,11 +202,11 @@ class _CountryPickerSheet extends StatelessWidget {
           ),
           child: Row(
             children: [
-              const Expanded(
+              Expanded(
                 child: Text(
                   'اختر الدولة',
                   style: TextStyle(
-                    fontFamily: 'Cairo',
+                    fontFamily: cairoFontFamily,
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                     color: AppColors.textPrimary,
@@ -237,7 +239,7 @@ class _CountryPickerSheet extends StatelessWidget {
                 title: Text(
                   country['name']!,
                   style: TextStyle(
-                    fontFamily: 'Cairo',
+                    fontFamily: cairoFontFamily,
                     fontSize: 16,
                     fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                     color: isSelected ? AppColors.primary : AppColors.textPrimary,
@@ -246,7 +248,7 @@ class _CountryPickerSheet extends StatelessWidget {
                 subtitle: Text(
                   country['code']!,
                   style: TextStyle(
-                    fontFamily: 'Cairo',
+                    fontFamily: cairoFontFamily,
                     fontSize: 14,
                     color: isSelected ? AppColors.primary : AppColors.textSecondary,
                   ),
@@ -260,8 +262,11 @@ class _CountryPickerSheet extends StatelessWidget {
             },
           ),
         ),
-        const SizedBox(height: 16),
+        SizedBox(height: 16),
       ],
     );
   }
 }
+
+
+

@@ -86,3 +86,5 @@ class ReelsError extends ReelsState {
   @override
   List<Object?> get props => [message];
 }
+
+

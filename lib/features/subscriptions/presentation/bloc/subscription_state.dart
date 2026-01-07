@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import '../../data/models/payment_model.dart';
 import '../../domain/entities/subscription.dart';
 
 abstract class SubscriptionState extends Equatable {
@@ -121,6 +122,47 @@ class SubscriptionError extends SubscriptionState {
   final String message;
 
   const SubscriptionError(this.message);
+
+  @override
+  List<Object?> get props => [message];
+}
+
+/// Payment processing state
+class PaymentProcessing extends SubscriptionState {}
+
+/// Payment initiated successfully (pending confirmation)
+class PaymentInitiated extends SubscriptionState {
+  final PurchaseModel purchase;
+  final String message;
+
+  const PaymentInitiated({
+    required this.purchase,
+    this.message = 'تم بدء عملية الدفع بنجاح',
+  });
+
+  @override
+  List<Object?> get props => [purchase, message];
+}
+
+/// Payment completed successfully
+class PaymentCompleted extends SubscriptionState {
+  final PurchaseModel purchase;
+  final String message;
+
+  const PaymentCompleted({
+    required this.purchase,
+    this.message = 'تمت عملية الدفع بنجاح',
+  });
+
+  @override
+  List<Object?> get props => [purchase, message];
+}
+
+/// Payment failed
+class PaymentFailed extends SubscriptionState {
+  final String message;
+
+  const PaymentFailed(this.message);
 
   @override
   List<Object?> get props => [message];

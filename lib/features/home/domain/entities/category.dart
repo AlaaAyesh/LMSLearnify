@@ -23,3 +23,5 @@ class Category extends Equatable {
   List<Object?> get props => [id, nameAr, nameEn, description, specialtyId, imageUrl];
 }
 
+
+

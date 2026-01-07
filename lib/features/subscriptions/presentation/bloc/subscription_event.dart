@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import '../../data/models/payment_model.dart';
 import '../../data/models/subscription_model.dart';
 
 abstract class SubscriptionEvent extends Equatable {
@@ -70,6 +71,28 @@ class UpdateSubscriptionEvent extends SubscriptionEvent {
 /// Clear subscription state
 class ClearSubscriptionStateEvent extends SubscriptionEvent {
   const ClearSubscriptionStateEvent();
+}
+
+/// Process a payment
+class ProcessPaymentEvent extends SubscriptionEvent {
+  final PaymentService service;
+  final String currency;
+  final int? courseId;
+  final int? subscriptionId;
+  final String phone;
+  final String? couponCode;
+
+  const ProcessPaymentEvent({
+    required this.service,
+    required this.currency,
+    this.courseId,
+    this.subscriptionId,
+    required this.phone,
+    this.couponCode,
+  });
+
+  @override
+  List<Object?> get props => [service, currency, courseId, subscriptionId, phone, couponCode];
 }
 
 

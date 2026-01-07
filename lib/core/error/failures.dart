@@ -38,3 +38,5 @@ class AuthenticationFailure extends Failure {
 class NotFoundFailure extends Failure {
   const NotFoundFailure(super.message);
 }
+
+

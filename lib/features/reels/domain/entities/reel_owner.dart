@@ -17,3 +17,5 @@ class ReelOwner extends Equatable {
   List<Object?> get props => [id, name, email, avatarUrl];
 }
 
+
+

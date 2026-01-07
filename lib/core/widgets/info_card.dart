@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:learnify_lms/core/theme/app_text_styles.dart';
+
 
 class InfoCard extends StatelessWidget {
   final String text;
@@ -37,7 +39,7 @@ class InfoCard extends StatelessWidget {
         textAlign: textAlign,
         textDirection: TextDirection.rtl,
         style: TextStyle(
-          fontFamily: 'Cairo',
+          fontFamily: cairoFontFamily,
           fontSize: fontSize,
           height: 1.6,
           color: textColor,
@@ -47,3 +49,6 @@ class InfoCard extends StatelessWidget {
     );
   }
 }
+
+
+

@@ -1,5 +1,6 @@
 import 'package:dartz/dartz.dart';
 import '../../../../core/error/failures.dart';
+import '../../data/models/payment_model.dart';
 import '../../data/models/subscription_model.dart';
 import '../entities/subscription.dart';
 
@@ -19,6 +20,11 @@ abstract class SubscriptionRepository {
   Future<Either<Failure, Subscription>> updateSubscription({
     required int id,
     required UpdateSubscriptionRequest request,
+  });
+
+  /// Process a payment for a subscription or course
+  Future<Either<Failure, PaymentResponseModel>> processPayment({
+    required ProcessPaymentRequest request,
   });
 }
 

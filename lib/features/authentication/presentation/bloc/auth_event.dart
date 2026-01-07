@@ -171,3 +171,8 @@ class MobileOAuthLoginEvent extends AuthEvent {
 
 // Native Google Sign-In event
 class NativeGoogleSignInEvent extends AuthEvent {}
+
+// Native Apple Sign-In event
+class NativeAppleSignInEvent extends AuthEvent {}
+
+

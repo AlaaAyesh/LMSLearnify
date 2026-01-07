@@ -69,23 +69,23 @@ class _GuestProfilePage extends StatelessWidget {
                   color: AppColors.primary,
                 ),
               ),
-              const SizedBox(height: 32),
+              SizedBox(height: 32),
 
               // Title
-              const Text(
+              Text(
                 'أنت تتصفح كضيف',
                 style: AppTextStyles.displayMedium,
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 16),
+              SizedBox(height: 16),
 
               // Description
-              const Text(
+              Text(
                 'للوصول إلى ملفك الشخصي والمحتوى الكامل، يرجى تسجيل الدخول أو إنشاء حساب جديد',
                 style: AppTextStyles.bodyLarge,
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 32),
+              SizedBox(height: 32),
 
               // Login Button
               SizedBox(
@@ -101,17 +101,17 @@ class _GuestProfilePage extends StatelessWidget {
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  child: const Text(
+                  child: Text(
                     'تسجيل الدخول',
                     style: TextStyle(
-                      fontFamily: 'Cairo',
+                      fontFamily: cairoFontFamily,
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                 ),
               ),
-              const SizedBox(height: 16),
+              SizedBox(height: 16),
 
               // Register Button
               SizedBox(
@@ -127,10 +127,10 @@ class _GuestProfilePage extends StatelessWidget {
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  child: const Text(
+                  child: Text(
                     'إنشاء حساب جديد',
                     style: TextStyle(
-                      fontFamily: 'Cairo',
+                      fontFamily: cairoFontFamily,
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
                       color: AppColors.primary,
@@ -219,7 +219,7 @@ class _AuthenticatedProfilePageState extends State<_AuthenticatedProfilePage> {
     if (formKey.currentState!.validate()) {
       // TODO: Implement update profile API
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('تم حفظ التعديلات')),
+        SnackBar(content: Text('تم حفظ التعديلات')),
       );
     }
   }
@@ -250,7 +250,7 @@ class _AuthenticatedProfilePageState extends State<_AuthenticatedProfilePage> {
         },
         builder: (context, state) {
           if (state is AuthLoading) {
-            return const Center(
+            return Center(
               child: CircularProgressIndicator(color: AppColors.primary),
             );
           }
@@ -259,7 +259,7 @@ class _AuthenticatedProfilePageState extends State<_AuthenticatedProfilePage> {
             return _buildProfileContent(state.user);
           }
 
-          return const Center(
+          return Center(
             child: CircularProgressIndicator(color: AppColors.primary),
           );
         },
@@ -285,47 +285,47 @@ class _AuthenticatedProfilePageState extends State<_AuthenticatedProfilePage> {
             key: formKey,
             child: Column(
               children: [
-                const SizedBox(height: 24),
+                SizedBox(height: 24),
 
                 // Profile Avatar
                 _buildProfileAvatar(user),
-                const SizedBox(height: 16),
+                SizedBox(height: 16),
 
                 // User Info
                 Text(
                   user.name,
                   style: AppTextStyles.displayMedium,
                 ),
-                const SizedBox(height: 4),
+                SizedBox(height: 4),
                 Text(
                   user.email,
                   style: AppTextStyles.bodyMedium.copyWith(
                     color: AppColors.textSecondary,
                   ),
                 ),
-                const SizedBox(height: 8),
+                SizedBox(height: 8),
 
                 // Subscription Status
                 _buildSubscriptionBadge(user),
-                const SizedBox(height: 32),
+                SizedBox(height: 32),
 
                 // Form Fields
                 NameField(controller: nameController),
-                const SizedBox(height: 16),
+                SizedBox(height: 16),
 
                 PhoneField(
                   controller: phoneController,
                   countryCode: countryCode,
                   onCountryChanged: (v) => setState(() => countryCode = v),
                 ),
-                const SizedBox(height: 16),
+                SizedBox(height: 16),
 
                 EmailField(controller: emailController),
-                const SizedBox(height: 24),
+                SizedBox(height: 24),
 
                 // Change Password Section
                 _buildSectionTitle('تغيير كلمة المرور'),
-                const SizedBox(height: 16),
+                SizedBox(height: 16),
 
                 PasswordField(
                   controller: passwordController,
@@ -335,7 +335,7 @@ class _AuthenticatedProfilePageState extends State<_AuthenticatedProfilePage> {
                   onToggleVisibility: () =>
                       setState(() => obscurePassword = !obscurePassword),
                 ),
-                const SizedBox(height: 16),
+                SizedBox(height: 16),
 
                 PasswordField(
                   controller: confirmPasswordController,
@@ -351,14 +351,14 @@ class _AuthenticatedProfilePageState extends State<_AuthenticatedProfilePage> {
                   onToggleVisibility: () => setState(
                       () => obscureConfirmPassword = !obscureConfirmPassword),
                 ),
-                const SizedBox(height: 32),
+                SizedBox(height: 32),
 
                 // Save Button
                 PrimaryButton(
                   text: 'حفظ التعديلات',
                   onPressed: onSave,
                 ),
-                const SizedBox(height: 40),
+                SizedBox(height: 40),
               ],
             ),
           ),
@@ -369,22 +369,22 @@ class _AuthenticatedProfilePageState extends State<_AuthenticatedProfilePage> {
 
   Widget _buildProfileAvatar(User user) {
     return CircleAvatar(
-      radius: 50,
-      backgroundColor: AppColors.primary.withOpacity(0.1),
-      backgroundImage:
-          user.avatarUrl != null && user.avatarUrl!.isNotEmpty
-              ? NetworkImage(user.avatarUrl!)
+          radius: 50,
+          backgroundColor: AppColors.primary.withOpacity(0.1),
+          backgroundImage:
+              user.avatarUrl != null && user.avatarUrl!.isNotEmpty
+                  ? NetworkImage(user.avatarUrl!)
+                  : null,
+          child: user.avatarUrl == null || user.avatarUrl!.isEmpty
+              ? Text(
+                  user.name.isNotEmpty ? user.name[0].toUpperCase() : 'U',
+                  style: const TextStyle(
+                    fontSize: 40,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.primary,
+                  ),
+                )
               : null,
-      child: user.avatarUrl == null || user.avatarUrl!.isEmpty
-          ? Text(
-              user.name.isNotEmpty ? user.name[0].toUpperCase() : 'U',
-              style: const TextStyle(
-                fontSize: 40,
-                fontWeight: FontWeight.bold,
-                color: AppColors.primary,
-              ),
-            )
-          : null,
     );
   }
 
@@ -405,11 +405,11 @@ class _AuthenticatedProfilePageState extends State<_AuthenticatedProfilePage> {
             size: 16,
             color: user.isSubscribed ? AppColors.success : AppColors.warning,
           ),
-          const SizedBox(width: 8),
+          SizedBox(width: 8),
           Text(
             user.isSubscribed ? 'مشترك' : 'غير مشترك',
             style: TextStyle(
-              fontFamily: 'Cairo',
+              fontFamily: cairoFontFamily,
               fontSize: 14,
               fontWeight: FontWeight.w600,
               color: user.isSubscribed ? AppColors.success : AppColors.warning,
@@ -432,3 +432,5 @@ class _AuthenticatedProfilePageState extends State<_AuthenticatedProfilePage> {
     );
   }
 }
+
+

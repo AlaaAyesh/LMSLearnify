@@ -47,8 +47,13 @@ class ApiConstants {
   // Subscription Endpoints
   static const String subscriptions = 'subscriptions';
 
+  // Payment Endpoints
+  static const String processPayment = 'payments/process';
+
   // Reels Endpoints
   static const String reelsFeed = 'reels/feed';
   static const String recordReelView = 'reels/{id}/views';
   static const String likeReel = 'reels/{id}/like';
 }
+
+

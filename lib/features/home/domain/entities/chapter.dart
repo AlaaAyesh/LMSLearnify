@@ -45,3 +45,5 @@ class Chapter extends Equatable {
   List<Object?> get props => [id, courseId, nameAr, nameEn, lessons, course];
 }
 
+
+

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:learnify_lms/core/theme/app_text_styles.dart';
+
 import 'package:learnify_lms/features/subscriptions/presentation/pages/widgets/strikethrough_price.dart';
 
 
@@ -33,8 +35,8 @@ class PriceSection extends StatelessWidget {
             left: 0,
             child: Text(
               ' ج.م$discountedPrice',
-              style: const TextStyle(
-                fontFamily: 'Cairo',
+              style: TextStyle(
+                fontFamily: cairoFontFamily,
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
                 color: Colors.black,
@@ -46,3 +48,6 @@ class PriceSection extends StatelessWidget {
     );
   }
 }
+
+
+

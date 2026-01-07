@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:learnify_lms/core/theme/app_text_styles.dart';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -253,7 +255,7 @@ class _ReelPlayerWidgetState extends State<ReelPlayerWidget> {
 
         // Loading indicator
         if (_isVideoLoading && widget.reel.bunnyUrl.isNotEmpty)
-          const Center(
+          Center(
             child: CircularProgressIndicator(
               color: Colors.white,
             ),
@@ -335,7 +337,7 @@ class _ReelPlayerWidgetState extends State<ReelPlayerWidget> {
     if (widget.reel.thumbnailUrl.isEmpty) {
       return Container(
         color: AppColors.primary.withOpacity(0.3),
-        child: const Center(
+        child: Center(
           child: Icon(
             Icons.play_circle_outline,
             color: Colors.white,
@@ -350,7 +352,7 @@ class _ReelPlayerWidgetState extends State<ReelPlayerWidget> {
       fit: BoxFit.cover,
       placeholder: (context, url) => Container(
         color: Colors.black,
-        child: const Center(
+        child: Center(
           child: CircularProgressIndicator(
             color: AppColors.primary,
           ),
@@ -358,7 +360,7 @@ class _ReelPlayerWidgetState extends State<ReelPlayerWidget> {
       ),
       errorWidget: (context, url, error) => Container(
         color: AppColors.primary.withOpacity(0.3),
-        child: const Center(
+        child: Center(
           child: Icon(
             Icons.play_circle_outline,
             color: Colors.white,
@@ -374,7 +376,7 @@ class _ReelPlayerWidgetState extends State<ReelPlayerWidget> {
       children: [
         // Owner Avatar
         _buildOwnerAvatar(),
-        const SizedBox(height: 24),
+        SizedBox(height: 24),
 
         // Like Button
         _buildActionButton(
@@ -384,7 +386,7 @@ class _ReelPlayerWidgetState extends State<ReelPlayerWidget> {
           activeColor: Colors.red,
           onTap: widget.onLike,
         ),
-        const SizedBox(height: 20),
+        SizedBox(height: 20),
 
         // Views
         _buildActionButton(
@@ -392,7 +394,7 @@ class _ReelPlayerWidgetState extends State<ReelPlayerWidget> {
           label: _formattedViews,
           onTap: () {},
         ),
-        const SizedBox(height: 20),
+        SizedBox(height: 20),
 
         // Share Button
         _buildActionButton(
@@ -449,7 +451,7 @@ class _ReelPlayerWidgetState extends State<ReelPlayerWidget> {
                     ),
             ),
           ),
-          const SizedBox(height: 4),
+          SizedBox(height: 4),
           Container(
             padding: const EdgeInsets.all(4),
             decoration: const BoxDecoration(
@@ -494,11 +496,11 @@ class _ReelPlayerWidgetState extends State<ReelPlayerWidget> {
               size: 26,
             ),
           ),
-          const SizedBox(height: 6),
+          SizedBox(height: 6),
           Text(
             label,
-            style: const TextStyle(
-              fontFamily: 'Cairo',
+            style: TextStyle(
+              fontFamily: cairoFontFamily,
               fontSize: 12,
               color: Colors.white,
               fontWeight: FontWeight.w600,
@@ -519,14 +521,14 @@ class _ReelPlayerWidgetState extends State<ReelPlayerWidget> {
           children: [
             Text(
               '@${widget.reel.owner.name}',
-              style: const TextStyle(
-                fontFamily: 'Cairo',
+              style: TextStyle(
+                fontFamily: cairoFontFamily,
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
                 color: Colors.white,
               ),
             ),
-            const SizedBox(width: 8),
+            SizedBox(width: 8),
             if (widget.reel.owner.name.isNotEmpty)
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
@@ -534,10 +536,10 @@ class _ReelPlayerWidgetState extends State<ReelPlayerWidget> {
                   color: AppColors.primary,
                   borderRadius: BorderRadius.circular(4),
                 ),
-                child: const Text(
+                child: Text(
                   'متابعة',
                   style: TextStyle(
-                    fontFamily: 'Cairo',
+                    fontFamily: cairoFontFamily,
                     fontSize: 11,
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
@@ -546,13 +548,13 @@ class _ReelPlayerWidgetState extends State<ReelPlayerWidget> {
               ),
           ],
         ),
-        const SizedBox(height: 8),
+        SizedBox(height: 8),
 
         // Title
         Text(
           widget.reel.title,
-          style: const TextStyle(
-            fontFamily: 'Cairo',
+          style: TextStyle(
+            fontFamily: cairoFontFamily,
             fontSize: 15,
             fontWeight: FontWeight.w600,
             color: Colors.white,
@@ -560,14 +562,14 @@ class _ReelPlayerWidgetState extends State<ReelPlayerWidget> {
           maxLines: 2,
           overflow: TextOverflow.ellipsis,
         ),
-        const SizedBox(height: 4),
+        SizedBox(height: 4),
 
         // Description
         if (widget.reel.description.isNotEmpty)
           Text(
             widget.reel.description,
             style: TextStyle(
-              fontFamily: 'Cairo',
+              fontFamily: cairoFontFamily,
               fontSize: 13,
               color: Colors.white.withOpacity(0.8),
               height: 1.4,
@@ -576,7 +578,7 @@ class _ReelPlayerWidgetState extends State<ReelPlayerWidget> {
             overflow: TextOverflow.ellipsis,
           ),
 
-        const SizedBox(height: 8),
+        SizedBox(height: 8),
 
         // Created at
         Row(
@@ -586,11 +588,11 @@ class _ReelPlayerWidgetState extends State<ReelPlayerWidget> {
               color: Colors.white.withOpacity(0.6),
               size: 14,
             ),
-            const SizedBox(width: 4),
+            SizedBox(width: 4),
             Text(
               widget.reel.createdAt,
               style: TextStyle(
-                fontFamily: 'Cairo',
+                fontFamily: cairoFontFamily,
                 fontSize: 12,
                 color: Colors.white.withOpacity(0.6),
               ),
@@ -629,11 +631,11 @@ class _ReelPlayerWidgetState extends State<ReelPlayerWidget> {
             color: Colors.white,
             size: 22,
           ),
-          const SizedBox(width: 8),
+          SizedBox(width: 8),
           Text(
             buttonText,
-            style: const TextStyle(
-              fontFamily: 'Cairo',
+            style: TextStyle(
+              fontFamily: cairoFontFamily,
               fontSize: 16,
               fontWeight: FontWeight.bold,
               color: Colors.white,
@@ -644,3 +646,6 @@ class _ReelPlayerWidgetState extends State<ReelPlayerWidget> {
     );
   }
 }
+
+
+

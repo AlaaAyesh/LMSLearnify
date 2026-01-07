@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:learnify_lms/core/theme/app_text_styles.dart';
+
 import 'package:learnify_lms/core/widgets/radio_indicator.dart';
 
 class PlanDetailsSection extends StatelessWidget {
@@ -23,12 +25,12 @@ class PlanDetailsSection extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             RadioIndicator(isSelected: isSelected),
-            const SizedBox(width: 8),
+            SizedBox(width: 8),
 
             Text(
               title,
-              style: const TextStyle(
-                fontFamily: 'Cairo',
+              style: TextStyle(
+                fontFamily: cairoFontFamily,
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
                 color: Colors.black,
@@ -39,11 +41,11 @@ class PlanDetailsSection extends StatelessWidget {
 
           ],
         ),
-        const SizedBox(height: 4),
+        SizedBox(height: 4),
         Text(
           description,
-          style: const TextStyle(
-            fontFamily: 'Cairo',
+          style: TextStyle(
+            fontFamily: cairoFontFamily,
             fontSize: 10,
             color: Color(0xFF565E6C),
             height: 1.4,
@@ -56,3 +58,6 @@ class PlanDetailsSection extends StatelessWidget {
     );
   }
 }
+
+
+

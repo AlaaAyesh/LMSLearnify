@@ -91,7 +91,7 @@ class _EmailVerificationPageContentState
   void _handleVerify() {
     if (_otp.length != 6) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
+        SnackBar(
           content: Text('الرجاء إدخال رمز التحقق المكون من 6 أرقام'),
           backgroundColor: AppColors.error,
         ),
@@ -128,7 +128,7 @@ class _EmailVerificationPageContentState
                 if (state.message.toLowerCase().contains('already verified') ||
                     state.message.contains('تم التحقق')) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
+                    SnackBar(
                       content: Text('البريد الإلكتروني مُتحقق منه بالفعل'),
                       backgroundColor: AppColors.success,
                     ),
@@ -147,7 +147,7 @@ class _EmailVerificationPageContentState
                 }
               } else if (state is EmailVerified) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
+                  SnackBar(
                     content: Text('تم التحقق من البريد الإلكتروني بنجاح'),
                     backgroundColor: AppColors.success,
                   ),
@@ -158,7 +158,7 @@ class _EmailVerificationPageContentState
                 );
               } else if (state is EmailOtpSent) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
+                  SnackBar(
                     content: Text('تم إرسال رمز التحقق'),
                     backgroundColor: AppColors.success,
                   ),
@@ -176,7 +176,7 @@ class _EmailVerificationPageContentState
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const SizedBox(height: 40),
+                    SizedBox(height: 40),
                     // Icon
                     Container(
                       width: 100,
@@ -191,14 +191,14 @@ class _EmailVerificationPageContentState
                         color: AppColors.primary,
                       ),
                     ),
-                    const SizedBox(height: 32),
+                    SizedBox(height: 32),
                     // Title
-                    const Text(
+                    Text(
                       'التحقق من البريد الإلكتروني',
                       style: AppTextStyles.displayMedium,
                       textAlign: TextAlign.center,
                     ),
-                    const SizedBox(height: 12),
+                    SizedBox(height: 12),
                     // Subtitle
                     Text(
                       'أدخل رمز التحقق المرسل إلى\n${widget.email}',
@@ -207,7 +207,7 @@ class _EmailVerificationPageContentState
                       ),
                       textAlign: TextAlign.center,
                     ),
-                    const SizedBox(height: 40),
+                    SizedBox(height: 40),
 
                     // OTP Input Fields
                     Directionality(
@@ -267,18 +267,18 @@ class _EmailVerificationPageContentState
                         }),
                       ),
                     ),
-                    const SizedBox(height: 24),
+                    SizedBox(height: 24),
 
                     // Resend Timer
                     Center(
                       child: _canResend
                           ? TextButton(
                               onPressed: _resendOtp,
-                              child: const Text(
+                              child: Text(
                                 'إعادة إرسال الرمز',
                                 style: TextStyle(
                                   color: AppColors.primary,
-                                  fontFamily: 'Cairo',
+                                  fontFamily: cairoFontFamily,
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),
@@ -290,7 +290,7 @@ class _EmailVerificationPageContentState
                               ),
                             ),
                     ),
-                    const SizedBox(height: 40),
+                    SizedBox(height: 40),
 
                     // Verify Button
                     BlocBuilder<AuthBloc, AuthState>(
@@ -303,7 +303,7 @@ class _EmailVerificationPageContentState
                         );
                       },
                     ),
-                    const SizedBox(height: 24),
+                    SizedBox(height: 24),
                     
                     // Info text
                     Container(
@@ -312,7 +312,7 @@ class _EmailVerificationPageContentState
                         color: AppColors.info.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: const Row(
+                      child: Row(
                         children: [
                           Icon(Icons.info_outline, color: AppColors.info, size: 20),
                           SizedBox(width: 8),
@@ -320,7 +320,7 @@ class _EmailVerificationPageContentState
                             child: Text(
                               'يجب التحقق من بريدك الإلكتروني للمتابعة',
                               style: TextStyle(
-                                fontFamily: 'Cairo',
+                                fontFamily: cairoFontFamily,
                                 fontSize: 12,
                                 color: AppColors.info,
                               ),
@@ -329,18 +329,18 @@ class _EmailVerificationPageContentState
                         ],
                       ),
                     ),
-                    const SizedBox(height: 16),
+                    SizedBox(height: 16),
                     
                     // Use different email button
                     TextButton(
                       onPressed: () {
                         context.read<AuthBloc>().add(LogoutEvent());
                       },
-                      child: const Text(
+                      child: Text(
                         'استخدام بريد إلكتروني آخر',
                         style: TextStyle(
                           color: AppColors.textSecondary,
-                          fontFamily: 'Cairo',
+                          fontFamily: cairoFontFamily,
                           fontSize: 14,
                         ),
                       ),
@@ -355,4 +355,6 @@ class _EmailVerificationPageContentState
     );
   }
 }
+
+
 

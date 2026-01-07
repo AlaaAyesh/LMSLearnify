@@ -77,3 +77,5 @@ class User extends Equatable {
         createdAt,
       ];
 }
+
+

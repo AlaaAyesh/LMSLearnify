@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:learnify_lms/core/theme/app_text_styles.dart';
+
 import '../../../../core/theme/app_colors.dart';
 import '../../../menu/presentation/pages/menu_page.dart';
 import '../../../shorts/presentation/pages/shorts_page.dart';
@@ -123,11 +125,11 @@ class MainNavigationPageState extends State<MainNavigationPage> {
               color: isSelected ? AppColors.primary : AppColors.textSecondary,
               size: 26,
             ),
-            const SizedBox(height: 4),
+            SizedBox(height: 4),
             Text(
               label,
               style: TextStyle(
-                fontFamily: 'Cairo',
+                fontFamily: cairoFontFamily,
                 fontSize: 11,
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
                 color: isSelected ? AppColors.primary : AppColors.textSecondary,
@@ -162,4 +164,7 @@ extension MainNavigationContext on BuildContext {
     mainNavigation?.pushPage(page);
   }
 }
+
+
+
 

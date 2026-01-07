@@ -60,15 +60,15 @@ class ForgotPasswordPageViewState
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const SizedBox(height: 120),
+                  SizedBox(height: 120),
                   const ForgotPasswordTitle(),
-                  const SizedBox(height: 16),
+                  SizedBox(height: 16),
                   const ForgotPasswordSubtitle(),
-                  const SizedBox(height: 40),
+                  SizedBox(height: 40),
                   ForgotPasswordEmailField(
                     controller: emailController,
                   ),
-                  const SizedBox(height: 130),
+                  SizedBox(height: 130),
                   BlocBuilder<AuthBloc, AuthState>(
                     builder: (context, state) {
                       final isLoading = state is AuthLoading;
@@ -103,7 +103,7 @@ class ForgotPasswordPageViewState
       );
     } else if (state is ForgotPasswordSuccess) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
+        SnackBar(
           content: Text('تم إرسال رمز التحقق إلى بريدك الإلكتروني'),
           backgroundColor: AppColors.success,
         ),
@@ -117,3 +117,5 @@ class ForgotPasswordPageViewState
     }
   }
 }
+
+

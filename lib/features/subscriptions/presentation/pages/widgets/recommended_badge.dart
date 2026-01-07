@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:learnify_lms/core/theme/app_text_styles.dart';
+
 
 class RecommendedBadge extends StatelessWidget {
   const RecommendedBadge({super.key});
@@ -16,10 +18,10 @@ class RecommendedBadge extends StatelessWidget {
           ),
           borderRadius: BorderRadius.circular(12),
         ),
-        child: const Text(
+        child: Text(
           'الأكثر مبيعاً',
           style: TextStyle(
-            fontFamily: 'Cairo',
+            fontFamily: cairoFontFamily,
             fontSize: 10,
             color: Colors.white,
             fontWeight: FontWeight.bold,
@@ -29,3 +31,6 @@ class RecommendedBadge extends StatelessWidget {
     );
   }
 }
+
+
+

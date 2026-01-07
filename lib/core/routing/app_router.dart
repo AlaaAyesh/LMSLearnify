@@ -152,12 +152,12 @@ class AppRouter {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   const Icon(Icons.error_outline, size: 48, color: Colors.red),
-                  const SizedBox(height: 16),
+                  SizedBox(height: 16),
                   Text(
                     'الصفحة غير موجودة',
                     style: Theme.of(context).textTheme.headlineSmall,
                   ),
-                  const SizedBox(height: 8),
+                  SizedBox(height: 8),
                   Text('No route defined for ${settings.name}'),
                 ],
               ),
@@ -167,3 +167,5 @@ class AppRouter {
     }
   }
 }
+
+

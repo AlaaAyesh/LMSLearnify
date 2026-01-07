@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:learnify_lms/core/theme/app_text_styles.dart';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:learnify_lms/features/authentication/presentation/pages/register/widgets/have_account_row.dart';
 import 'package:learnify_lms/features/authentication/presentation/widgets/name_field.dart';
@@ -127,7 +129,7 @@ class RegisterPageViewState extends State<RegisterPageView> {
       // Check password match
       if (passwordController.text != confirmPasswordController.text) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
+          SnackBar(
             content: Text('كلمة المرور غير متطابقة'),
             backgroundColor: AppColors.error,
           ),
@@ -138,7 +140,7 @@ class RegisterPageViewState extends State<RegisterPageView> {
       // Check age validity
       if (calculatedAge == null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
+          SnackBar(
             content: Text('يرجى إدخال تاريخ الميلاد'),
             backgroundColor: AppColors.error,
           ),
@@ -193,20 +195,20 @@ class RegisterPageViewState extends State<RegisterPageView> {
                   key: formKey,
                   child: Column(
                     children: [
-                      const SizedBox(height: 50),
+                      SizedBox(height: 50),
                       const RegisterHeader(),
-                      const SizedBox(height: 45),
+                      SizedBox(height: 45),
                       NameField(controller: nameController),
-                      const SizedBox(height: 16),
+                      SizedBox(height: 16),
                       PhoneField(
                         controller: phoneController,
                         countryCode: countryCode,
                         onCountryChanged: (v) =>
                             setState(() => countryCode = v),
                       ),
-                      const SizedBox(height: 16),
+                      SizedBox(height: 16),
                       EmailField(controller: emailController),
-                      const SizedBox(height: 16),
+                      SizedBox(height: 16),
                       // Birthday Field
                       BirthdayField(
                         dayController: dayController,
@@ -215,18 +217,18 @@ class RegisterPageViewState extends State<RegisterPageView> {
                       ),
                       // Show calculated age and specialty
                       if (calculatedAge != null) ...[
-                        const SizedBox(height: 8),
+                        SizedBox(height: 8),
                         _buildAgeSpecialtyInfo(),
                       ],
-                      const SizedBox(height: 16),
-                      const SizedBox(height: 16),
+                      SizedBox(height: 16),
+                      SizedBox(height: 16),
                       PasswordField(
                         controller: passwordController,
                         obscure: obscurePassword,
                         onToggleVisibility: () =>
                             setState(() => obscurePassword = !obscurePassword),
                       ),
-                      const SizedBox(height: 16),
+                      SizedBox(height: 16),
                       PasswordField(
                         controller: confirmPasswordController,
                         obscure: obscureConfirmPassword,
@@ -234,7 +236,7 @@ class RegisterPageViewState extends State<RegisterPageView> {
                         onToggleVisibility: () => setState(
                             () => obscureConfirmPassword = !obscureConfirmPassword),
                       ),
-                      const SizedBox(height: 28),
+                      SizedBox(height: 28),
                       BlocBuilder<AuthBloc, AuthState>(
                         builder: (context, state) {
                           final isLoading = state is AuthLoading;
@@ -246,13 +248,13 @@ class RegisterPageViewState extends State<RegisterPageView> {
                           );
                         },
                       ),
-                      const SizedBox(height: 16),
+                      SizedBox(height: 16),
                       const HaveAccountRow(),
-                      const SizedBox(height: 20),
+                      SizedBox(height: 20),
                       const CustomDividerWithText(text: "أو التسجيل بواسطة"),
-                      const SizedBox(height: 20),
+                      SizedBox(height: 20),
                       const SocialLoginButtons(),
-                      const SizedBox(height: 30),
+                      SizedBox(height: 30),
                     ],
                   ),
                 ),
@@ -286,7 +288,7 @@ class RegisterPageViewState extends State<RegisterPageView> {
             color: isValidAge ? AppColors.success : AppColors.error,
             size: 20,
           ),
-          const SizedBox(width: 12),
+          SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -294,7 +296,7 @@ class RegisterPageViewState extends State<RegisterPageView> {
                 Text(
                   'العمر: $calculatedAge سنة',
                   style: TextStyle(
-                    fontFamily: 'Cairo',
+                    fontFamily: cairoFontFamily,
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
                     color: isValidAge ? AppColors.success : AppColors.error,
@@ -304,7 +306,7 @@ class RegisterPageViewState extends State<RegisterPageView> {
                   Text(
                     'الفئة العمرية: $specialtyName',
                     style: TextStyle(
-                      fontFamily: 'Cairo',
+                      fontFamily: cairoFontFamily,
                       fontSize: 12,
                       color: isValidAge
                           ? AppColors.success.withOpacity(0.8)
@@ -316,7 +318,7 @@ class RegisterPageViewState extends State<RegisterPageView> {
                     AgeSpecialtyHelper.getAgeValidationMessage(calculatedAge!) ??
                         'العمر غير صالح',
                     style: TextStyle(
-                      fontFamily: 'Cairo',
+                      fontFamily: cairoFontFamily,
                       fontSize: 12,
                       color: AppColors.error.withOpacity(0.8),
                     ),
@@ -380,3 +382,6 @@ class RegisterPageViewState extends State<RegisterPageView> {
     }
   }
 }
+
+
+

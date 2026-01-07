@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:learnify_lms/core/theme/app_text_styles.dart';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../domain/entities/course.dart';
@@ -76,10 +78,10 @@ class PopularCourseCard extends StatelessWidget {
                         color: AppColors.warning,
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: const Text(
+                      child: Text(
                         'قريباً',
                         style: TextStyle(
-                          fontFamily: 'Cairo',
+                          fontFamily: cairoFontFamily,
                           fontSize: 10,
                           fontWeight: FontWeight.bold,
                           color: Colors.white,
@@ -99,8 +101,8 @@ class PopularCourseCard extends StatelessWidget {
                     course.nameAr,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontFamily: 'Cairo',
+                    style: TextStyle(
+                      fontFamily: cairoFontFamily,
                       fontSize: 14,
                       fontWeight: FontWeight.bold,
                       color: AppColors.textPrimary,
@@ -160,4 +162,7 @@ class PopularCourseCard extends StatelessWidget {
     );
   }
 }
+
+
+
 

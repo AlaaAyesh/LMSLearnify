@@ -27,7 +27,7 @@ class BenefitItem extends StatelessWidget {
               color: Color(0xFFFFB300),
             ),
           ),
-          const SizedBox(width: 10),
+          SizedBox(width: 10),
           Expanded(
             child: Text(
               text,
@@ -43,3 +43,5 @@ class BenefitItem extends StatelessWidget {
     );
   }
 }
+
+

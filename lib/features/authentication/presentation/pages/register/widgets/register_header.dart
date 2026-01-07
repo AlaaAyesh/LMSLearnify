@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:learnify_lms/core/theme/app_text_styles.dart';
+
 import '../../../../../../core/theme/app_colors.dart';
 
 class RegisterHeader extends StatelessWidget {
@@ -18,27 +20,27 @@ class RegisterHeader extends StatelessWidget {
         Text(
           title,
           textAlign: TextAlign.center,
-          style: const TextStyle(
-            fontFamily: 'Cairo',
+          style: TextStyle(
+            fontFamily: cairoFontFamily,
             fontSize: 28,
             fontWeight: FontWeight.bold,
             color: AppColors.textPrimary,
           ),
         ),
-        const SizedBox(height: 4),
+        SizedBox(height: 4),
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
               highlight,
-              style: const TextStyle(
-                fontFamily: 'Cairo',
+              style: TextStyle(
+                fontFamily: cairoFontFamily,
                 fontSize: 28,
                 fontWeight: FontWeight.bold,
                 color: AppColors.primary,
               ),
             ),
-            const SizedBox(width: 6),
+            SizedBox(width: 6),
             const Text('👋', style: TextStyle(fontSize: 28)),
           ],
         ),
@@ -46,3 +48,6 @@ class RegisterHeader extends StatelessWidget {
     );
   }
 }
+
+
+

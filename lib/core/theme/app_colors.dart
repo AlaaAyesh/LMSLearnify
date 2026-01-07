@@ -32,3 +32,5 @@ class AppColors {
   static const Color inputBorder = Color(0xFFE0E0E0);
   static const Color inputFocusBorder = Color(0xFFFDB914);
 }
+
+

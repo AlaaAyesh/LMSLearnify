@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:learnify_lms/core/theme/app_text_styles.dart';
+
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:webview_flutter/webview_flutter.dart';
 import '../../../../core/di/injection_container.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/bunny_video_player.dart';
@@ -64,7 +67,9 @@ class _LessonPlayerPageContent extends StatefulWidget {
 
 class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
   bool _hasMarkedAsViewed = false;
-  bool _showLessonsList = false;
+  bool _showLessonsList = true; // Open by default
+  WebViewController? _videoController;
+  String? _currentVideoUrl;
 
   @override
   void initState() {
@@ -87,6 +92,63 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
       _hasMarkedAsViewed = true;
       context.read<LessonBloc>().add(MarkLessonViewedEvent(lessonId: widget.lessonId));
     }
+  }
+
+  WebViewController _getVideoController(String videoUrl) {
+    // Return existing controller if URL hasn't changed
+    if (_videoController != null && _currentVideoUrl == videoUrl) {
+      return _videoController!;
+    }
+    
+    _currentVideoUrl = videoUrl;
+    
+    String embedUrl = videoUrl.replaceFirst('/play/', '/embed/');
+    if (!embedUrl.contains('?')) {
+      embedUrl = '$embedUrl?autoplay=true&responsive=true';
+    } else {
+      embedUrl = '$embedUrl&autoplay=true&responsive=true';
+    }
+
+    final html = '''
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { 
+      width: 100%; 
+      height: 100%; 
+      background: #000;
+      overflow: hidden;
+    }
+    iframe {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      border: 0;
+    }
+  </style>
+</head>
+<body>
+  <iframe 
+    src="$embedUrl"
+    allow="accelerometer;gyroscope;autoplay;encrypted-media;picture-in-picture;"
+    allowfullscreen="true">
+  </iframe>
+</body>
+</html>
+''';
+
+    _videoController = WebViewController()
+      ..setJavaScriptMode(JavaScriptMode.unrestricted)
+      ..setBackgroundColor(Colors.black)
+      ..loadHtmlString(html);
+    
+    return _videoController!;
   }
 
   @override
@@ -123,7 +185,7 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
           onPressed: () => Navigator.pop(context),
         ),
       ),
-      body: const Center(
+      body: Center(
         child: CircularProgressIndicator(color: AppColors.primary),
       ),
     );
@@ -144,13 +206,13 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const Icon(Icons.error_outline, size: 64, color: Colors.red),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
             Text(
               message,
-              style: const TextStyle(color: Colors.white, fontFamily: 'Cairo', fontSize: 16),
+              style: TextStyle(color: Colors.white, fontFamily: cairoFontFamily, fontSize: 16),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 24),
+            SizedBox(height: 24),
             ElevatedButton(
               onPressed: () {
                 if (widget.lessonId > 0) {
@@ -158,7 +220,7 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
                 }
               },
               style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
-              child: const Text('إعادة المحاولة', style: TextStyle(fontFamily: 'Cairo')),
+              child: Text('إعادة المحاولة', style: TextStyle(fontFamily: cairoFontFamily)),
             ),
           ],
         ),
@@ -173,64 +235,101 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
       return _buildNoVideoScreen(lesson);
     }
 
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: SafeArea(
-        child: Column(
-          children: [
-            // Video Player Section
-            Stack(
+    return OrientationBuilder(
+      builder: (context, orientation) {
+        final isLandscape = orientation == Orientation.landscape;
+        
+        // Fullscreen video in landscape mode
+        if (isLandscape) {
+          return Scaffold(
+            backgroundColor: Colors.black,
+            body: Stack(
+              fit: StackFit.expand,
               children: [
-                BunnyVideoPlayer(
-                  videoUrl: videoUrl,
-                  onVideoLoaded: _onVideoLoaded,
-                ),
+                WebViewWidget(controller: _getVideoController(videoUrl)),
                 // Back button overlay
                 Positioned(
-                  top: 8,
-                  left: 8,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(0.5),
-                      shape: BoxShape.circle,
-                    ),
-                    child: IconButton(
-                      icon: const Icon(Icons.arrow_back, color: Colors.white, size: 20),
-                      onPressed: () => Navigator.pop(context),
+                  top: 16,
+                  left: 16,
+                  child: SafeArea(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.black.withOpacity(0.5),
+                        shape: BoxShape.circle,
+                      ),
+                      child: IconButton(
+                        icon: const Icon(Icons.arrow_back, color: Colors.white, size: 20),
+                        onPressed: () => Navigator.pop(context),
+                      ),
                     ),
                   ),
                 ),
               ],
             ),
-            // Content Section
-            Expanded(
-              child: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+          );
+        }
+        
+        // Portrait mode with content
+        return Scaffold(
+          backgroundColor: Colors.white,
+          body: SafeArea(
+            child: Column(
+              children: [
+                // Video Player Section
+                Stack(
                   children: [
-                    // Lesson Info Card
-                    _buildLessonInfoCard(lesson),
-                    
-                    // Course & Chapter Info
-                    if (widget.course != null || widget.chapter != null)
-                      _buildCourseChapterInfo(),
-                    
-                    // Chapter Lessons List
-                    if (widget.chapter != null && widget.chapter!.lessons.isNotEmpty)
-                      _buildChapterLessons(lesson),
-                    
-                    // Description Section
-                    if (lesson.description != null && lesson.description!.isNotEmpty)
-                      _buildDescriptionSection(lesson),
-                    
-                    const SizedBox(height: 24),
+                    BunnyVideoPlayer(
+                      videoUrl: videoUrl,
+                      onVideoLoaded: _onVideoLoaded,
+                    ),
+                    // Back button overlay
+                    Positioned(
+                      top: 8,
+                      left: 8,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.black.withOpacity(0.5),
+                          shape: BoxShape.circle,
+                        ),
+                        child: IconButton(
+                          icon: const Icon(Icons.arrow_back, color: Colors.white, size: 20),
+                          onPressed: () => Navigator.pop(context),
+                        ),
+                      ),
+                    ),
                   ],
                 ),
-              ),
+                // Content Section
+                Expanded(
+                  child: SingleChildScrollView(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Lesson Info Card
+                        _buildLessonInfoCard(lesson),
+                        
+                        // Course & Chapter Info
+                        if (widget.course != null || widget.chapter != null)
+                          _buildCourseChapterInfo(),
+                        
+                        // Chapter Lessons List
+                        if (widget.chapter != null && widget.chapter!.lessons.isNotEmpty)
+                          _buildChapterLessons(lesson),
+                        
+                        // Description Section
+                        if (lesson.description != null && lesson.description!.isNotEmpty)
+                          _buildDescriptionSection(lesson),
+                        
+                        SizedBox(height: 24),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 
@@ -243,14 +342,14 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
           // Lesson Title
           Text(
             lesson.nameAr,
-            style: const TextStyle(
-              fontFamily: 'Cairo',
+            style: TextStyle(
+              fontFamily: cairoFontFamily,
               fontSize: 18,
               fontWeight: FontWeight.bold,
               color: AppColors.textPrimary,
             ),
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: 8),
           // Lesson Meta Info
           Row(
             children: [
@@ -265,11 +364,11 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       const Icon(Icons.access_time, size: 14, color: AppColors.primary),
-                      const SizedBox(width: 4),
+                      SizedBox(width: 4),
                       Text(
                         lesson.videoDuration!,
-                        style: const TextStyle(
-                          fontFamily: 'Cairo',
+                        style: TextStyle(
+                          fontFamily: cairoFontFamily,
                           fontSize: 12,
                           color: AppColors.primary,
                           fontWeight: FontWeight.w600,
@@ -278,7 +377,7 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
                     ],
                   ),
                 ),
-                const SizedBox(width: 8),
+                SizedBox(width: 8),
               ],
               if (lesson.viewed) ...[
                 Container(
@@ -287,7 +386,7 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
                     color: AppColors.success.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(4),
                   ),
-                  child: const Row(
+                  child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Icon(Icons.check_circle, size: 14, color: AppColors.success),
@@ -295,7 +394,7 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
                       Text(
                         'تمت المشاهدة',
                         style: TextStyle(
-                          fontFamily: 'Cairo',
+                          fontFamily: cairoFontFamily,
                           fontSize: 12,
                           color: AppColors.success,
                           fontWeight: FontWeight.w600,
@@ -336,23 +435,23 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
                   ),
                   child: const Icon(Icons.school, size: 20, color: AppColors.primary),
                 ),
-                const SizedBox(width: 12),
+                SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
+                      Text(
                         'الدورة',
                         style: TextStyle(
-                          fontFamily: 'Cairo',
+                          fontFamily: cairoFontFamily,
                           fontSize: 11,
                           color: AppColors.textSecondary,
                         ),
                       ),
                       Text(
                         widget.course!.nameAr,
-                        style: const TextStyle(
-                          fontFamily: 'Cairo',
+                        style: TextStyle(
+                          fontFamily: cairoFontFamily,
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
                           color: AppColors.textPrimary,
@@ -369,7 +468,7 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
           // Chapter Info
           if (widget.chapter != null) ...[
             if (widget.course != null) ...[
-              const Padding(
+              Padding(
                 padding: EdgeInsets.symmetric(vertical: 8),
                 child: Divider(height: 1),
               ),
@@ -384,23 +483,23 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
                   ),
                   child: const Icon(Icons.folder_outlined, size: 20, color: AppColors.warning),
                 ),
-                const SizedBox(width: 12),
+                SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
+                      Text(
                         'الفصل',
                         style: TextStyle(
-                          fontFamily: 'Cairo',
+                          fontFamily: cairoFontFamily,
                           fontSize: 11,
                           color: AppColors.textSecondary,
                         ),
                       ),
                       Text(
                         widget.chapter!.nameAr,
-                        style: const TextStyle(
-                          fontFamily: 'Cairo',
+                        style: TextStyle(
+                          fontFamily: cairoFontFamily,
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
                           color: AppColors.textPrimary,
@@ -420,8 +519,8 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
                   ),
                   child: Text(
                     '${widget.chapter!.lessons.length} دروس',
-                    style: const TextStyle(
-                      fontFamily: 'Cairo',
+                    style: TextStyle(
+                      fontFamily: cairoFontFamily,
                       fontSize: 11,
                       color: Colors.white,
                       fontWeight: FontWeight.w600,
@@ -448,12 +547,12 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
             child: Row(
               children: [
                 const Icon(Icons.playlist_play, color: AppColors.primary, size: 24),
-                const SizedBox(width: 8),
-                const Expanded(
+                SizedBox(width: 8),
+                Expanded(
                   child: Text(
                     'دروس الفصل',
                     style: TextStyle(
-                      fontFamily: 'Cairo',
+                      fontFamily: cairoFontFamily,
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
                       color: AppColors.textPrimary,
@@ -502,8 +601,7 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
             onTap: isCurrentLesson
                 ? null
                 : () {
-                    Navigator.pushReplacement(
-                      context,
+                    Navigator.of(context, rootNavigator: true).pushReplacement(
                       MaterialPageRoute(
                         builder: (_) => LessonPlayerPage(
                           lessonId: lesson.id,
@@ -533,7 +631,7 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
                         : Text(
                             '${index + 1}',
                             style: TextStyle(
-                              fontFamily: 'Cairo',
+                              fontFamily: cairoFontFamily,
                               fontSize: 12,
                               fontWeight: FontWeight.w600,
                               color: Colors.grey[600],
@@ -544,7 +642,7 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
             title: Text(
               lesson.nameAr,
               style: TextStyle(
-                fontFamily: 'Cairo',
+                fontFamily: cairoFontFamily,
                 fontSize: 14,
                 fontWeight: isCurrentLesson ? FontWeight.bold : FontWeight.w500,
                 color: isCurrentLesson ? AppColors.primary : AppColors.textPrimary,
@@ -555,8 +653,8 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
             subtitle: lesson.duration != null
                 ? Text(
                     lesson.duration!,
-                    style: const TextStyle(
-                      fontFamily: 'Cairo',
+                    style: TextStyle(
+                      fontFamily: cairoFontFamily,
                       fontSize: 12,
                       color: AppColors.textSecondary,
                     ),
@@ -569,10 +667,10 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
                       color: AppColors.primary.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(4),
                     ),
-                    child: const Text(
+                    child: Text(
                       'الآن',
                       style: TextStyle(
-                        fontFamily: 'Cairo',
+                        fontFamily: cairoFontFamily,
                         fontSize: 11,
                         color: AppColors.primary,
                         fontWeight: FontWeight.bold,
@@ -592,14 +690,14 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Row(
+          Row(
             children: [
               Icon(Icons.info_outline, color: AppColors.primary, size: 20),
               SizedBox(width: 8),
               Text(
                 'وصف الدرس',
                 style: TextStyle(
-                  fontFamily: 'Cairo',
+                  fontFamily: cairoFontFamily,
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                   color: AppColors.textPrimary,
@@ -607,7 +705,7 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
               ),
             ],
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: 8),
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
@@ -616,8 +714,8 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
             ),
             child: Text(
               lesson.description!,
-              style: const TextStyle(
-                fontFamily: 'Cairo',
+              style: TextStyle(
+                fontFamily: cairoFontFamily,
                 fontSize: 14,
                 color: AppColors.textSecondary,
                 height: 1.6,
@@ -640,9 +738,9 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
         ),
         title: Text(
           lesson.nameAr,
-          style: const TextStyle(
+          style: TextStyle(
             color: AppColors.primary,
-            fontFamily: 'Cairo',
+            fontFamily: cairoFontFamily,
             fontSize: 16,
           ),
         ),
@@ -652,20 +750,20 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(Icons.video_library_outlined, size: 80, color: Colors.grey[400]),
-            const SizedBox(height: 16),
-            const Text(
+            SizedBox(height: 16),
+            Text(
               'الفيديو غير متاح حالياً',
               style: TextStyle(
-                fontFamily: 'Cairo',
+                fontFamily: cairoFontFamily,
                 fontSize: 18,
                 color: AppColors.textSecondary,
               ),
             ),
             if (lesson.videoStatus != null) ...[
-              const SizedBox(height: 8),
+              SizedBox(height: 8),
               Text(
                 'الحالة: ${lesson.videoStatus}',
-                style: TextStyle(fontFamily: 'Cairo', fontSize: 14, color: Colors.grey[500]),
+                style: TextStyle(fontFamily: cairoFontFamily, fontSize: 14, color: Colors.grey[500]),
               ),
             ],
           ],
@@ -674,3 +772,6 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
     );
   }
 }
+
+
+

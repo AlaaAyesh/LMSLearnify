@@ -41,7 +41,7 @@ class CertificatePlanCard extends StatelessWidget {
               )
             ),
 
-            const SizedBox(height: 4),
+            SizedBox(height: 4),
             Text(
               description,
               style:  const TextStyle(
@@ -50,7 +50,7 @@ class CertificatePlanCard extends StatelessWidget {
               )
             ),
 
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
 
       Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -68,7 +68,7 @@ class CertificatePlanCard extends StatelessWidget {
               borderRadius: BorderRadius.circular(12),
             ),
           ),
-          child: const Row(
+          child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
@@ -101,7 +101,7 @@ class CertificatePlanCard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(12),
                 ),
               ),
-              child: const Row(
+              child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
@@ -131,3 +131,5 @@ class CertificatePlanCard extends StatelessWidget {
 
   }
 }
+
+
