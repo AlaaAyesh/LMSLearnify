@@ -36,7 +36,8 @@ class ReelPlayerWidget extends StatefulWidget {
   State<ReelPlayerWidget> createState() => _ReelPlayerWidgetState();
 }
 
-class _ReelPlayerWidgetState extends State<ReelPlayerWidget> {
+class _ReelPlayerWidgetState extends State<ReelPlayerWidget>
+    with AutomaticKeepAliveClientMixin {
   WebViewController? _videoController;
   bool _isVideoLoading = true;
   bool _showThumbnail = true;
@@ -47,10 +48,17 @@ class _ReelPlayerWidgetState extends State<ReelPlayerWidget> {
   Timer? _viewTimer;
   bool _hasRecordedView = false;
   static const _viewDuration = Duration(seconds: 3);
+  
+  // Delay video initialization for smoother scrolling
+  Timer? _initDelayTimer;
+  static const _initDelay = Duration(milliseconds: 300);
 
   // Local state for counts (updates in real-time)
   late int _currentViewCount;
   late int _currentLikeCount;
+  
+  @override
+  bool get wantKeepAlive => widget.isActive;
 
   @override
   void initState() {
@@ -63,10 +71,8 @@ class _ReelPlayerWidgetState extends State<ReelPlayerWidget> {
     // Start view timer if this reel is active
     if (widget.isActive) {
       _startViewTimer();
-      // Initialize video player only when active
-      if (widget.reel.bunnyUrl.isNotEmpty) {
-        _initializeVideoPlayer();
-      }
+      // Delay video init to not block UI during scroll
+      _scheduleVideoInit();
     }
   }
 
@@ -74,29 +80,41 @@ class _ReelPlayerWidgetState extends State<ReelPlayerWidget> {
   void didUpdateWidget(ReelPlayerWidget oldWidget) {
     super.didUpdateWidget(oldWidget);
     
-    // Update counts when they change from parent
+    // Update counts when they change from parent - avoid setState if values are same
     final newViewCount = widget.viewCount ?? widget.reel.viewsCount;
     final newLikeCount = widget.likeCount ?? widget.reel.likesCount;
     
     if (_currentViewCount != newViewCount || _currentLikeCount != newLikeCount) {
-      setState(() {
-        _currentViewCount = newViewCount;
-        _currentLikeCount = newLikeCount;
-      });
+      _currentViewCount = newViewCount;
+      _currentLikeCount = newLikeCount;
+      // Only rebuild if mounted
+      if (mounted) setState(() {});
     }
     
     // Handle isActive state changes
     if (widget.isActive != oldWidget.isActive) {
       if (widget.isActive) {
         _startViewTimer();
-        // Initialize video player when becoming active
+        // Schedule video init with delay
         if (!_isInitialized && widget.reel.bunnyUrl.isNotEmpty) {
-          _initializeVideoPlayer();
+          _scheduleVideoInit();
         }
       } else {
         _cancelViewTimer();
+        _initDelayTimer?.cancel();
       }
     }
+  }
+  
+  void _scheduleVideoInit() {
+    _initDelayTimer?.cancel();
+    if (widget.reel.bunnyUrl.isEmpty || _isInitialized || _isDisposed) return;
+    
+    _initDelayTimer = Timer(_initDelay, () {
+      if (mounted && widget.isActive && !_isInitialized) {
+        _initializeVideoPlayer();
+      }
+    });
   }
 
   /// Get formatted like count
@@ -123,6 +141,7 @@ class _ReelPlayerWidgetState extends State<ReelPlayerWidget> {
   void dispose() {
     _isDisposed = true;
     _cancelViewTimer();
+    _initDelayTimer?.cancel();
     _videoController = null;
     super.dispose();
   }
@@ -244,6 +263,8 @@ class _ReelPlayerWidgetState extends State<ReelPlayerWidget> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context); // Required for AutomaticKeepAliveClientMixin
+    
     return Stack(
       fit: StackFit.expand,
       children: [
@@ -255,53 +276,34 @@ class _ReelPlayerWidgetState extends State<ReelPlayerWidget> {
 
         // Loading indicator
         if (_isVideoLoading && widget.reel.bunnyUrl.isNotEmpty)
-          Center(
+          const Center(
             child: CircularProgressIndicator(
               color: Colors.white,
             ),
           ),
 
-        // Gradient overlay at bottom (IgnorePointer to allow touches through)
-        Positioned(
+        // Gradient overlay at bottom - wrapped in RepaintBoundary for performance
+        const Positioned(
           bottom: 0,
           left: 0,
           right: 0,
           height: 350,
           child: IgnorePointer(
-            child: Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.bottomCenter,
-                  end: Alignment.topCenter,
-                  colors: [
-                    Colors.black.withOpacity(0.9),
-                    Colors.black.withOpacity(0.6),
-                    Colors.transparent,
-                  ],
-                ),
-              ),
+            child: RepaintBoundary(
+              child: _BottomGradient(),
             ),
           ),
         ),
 
-        // Gradient overlay at top (IgnorePointer to allow touches through)
-        Positioned(
+        // Gradient overlay at top - wrapped in RepaintBoundary for performance
+        const Positioned(
           top: 0,
           left: 0,
           right: 0,
           height: 150,
           child: IgnorePointer(
-            child: Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    Colors.black.withOpacity(0.6),
-                    Colors.transparent,
-                  ],
-                ),
-              ),
+            child: RepaintBoundary(
+              child: _TopGradient(),
             ),
           ),
         ),
@@ -335,8 +337,8 @@ class _ReelPlayerWidgetState extends State<ReelPlayerWidget> {
 
   Widget _buildThumbnail() {
     if (widget.reel.thumbnailUrl.isEmpty) {
-      return Container(
-        color: AppColors.primary.withOpacity(0.3),
+      return const ColoredBox(
+        color: AppColors.primaryOpacity30,
         child: Center(
           child: Icon(
             Icons.play_circle_outline,
@@ -350,7 +352,8 @@ class _ReelPlayerWidgetState extends State<ReelPlayerWidget> {
     return CachedNetworkImage(
       imageUrl: widget.reel.thumbnailUrl,
       fit: BoxFit.cover,
-      placeholder: (context, url) => Container(
+      memCacheWidth: 720, // Limit memory cache size for better performance
+      placeholder: (context, url) => const ColoredBox(
         color: Colors.black,
         child: Center(
           child: CircularProgressIndicator(
@@ -358,8 +361,8 @@ class _ReelPlayerWidgetState extends State<ReelPlayerWidget> {
           ),
         ),
       ),
-      errorWidget: (context, url, error) => Container(
-        color: AppColors.primary.withOpacity(0.3),
+      errorWidget: (context, url, error) => const ColoredBox(
+        color: AppColors.primaryOpacity30,
         child: Center(
           child: Icon(
             Icons.play_circle_outline,
@@ -376,7 +379,7 @@ class _ReelPlayerWidgetState extends State<ReelPlayerWidget> {
       children: [
         // Owner Avatar
         _buildOwnerAvatar(),
-        SizedBox(height: 24),
+        const SizedBox(height: 24),
 
         // Like Button
         _buildActionButton(
@@ -386,7 +389,7 @@ class _ReelPlayerWidgetState extends State<ReelPlayerWidget> {
           activeColor: Colors.red,
           onTap: widget.onLike,
         ),
-        SizedBox(height: 20),
+        const SizedBox(height: 20),
 
         // Views
         _buildActionButton(
@@ -394,7 +397,7 @@ class _ReelPlayerWidgetState extends State<ReelPlayerWidget> {
           label: _formattedViews,
           onTap: () {},
         ),
-        SizedBox(height: 20),
+        const SizedBox(height: 20),
 
         // Share Button
         _buildActionButton(
@@ -416,26 +419,29 @@ class _ReelPlayerWidgetState extends State<ReelPlayerWidget> {
           Container(
             width: 50,
             height: 50,
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
               shape: BoxShape.circle,
-              border: Border.all(color: AppColors.primary, width: 2),
+              border: Border.fromBorderSide(
+                BorderSide(color: AppColors.primary, width: 2),
+              ),
             ),
             child: ClipOval(
               child: widget.reel.owner.avatarUrl.isNotEmpty
                   ? CachedNetworkImage(
                       imageUrl: widget.reel.owner.avatarUrl,
                       fit: BoxFit.cover,
-                      placeholder: (context, url) => Container(
-                        color: AppColors.primary.withOpacity(0.3),
-                        child: const Icon(Icons.person, color: Colors.white),
+                      memCacheWidth: 100, // Small avatar, limit memory
+                      placeholder: (context, url) => const ColoredBox(
+                        color: AppColors.primaryOpacity30,
+                        child: Icon(Icons.person, color: Colors.white),
                       ),
-                      errorWidget: (context, url, error) => Container(
-                        color: AppColors.primary.withOpacity(0.3),
-                        child: const Icon(Icons.person, color: Colors.white),
+                      errorWidget: (context, url, error) => const ColoredBox(
+                        color: AppColors.primaryOpacity30,
+                        child: Icon(Icons.person, color: Colors.white),
                       ),
                     )
-                  : Container(
-                      color: AppColors.primary.withOpacity(0.3),
+                  : ColoredBox(
+                      color: AppColors.primaryOpacity30,
                       child: Center(
                         child: Text(
                           widget.reel.owner.name.isNotEmpty
@@ -451,7 +457,7 @@ class _ReelPlayerWidgetState extends State<ReelPlayerWidget> {
                     ),
             ),
           ),
-          SizedBox(height: 4),
+          const SizedBox(height: 4),
           Container(
             padding: const EdgeInsets.all(4),
             decoration: const BoxDecoration(
@@ -478,16 +484,13 @@ class _ReelPlayerWidgetState extends State<ReelPlayerWidget> {
   }) {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
-      onTap: () {
-        debugPrint('ReelPlayer: Action button tapped - $label');
-        onTap();
-      },
+      onTap: onTap,
       child: Column(
         children: [
           Container(
             padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.15),
+            decoration: const BoxDecoration(
+              color: AppColors.whiteOpacity15,
               shape: BoxShape.circle,
             ),
             child: Icon(
@@ -496,7 +499,7 @@ class _ReelPlayerWidgetState extends State<ReelPlayerWidget> {
               size: 26,
             ),
           ),
-          SizedBox(height: 6),
+          const SizedBox(height: 6),
           Text(
             label,
             style: TextStyle(
@@ -528,7 +531,7 @@ class _ReelPlayerWidgetState extends State<ReelPlayerWidget> {
                 color: Colors.white,
               ),
             ),
-            SizedBox(width: 8),
+            const SizedBox(width: 8),
             if (widget.reel.owner.name.isNotEmpty)
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
@@ -548,7 +551,7 @@ class _ReelPlayerWidgetState extends State<ReelPlayerWidget> {
               ),
           ],
         ),
-        SizedBox(height: 8),
+        const SizedBox(height: 8),
 
         // Title
         Text(
@@ -562,7 +565,7 @@ class _ReelPlayerWidgetState extends State<ReelPlayerWidget> {
           maxLines: 2,
           overflow: TextOverflow.ellipsis,
         ),
-        SizedBox(height: 4),
+        const SizedBox(height: 4),
 
         // Description
         if (widget.reel.description.isNotEmpty)
@@ -571,30 +574,30 @@ class _ReelPlayerWidgetState extends State<ReelPlayerWidget> {
             style: TextStyle(
               fontFamily: cairoFontFamily,
               fontSize: 13,
-              color: Colors.white.withOpacity(0.8),
+              color: AppColors.whiteOpacity80,
               height: 1.4,
             ),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),
 
-        SizedBox(height: 8),
+        const SizedBox(height: 8),
 
         // Created at
         Row(
           children: [
-            Icon(
+            const Icon(
               Icons.access_time,
-              color: Colors.white.withOpacity(0.6),
+              color: AppColors.whiteOpacity60,
               size: 14,
             ),
-            SizedBox(width: 4),
+            const SizedBox(width: 4),
             Text(
               widget.reel.createdAt,
               style: TextStyle(
                 fontFamily: cairoFontFamily,
                 fontSize: 12,
-                color: Colors.white.withOpacity(0.6),
+                color: AppColors.whiteOpacity60,
               ),
             ),
           ],
@@ -621,7 +624,7 @@ class _ReelPlayerWidgetState extends State<ReelPlayerWidget> {
           borderRadius: BorderRadius.circular(30),
         ),
         elevation: 8,
-        shadowColor: AppColors.primary.withOpacity(0.5),
+        shadowColor: AppColors.primaryOpacity50,
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -631,7 +634,7 @@ class _ReelPlayerWidgetState extends State<ReelPlayerWidget> {
             color: Colors.white,
             size: 22,
           ),
-          SizedBox(width: 8),
+          const SizedBox(width: 8),
           Text(
             buttonText,
             style: TextStyle(
@@ -646,6 +649,49 @@ class _ReelPlayerWidgetState extends State<ReelPlayerWidget> {
     );
   }
 }
+
+// Extracted gradient widgets for const optimization and RepaintBoundary
+class _BottomGradient extends StatelessWidget {
+  const _BottomGradient();
+
+  @override
+  Widget build(BuildContext context) {
+    return const DecoratedBox(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.bottomCenter,
+          end: Alignment.topCenter,
+          colors: [
+            AppColors.blackOpacity90,
+            AppColors.blackOpacity60,
+            Colors.transparent,
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _TopGradient extends StatelessWidget {
+  const _TopGradient();
+
+  @override
+  Widget build(BuildContext context) {
+    return const DecoratedBox(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            AppColors.blackOpacity60,
+            Colors.transparent,
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 
 
 

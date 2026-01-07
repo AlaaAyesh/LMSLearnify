@@ -87,7 +87,7 @@ class _HomeTabContent extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
 
             // Promo Banner
             PromoBanner(
@@ -98,7 +98,7 @@ class _HomeTabContent extends StatelessWidget {
                 // Navigate to courses
               },
             ),
-            SizedBox(height: 24),
+            const SizedBox(height: 24),
 
             // Banners with auto-rotation
             if (homeData.banners.isNotEmpty) ...[
@@ -109,7 +109,7 @@ class _HomeTabContent extends StatelessWidget {
                   // Handle banner tap
                 },
               ),
-              SizedBox(height: 24),
+              const SizedBox(height: 24),
             ],
 
             // Categories Section
@@ -118,7 +118,7 @@ class _HomeTabContent extends StatelessWidget {
                 title: 'التصنيفات',
                 onSeeAll: () => _navigateToCategoriesPage(context, homeData),
               ),
-              SizedBox(height: 12),
+              const SizedBox(height: 12),
               SizedBox(
                 height: 120,
                 child: ListView.builder(
@@ -137,13 +137,13 @@ class _HomeTabContent extends StatelessWidget {
                   },
                 ),
               ),
-              SizedBox(height: 24),
+              const SizedBox(height: 24),
             ],
 
             // Popular/Most Watched Courses
             if (homeData.popularCourses.isNotEmpty || homeData.latestCourses.isNotEmpty) ...[
               const SectionHeader(title: 'الأكثر مشاهدة'),
-              SizedBox(height: 12),
+              const SizedBox(height: 12),
               SizedBox(
                 height: 200,
                 child: ListView.builder(
@@ -163,7 +163,7 @@ class _HomeTabContent extends StatelessWidget {
                   },
                 ),
               ),
-              SizedBox(height: 24),
+              const SizedBox(height: 24),
             ],
 
             // Courses by Category
@@ -179,12 +179,12 @@ class _HomeTabContent extends StatelessWidget {
                   // Navigate to free courses
                 },
               ),
-              SizedBox(height: 12),
+              const SizedBox(height: 12),
               _buildCoursesGrid(context, homeData.freeCourses),
-              SizedBox(height: 24),
+              const SizedBox(height: 24),
             ],
 
-            SizedBox(height: 100),
+            const SizedBox(height: 100),
           ],
         ),
       ),
@@ -201,9 +201,9 @@ class _HomeTabContent extends StatelessWidget {
           title: 'دورات ${category.nameAr}',
           onSeeAll: () => _navigateToSingleCategory(context, category, courses),
         ),
-        SizedBox(height: 12),
+        const SizedBox(height: 12),
         _buildCoursesGrid(context, courses),
-        SizedBox(height: 24),
+        const SizedBox(height: 24),
       ],
     );
   }
@@ -274,7 +274,7 @@ class _HomeTabContent extends StatelessWidget {
               size: 80,
               color: Colors.red[400],
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             Text(
               'حدث خطأ',
               style: TextStyle(
@@ -284,7 +284,7 @@ class _HomeTabContent extends StatelessWidget {
                 color: AppColors.textPrimary,
               ),
             ),
-            SizedBox(height: 8),
+            const SizedBox(height: 8),
             Text(
               message,
               textAlign: TextAlign.center,
@@ -294,7 +294,7 @@ class _HomeTabContent extends StatelessWidget {
                 color: AppColors.textSecondary,
               ),
             ),
-            SizedBox(height: 24),
+            const SizedBox(height: 24),
             ElevatedButton.icon(
               onPressed: () {
                 context.read<HomeBloc>().add(LoadHomeDataEvent());

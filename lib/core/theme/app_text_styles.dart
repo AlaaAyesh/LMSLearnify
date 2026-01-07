@@ -2,11 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'app_colors.dart';
 
+/// Cached Cairo font family - initialized once at startup
+/// This avoids repeated GoogleFonts.cairo() calls which are expensive
+String? _cachedCairoFontFamily;
+
 /// Global Cairo font family - use this instead of hardcoded 'Cairo'
-String get cairoFontFamily => GoogleFonts.cairo().fontFamily!;
+String get cairoFontFamily {
+  _cachedCairoFontFamily ??= GoogleFonts.cairo().fontFamily!;
+  return _cachedCairoFontFamily!;
+}
 
 class AppTextStyles {
-  // Get Cairo font family name from Google Fonts
+  AppTextStyles._(); // Private constructor
+  
+  // Get Cairo font family name from Google Fonts (cached)
   static String get _cairoFamily => cairoFontFamily;
 
   // Display Styles

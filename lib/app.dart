@@ -3,7 +3,6 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 
 import 'core/routing/app_router.dart';
 import 'core/theme/app_theme.dart';
-import 'features/home/presentation/pages/home_page.dart';
 
 class LearnifyApp extends StatelessWidget {
   const LearnifyApp({super.key});
@@ -14,6 +13,9 @@ class LearnifyApp extends StatelessWidget {
       title: 'Learnify',
       debugShowCheckedModeBanner: false,
 
+      // Performance optimizations
+      themeAnimationDuration: Duration.zero, // Disable theme animation
+      
       theme: AppTheme.lightTheme,
 
       locale: const Locale('ar'),
@@ -29,13 +31,18 @@ class LearnifyApp extends StatelessWidget {
 
       initialRoute: AppRouter.splash,
       onGenerateRoute: AppRouter.generateRoute,
+      
+      // Performance: Use builder to add performance overlay in debug
+      builder: (context, child) {
+        // Disable text scaling for consistent UI
+        return MediaQuery(
+          data: MediaQuery.of(context).copyWith(
+            textScaler: TextScaler.noScaling,
+          ),
+          child: child!,
+        );
+      },
     );
-    // test : for build the pages ui
-    // return  MaterialApp(
-    //   debugShowCheckedModeBanner: false,
-    //   home:  HomePage(),
-    // );
-
   }
 }
 

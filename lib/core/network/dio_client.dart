@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:pretty_dio_logger/pretty_dio_logger.dart';
 import '../constants/api_constants.dart';
 import '../constants/app_constants.dart';
@@ -21,17 +22,21 @@ class DioClient {
       ),
     );
 
-    _dio.interceptors.addAll([
-      _AuthInterceptor(_secureStorage),
-      PrettyDioLogger(
-        requestHeader: true,
-        requestBody: true,
-        responseBody: true,
-        responseHeader: false,
-        error: true,
-        compact: true,
-      ),
-    ]);
+    _dio.interceptors.add(_AuthInterceptor(_secureStorage));
+    
+    // Only add logger in debug mode - improves performance in release
+    if (kDebugMode) {
+      _dio.interceptors.add(
+        PrettyDioLogger(
+          requestHeader: true,
+          requestBody: true,
+          responseBody: true,
+          responseHeader: false,
+          error: true,
+          compact: true,
+        ),
+      );
+    }
   }
 
   Dio get dio => _dio;

@@ -27,5 +27,3 @@ class AssetsRes {
   static const String VISA = 'assets/images/visa.png';
   static const String WHATSAPP = 'assets/images/whatsapp.png';
 }
-
-

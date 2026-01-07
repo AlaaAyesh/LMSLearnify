@@ -110,7 +110,7 @@ class _ReelsFeedPageState extends State<ReelsFeedPage> {
                     color: Colors.white54,
                     size: 64,
                   ),
-                  SizedBox(height: 16),
+                  const SizedBox(height: 16),
                   Text(
                     state.message,
                     style: TextStyle(
@@ -120,7 +120,7 @@ class _ReelsFeedPageState extends State<ReelsFeedPage> {
                     ),
                     textAlign: TextAlign.center,
                   ),
-                  SizedBox(height: 24),
+                  const SizedBox(height: 24),
                   ElevatedButton(
                     onPressed: () {
                       context.read<ReelsBloc>().add(const LoadReelsFeedEvent());
@@ -153,12 +153,12 @@ class _ReelsFeedPageState extends State<ReelsFeedPage> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(
+                  const Icon(
                     Icons.video_library_outlined,
                     color: Colors.white54,
                     size: 64,
                   ),
-                  SizedBox(height: 16),
+                  const SizedBox(height: 16),
                   Text(
                     'لا توجد فيديوهات حالياً',
                     style: TextStyle(
@@ -186,6 +186,8 @@ class _ReelsFeedPageState extends State<ReelsFeedPage> {
     return PageView.builder(
       controller: _pageController,
       scrollDirection: Axis.vertical,
+      // Allow preloading adjacent pages for smoother transitions
+      allowImplicitScrolling: true,
       itemCount: state.reels.length + (state.hasMore ? 1 : 0),
       onPageChanged: (index) {
         setState(() => _currentIndex = index);
@@ -198,7 +200,7 @@ class _ReelsFeedPageState extends State<ReelsFeedPage> {
       itemBuilder: (context, index) {
         // Loading indicator at the end
         if (index >= state.reels.length) {
-          return Center(
+          return const Center(
             child: CircularProgressIndicator(
               color: AppColors.primary,
             ),
@@ -218,14 +220,11 @@ class _ReelsFeedPageState extends State<ReelsFeedPage> {
           likeCount: likeCount,
           isActive: index == _currentIndex,
           onLike: () {
-            debugPrint('ReelsFeedPage: Like button pressed for reel ${reel.id}');
             context.read<ReelsBloc>().add(ToggleReelLikeEvent(reelId: reel.id));
           },
           onShare: () => _shareReel(reel),
           onRedirect: () => _handleRedirect(reel),
           onViewed: () {
-            // Record view after 5 seconds of watching
-            debugPrint('ReelsFeedPage: View recorded for reel ${reel.id}');
             context.read<ReelsBloc>().add(MarkReelViewedEvent(reelId: reel.id));
           },
         );

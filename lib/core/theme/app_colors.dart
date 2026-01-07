@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 
 class AppColors {
+  // Private constructor - this is a utility class
+  AppColors._();
+
   // Primary Colors
   static const Color primary = Color(0xFFFDB914); // اللون الأصفر من التصميم
   static const Color primaryDark = Color(0xFFE5A000);
@@ -31,6 +34,21 @@ class AppColors {
   static const Color inputBackground = Color(0xFFF8F9FA);
   static const Color inputBorder = Color(0xFFE0E0E0);
   static const Color inputFocusBorder = Color(0xFFFDB914);
+
+  // Pre-computed opacity colors (avoid creating new Color objects in build)
+  static const Color primaryOpacity10 = Color(0x1AFDB914);
+  static const Color primaryOpacity30 = Color(0x4DFDB914);
+  static const Color primaryOpacity50 = Color(0x80FDB914);
+  
+  static const Color blackOpacity30 = Color(0x4D000000);
+  static const Color blackOpacity50 = Color(0x80000000);
+  static const Color blackOpacity60 = Color(0x99000000);
+  static const Color blackOpacity70 = Color(0xB3000000);
+  static const Color blackOpacity90 = Color(0xE6000000);
+  
+  static const Color whiteOpacity15 = Color(0x26FFFFFF);
+  static const Color whiteOpacity60 = Color(0x99FFFFFF);
+  static const Color whiteOpacity80 = Color(0xCCFFFFFF);
 }
 
 

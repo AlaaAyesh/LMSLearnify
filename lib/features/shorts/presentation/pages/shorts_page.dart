@@ -42,13 +42,13 @@ class _ShortsPageState extends State<ShortsPage> with SingleTickerProviderStateM
         body: SafeArea(
           child: Column(
             children: [
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
               // Logo
               _buildHeader(),
-              SizedBox(height: 24),
+              const SizedBox(height: 24),
               // Tabs
               _buildTabs(),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
               // Content
               Expanded(
                 child: BlocBuilder<ReelsBloc, ReelsState>(
@@ -72,7 +72,7 @@ class _ShortsPageState extends State<ShortsPage> with SingleTickerProviderStateM
 
   Widget _buildMyVideosTab(BuildContext context, ReelsState state) {
     if (state is ReelsLoading) {
-      return Center(
+      return const Center(
         child: CircularProgressIndicator(
           color: AppColors.primary,
         ),
@@ -89,7 +89,7 @@ class _ShortsPageState extends State<ShortsPage> with SingleTickerProviderStateM
               size: 64,
               color: Colors.grey[400],
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             Text(
               state.message,
               style: TextStyle(
@@ -99,7 +99,7 @@ class _ShortsPageState extends State<ShortsPage> with SingleTickerProviderStateM
               ),
               textAlign: TextAlign.center,
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             ElevatedButton(
               onPressed: () {
                 context.read<ReelsBloc>().add(const LoadReelsFeedEvent(perPage: 20));
@@ -133,7 +133,7 @@ class _ShortsPageState extends State<ShortsPage> with SingleTickerProviderStateM
               size: 80,
               color: Colors.grey[400],
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             Text(
               'لا توجد فيديوهات',
               style: TextStyle(
@@ -182,7 +182,7 @@ class _ShortsPageState extends State<ShortsPage> with SingleTickerProviderStateM
                 size: 80,
                 color: Colors.grey[400],
               ),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
               Text(
                 'لا توجد فيديوهات مفضلة',
                 style: TextStyle(
@@ -207,7 +207,7 @@ class _ShortsPageState extends State<ShortsPage> with SingleTickerProviderStateM
     }
 
     if (state is ReelsLoading) {
-      return Center(
+      return const Center(
         child: CircularProgressIndicator(
           color: AppColors.primary,
         ),
@@ -223,7 +223,7 @@ class _ShortsPageState extends State<ShortsPage> with SingleTickerProviderStateM
             size: 80,
             color: Colors.grey[400],
           ),
-          SizedBox(height: 16),
+          const SizedBox(height: 16),
           Text(
             'لا توجد فيديوهات مفضلة',
             style: TextStyle(
@@ -244,20 +244,20 @@ class _ShortsPageState extends State<ShortsPage> with SingleTickerProviderStateM
         Container(
           width: 100,
           height: 100,
-          decoration: BoxDecoration(
+          decoration: const BoxDecoration(
             shape: BoxShape.circle,
-            border: Border.all(
-              color: AppColors.primary,
-              width: 3,
+            border: Border.fromBorderSide(
+              BorderSide(color: AppColors.primary, width: 3),
             ),
           ),
           child: ClipOval(
             child: Image.asset(
               'assets/images/app_logo.png',
               fit: BoxFit.cover,
+              cacheWidth: 200, // Cache at 2x size for retina
               errorBuilder: (context, error, stackTrace) {
-                return Container(
-                  color: AppColors.primary.withOpacity(0.1),
+                return const ColoredBox(
+                  color: AppColors.primaryOpacity10,
                   child: Center(
                     child: Text(
                       'L',
@@ -273,7 +273,7 @@ class _ShortsPageState extends State<ShortsPage> with SingleTickerProviderStateM
             ),
           ),
         ),
-        SizedBox(height: 12),
+        const SizedBox(height: 12),
         // Title
         Text(
           'Learnify',
@@ -284,7 +284,7 @@ class _ShortsPageState extends State<ShortsPage> with SingleTickerProviderStateM
             color: AppColors.textPrimary,
           ),
         ),
-        SizedBox(height: 4),
+        const SizedBox(height: 4),
         // Subtitle with emojis
         Text(
           'I love a colorful life 🧡🧡🧡',

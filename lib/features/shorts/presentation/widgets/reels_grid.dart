@@ -39,7 +39,7 @@ class ReelsGrid extends StatelessWidget {
               size: 80,
               color: Colors.grey[400],
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             Text(
               'لا توجد فيديوهات',
               style: TextStyle(
@@ -69,10 +69,12 @@ class ReelsGrid extends StatelessWidget {
           crossAxisSpacing: 8,
           childAspectRatio: 0.65,
         ),
+        // Add cacheExtent for smoother scrolling
+        cacheExtent: 500,
         itemCount: reels.length + (isLoadingMore ? 1 : 0),
         itemBuilder: (context, index) {
           if (index >= reels.length) {
-            return Center(
+            return const Center(
               child: Padding(
                 padding: EdgeInsets.all(16),
                 child: CircularProgressIndicator(
@@ -131,12 +133,13 @@ class _ReelTile extends StatelessWidget {
         child: Stack(
           fit: StackFit.expand,
           children: [
-            // Thumbnail
+            // Thumbnail - with memory optimization
             CachedNetworkImage(
               imageUrl: reel.thumbnailUrl,
               fit: BoxFit.cover,
-              placeholder: (context, url) => Container(
-                color: AppColors.primary.withOpacity(0.1),
+              memCacheWidth: 240, // Optimize memory for grid thumbnails
+              placeholder: (context, url) => const ColoredBox(
+                color: AppColors.primaryOpacity10,
                 child: Center(
                   child: CircularProgressIndicator(
                     color: AppColors.primary,
@@ -144,53 +147,55 @@ class _ReelTile extends StatelessWidget {
                   ),
                 ),
               ),
-              errorWidget: (context, url, error) => Container(
-                color: AppColors.primary.withOpacity(0.1),
-                child: const Icon(
+              errorWidget: (context, url, error) => const ColoredBox(
+                color: AppColors.primaryOpacity10,
+                child: Icon(
                   Icons.play_circle_outline,
                   color: AppColors.primary,
                   size: 40,
                 ),
               ),
             ),
-            // Gradient overlay at bottom
+            // Gradient overlay at bottom - wrapped in RepaintBoundary
             Positioned(
               bottom: 0,
               left: 0,
               right: 0,
-              child: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.bottomCenter,
-                    end: Alignment.topCenter,
-                    colors: [
-                      Colors.black.withOpacity(0.7),
-                      Colors.transparent,
+              child: RepaintBoundary(
+                child: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: const BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.bottomCenter,
+                      end: Alignment.topCenter,
+                      colors: [
+                        AppColors.blackOpacity70,
+                        Colors.transparent,
+                      ],
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.play_arrow,
+                        color: Colors.white,
+                        size: 14,
+                      ),
+                      const SizedBox(width: 4),
+                      Expanded(
+                        child: Text(
+                          _formatViews(viewCount),
+                          style: TextStyle(
+                            fontFamily: cairoFontFamily,
+                            fontSize: 10,
+                            color: Colors.white,
+                            fontWeight: FontWeight.w500,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
                     ],
                   ),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(
-                      Icons.play_arrow,
-                      color: Colors.white,
-                      size: 14,
-                    ),
-                    SizedBox(width: 4),
-                    Expanded(
-                      child: Text(
-                        _formatViews(viewCount),
-                        style: TextStyle(
-                          fontFamily: cairoFontFamily,
-                          fontSize: 10,
-                          color: Colors.white,
-                          fontWeight: FontWeight.w500,
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
                 ),
               ),
             ),
@@ -201,8 +206,8 @@ class _ReelTile extends StatelessWidget {
                 right: 8,
                 child: Container(
                   padding: const EdgeInsets.all(4),
-                  decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.5),
+                  decoration: const BoxDecoration(
+                    color: AppColors.blackOpacity50,
                     shape: BoxShape.circle,
                   ),
                   child: const Icon(

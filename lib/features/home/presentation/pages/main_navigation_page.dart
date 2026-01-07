@@ -36,15 +36,18 @@ class MainNavigationPageState extends State<MainNavigationPage> {
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async {
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
         // Handle back button - pop the current tab's navigator first
         final currentNavigator = _navigatorKeys[_selectedIndex].currentState;
         if (currentNavigator != null && currentNavigator.canPop()) {
           currentNavigator.pop();
-          return false;
+        } else {
+          // Allow system back if we can't pop
+          Navigator.of(context).maybePop();
         }
-        return true;
       },
       child: Scaffold(
         body: IndexedStack(
@@ -76,14 +79,14 @@ class MainNavigationPageState extends State<MainNavigationPage> {
   }
 
   Widget _buildBottomNavigationBar() {
-    return Container(
-      decoration: BoxDecoration(
+    return DecoratedBox(
+      decoration: const BoxDecoration(
         color: Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Color(0x0D000000), // 5% black opacity
             blurRadius: 10,
-            offset: const Offset(0, -2),
+            offset: Offset(0, -2),
           ),
         ],
       ),
@@ -125,7 +128,7 @@ class MainNavigationPageState extends State<MainNavigationPage> {
               color: isSelected ? AppColors.primary : AppColors.textSecondary,
               size: 26,
             ),
-            SizedBox(height: 4),
+            const SizedBox(height: 4),
             Text(
               label,
               style: TextStyle(
