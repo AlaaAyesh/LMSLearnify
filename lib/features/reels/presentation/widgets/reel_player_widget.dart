@@ -1,168 +1,101 @@
 import 'dart:async';
-import 'package:flutter/foundation.dart';
+import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:learnify_lms/core/theme/app_text_styles.dart';
-
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:webview_flutter/webview_flutter.dart';
-import '../../../../core/theme/app_colors.dart';
+import 'package:webview_flutter_android/webview_flutter_android.dart';
+import 'package:webview_flutter_wkwebview/webview_flutter_wkwebview.dart';
 import '../../domain/entities/reel.dart';
 
 class ReelPlayerWidget extends StatefulWidget {
   final Reel reel;
   final bool isLiked;
-  final int? viewCount;  // Updated view count from state
-  final int? likeCount;  // Updated like count from state
+  final int viewCount;
+  final int likeCount;
   final bool isActive;
+
   final VoidCallback onLike;
   final VoidCallback onShare;
   final VoidCallback onRedirect;
-  final VoidCallback? onViewed;
+  final VoidCallback onViewed;
 
   const ReelPlayerWidget({
     super.key,
     required this.reel,
     required this.isLiked,
-    this.viewCount,
-    this.likeCount,
+    required this.viewCount,
+    required this.likeCount,
     required this.isActive,
     required this.onLike,
     required this.onShare,
     required this.onRedirect,
-    this.onViewed,
+    required this.onViewed,
   });
 
   @override
   State<ReelPlayerWidget> createState() => _ReelPlayerWidgetState();
 }
 
-class _ReelPlayerWidgetState extends State<ReelPlayerWidget>
-    with AutomaticKeepAliveClientMixin {
-  WebViewController? _videoController;
-  bool _isVideoLoading = true;
+class _ReelPlayerWidgetState extends State<ReelPlayerWidget> {
+  WebViewController? _controller;
+  bool _isLoading = true;
   bool _showThumbnail = true;
-  bool _isDisposed = false;
   bool _isInitialized = false;
-  
+  bool _isPaused = false;
+  bool _showLikeHeart = false;
+
   // View tracking
   Timer? _viewTimer;
   bool _hasRecordedView = false;
   static const _viewDuration = Duration(seconds: 3);
-  
-  // Delay video initialization for smoother scrolling
-  Timer? _initDelayTimer;
-  static const _initDelay = Duration(milliseconds: 300);
 
-  // Local state for counts (updates in real-time)
-  late int _currentViewCount;
-  late int _currentLikeCount;
-  
-  @override
-  bool get wantKeepAlive => widget.isActive;
+  // Double tap detection
+  DateTime? _lastTapTime;
+  static const _doubleTapDuration = Duration(milliseconds: 300);
 
   @override
   void initState() {
     super.initState();
-    
-    // Initialize counts from widget props
-    _currentViewCount = widget.viewCount ?? widget.reel.viewsCount;
-    _currentLikeCount = widget.likeCount ?? widget.reel.likesCount;
-    
-    // Start view timer if this reel is active
-    if (widget.isActive) {
+    if (widget.isActive && widget.reel.bunnyUrl.isNotEmpty) {
+      _initializePlayer();
       _startViewTimer();
-      // Delay video init to not block UI during scroll
-      _scheduleVideoInit();
     }
   }
 
   @override
   void didUpdateWidget(ReelPlayerWidget oldWidget) {
     super.didUpdateWidget(oldWidget);
-    
-    // Update counts when they change from parent - avoid setState if values are same
-    final newViewCount = widget.viewCount ?? widget.reel.viewsCount;
-    final newLikeCount = widget.likeCount ?? widget.reel.likesCount;
-    
-    if (_currentViewCount != newViewCount || _currentLikeCount != newLikeCount) {
-      _currentViewCount = newViewCount;
-      _currentLikeCount = newLikeCount;
-      // Only rebuild if mounted
-      if (mounted) setState(() {});
-    }
-    
-    // Handle isActive state changes
+
     if (widget.isActive != oldWidget.isActive) {
       if (widget.isActive) {
-        _startViewTimer();
-        // Schedule video init with delay
         if (!_isInitialized && widget.reel.bunnyUrl.isNotEmpty) {
-          _scheduleVideoInit();
+          _initializePlayer();
+        } else if (_controller != null && _isPaused) {
+          _playVideo();
         }
+        _startViewTimer();
       } else {
+        _pauseVideo();
         _cancelViewTimer();
-        _initDelayTimer?.cancel();
       }
     }
-  }
-  
-  void _scheduleVideoInit() {
-    _initDelayTimer?.cancel();
-    if (widget.reel.bunnyUrl.isEmpty || _isInitialized || _isDisposed) return;
-    
-    _initDelayTimer = Timer(_initDelay, () {
-      if (mounted && widget.isActive && !_isInitialized) {
-        _initializeVideoPlayer();
-      }
-    });
-  }
-
-  /// Get formatted like count
-  String get _formattedLikes {
-    if (_currentLikeCount >= 1000000) {
-      return '${(_currentLikeCount / 1000000).toStringAsFixed(1)}M';
-    } else if (_currentLikeCount >= 1000) {
-      return '${(_currentLikeCount / 1000).toStringAsFixed(1)}K';
-    }
-    return '$_currentLikeCount';
-  }
-
-  /// Get formatted view count
-  String get _formattedViews {
-    if (_currentViewCount >= 1000000) {
-      return '${(_currentViewCount / 1000000).toStringAsFixed(1)}M';
-    } else if (_currentViewCount >= 1000) {
-      return '${(_currentViewCount / 1000).toStringAsFixed(1)}K';
-    }
-    return '$_currentViewCount';
   }
 
   @override
   void dispose() {
-    _isDisposed = true;
     _cancelViewTimer();
-    _initDelayTimer?.cancel();
-    _videoController = null;
+    _controller = null;
     super.dispose();
   }
 
   void _startViewTimer() {
-    // Don't start timer if already recorded view
-    if (_hasRecordedView) {
-      debugPrint('ReelPlayer: View already recorded for reel ${widget.reel.id}, not starting timer');
-      return;
-    }
-    
+    if (_hasRecordedView) return;
     _cancelViewTimer();
-    debugPrint('ReelPlayer: Starting 3-second view timer for reel ${widget.reel.id}');
+
     _viewTimer = Timer(_viewDuration, () {
-      debugPrint('ReelPlayer: View timer completed for reel ${widget.reel.id}');
-      if (mounted && !_isDisposed && widget.isActive && !_hasRecordedView) {
-        debugPrint('ReelPlayer: Recording view for reel ${widget.reel.id}');
+      if (mounted && widget.isActive && !_hasRecordedView) {
         _hasRecordedView = true;
-        widget.onViewed?.call();
-      } else {
-        debugPrint('ReelPlayer: View not recorded - mounted: $mounted, disposed: $_isDisposed, active: ${widget.isActive}, alreadyRecorded: $_hasRecordedView');
+        widget.onViewed();
       }
     });
   }
@@ -172,14 +105,13 @@ class _ReelPlayerWidgetState extends State<ReelPlayerWidget>
     _viewTimer = null;
   }
 
-  void _initializeVideoPlayer() {
-    if (_isDisposed || _isInitialized) return;
+  void _initializePlayer() {
+    if (_isInitialized) return;
     _isInitialized = true;
-    
-    try {
-      final embedUrl = _getEmbedUrl(widget.reel.bunnyUrl);
 
-      final html = '''
+    final embedUrl = _getEmbedUrl(widget.reel.bunnyUrl);
+
+    final html = '''
 <!DOCTYPE html>
 <html>
 <head>
@@ -188,161 +120,387 @@ class _ReelPlayerWidgetState extends State<ReelPlayerWidget>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     html, body { 
-      width: 100vw; 
-      height: 100vh; 
+      width: 100%; 
+      height: 100%; 
       background: #000;
       overflow: hidden;
     }
-    .video-wrapper {
+    .video-container {
       position: relative;
-      width: 100vw;
-      height: 100vh;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
     }
     iframe {
       position: absolute;
-      top: 0;
-      left: 0;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
       width: 100%;
-      height: 100%;
+      height: calc(100% + 100px);
       border: 0;
+      object-fit: cover;
+      margin-bottom: -50px;
+    }
+    .controls-cover {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 60px;
+      background: #000;
+      z-index: 9999;
     }
   </style>
 </head>
 <body>
-  <div class="video-wrapper">
+  <div class="video-container">
     <iframe 
+      id="bunny-player"
       src="$embedUrl"
-      loading="lazy"
-      style="border:0;position:absolute;top:0;left:0;height:100%;width:100%;"
-      allow="accelerometer;gyroscope;autoplay;encrypted-media;picture-in-picture;"
-      allowfullscreen="true">
+      loading="eager"
+      allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture; fullscreen"
+      allowfullscreen="true"
+      playsinline
+      webkit-playsinline>
     </iframe>
+    <div class="controls-cover"></div>
   </div>
 </body>
 </html>
 ''';
 
-      final controller = WebViewController()
-        ..setJavaScriptMode(JavaScriptMode.unrestricted)
-        ..setBackgroundColor(Colors.black)
-        ..setNavigationDelegate(
-          NavigationDelegate(
-            onPageFinished: (url) {
-              if (mounted && !_isDisposed) {
-                setState(() {
-                  _isVideoLoading = false;
-                  _showThumbnail = false;
-                });
-              }
-            },
-            onWebResourceError: (error) {
-              // Handle web resource errors silently
-              debugPrint('WebView error: ${error.description}');
-            },
-          ),
-        );
-      
-      if (!_isDisposed && mounted) {
-        controller.loadHtmlString(html);
-        _videoController = controller;
-      }
-    } catch (e) {
-      debugPrint('Error initializing video player: $e');
+    late final PlatformWebViewControllerCreationParams params;
+    if (Platform.isAndroid) {
+      params = AndroidWebViewControllerCreationParams();
+    } else if (Platform.isIOS) {
+      params = WebKitWebViewControllerCreationParams(
+        allowsInlineMediaPlayback: true,
+        mediaTypesRequiringUserAction: const <PlaybackMediaTypes>{},
+      );
+    } else {
+      params = const PlatformWebViewControllerCreationParams();
     }
+
+    _controller = WebViewController.fromPlatformCreationParams(params)
+      ..setJavaScriptMode(JavaScriptMode.unrestricted)
+      ..setBackgroundColor(Colors.black)
+      ..setNavigationDelegate(
+        NavigationDelegate(
+          onPageFinished: (url) {
+            if (mounted) {
+              setState(() => _isLoading = false);
+              Future.delayed(const Duration(milliseconds: 800), () {
+                if (mounted) {
+                  setState(() => _showThumbnail = false);
+                }
+              });
+            }
+          },
+        ),
+      );
+
+    if (Platform.isAndroid && _controller!.platform is AndroidWebViewController) {
+      final androidController = _controller!.platform as AndroidWebViewController;
+      androidController.setMediaPlaybackRequiresUserGesture(false);
+    }
+
+    _controller!.loadHtmlString(html);
+
+    if (mounted) setState(() {});
   }
 
   String _getEmbedUrl(String url) {
     String embedUrl = url.replaceFirst('/play/', '/embed/');
+
+    final params = [
+      'autoplay=true',
+      'loop=true',
+      'muted=false',
+      'preload=true',
+      'responsive=true',
+      'controls=false',
+      't=0',
+    ].join('&');
+
     if (!embedUrl.contains('?')) {
-      embedUrl = '$embedUrl?autoplay=true&responsive=true&loop=true';
+      embedUrl = '$embedUrl?$params';
     } else {
-      embedUrl = '$embedUrl&autoplay=true&responsive=true&loop=true';
+      embedUrl = '$embedUrl&$params';
     }
     return embedUrl;
   }
 
+  void _playVideo() {
+    if (_controller == null) return;
+    setState(() => _isPaused = false);
+
+    final playUrl = _getEmbedUrl(widget.reel.bunnyUrl);
+    _controller!.runJavaScript('''
+      var iframe = document.getElementById('bunny-player');
+      if (iframe) {
+        iframe.src = "$playUrl";
+      }
+    ''');
+  }
+
+  void _pauseVideo() {
+    if (_controller == null) return;
+    setState(() => _isPaused = true);
+
+    _controller!.runJavaScript('''
+      var iframe = document.getElementById('bunny-player');
+      if (iframe) {
+        iframe.src = "about:blank";
+      }
+    ''');
+  }
+
+  void _togglePlayPause() {
+    if (_controller == null) return;
+
+    if (_isPaused) {
+      _playVideo();
+    } else {
+      _pauseVideo();
+    }
+  }
+
+  void _handleTap() {
+    final now = DateTime.now();
+
+    if (_lastTapTime != null &&
+        now.difference(_lastTapTime!) < _doubleTapDuration) {
+      _lastTapTime = null;
+      widget.onLike();
+      _showLikeAnimation();
+    } else {
+      _lastTapTime = now;
+      _togglePlayPause();
+    }
+  }
+
+  void _showLikeAnimation() {
+    setState(() => _showLikeHeart = true);
+    Future.delayed(const Duration(milliseconds: 800), () {
+      if (mounted) {
+        setState(() => _showLikeHeart = false);
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    super.build(context); // Required for AutomaticKeepAliveClientMixin
-    
-    return Stack(
-      fit: StackFit.expand,
-      children: [
-        // Video Player or Thumbnail
-        if (widget.reel.bunnyUrl.isNotEmpty && _videoController != null && !_showThumbnail)
-          WebViewWidget(controller: _videoController!)
-        else
-          _buildThumbnail(),
+    final bottomPadding = MediaQuery.of(context).padding.bottom;
 
-        // Loading indicator
-        if (_isVideoLoading && widget.reel.bunnyUrl.isNotEmpty)
-          const Center(
-            child: CircularProgressIndicator(
-              color: Colors.white,
-            ),
+    return GestureDetector(
+      onTap: _handleTap,
+      behavior: HitTestBehavior.opaque,
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          // VIDEO PLAYER or THUMBNAIL
+          AbsorbPointer(
+            child: widget.reel.bunnyUrl.isNotEmpty && _controller != null && !_showThumbnail
+                ? WebViewWidget(controller: _controller!)
+                : _buildThumbnail(),
           ),
 
-        // Gradient overlay at bottom - wrapped in RepaintBoundary for performance
-        const Positioned(
-          bottom: 0,
-          left: 0,
-          right: 0,
-          height: 350,
-          child: IgnorePointer(
-            child: RepaintBoundary(
-              child: _BottomGradient(),
+          // Pause icon overlay
+          if (_isPaused)
+            IgnorePointer(
+              child: Center(
+                child: Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withOpacity(0.5),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.play_arrow,
+                    color: Colors.white,
+                    size: 50,
+                  ),
+                ),
+              ),
             ),
-          ),
-        ),
 
-        // Gradient overlay at top - wrapped in RepaintBoundary for performance
-        const Positioned(
-          top: 0,
-          left: 0,
-          right: 0,
-          height: 150,
-          child: IgnorePointer(
-            child: RepaintBoundary(
-              child: _TopGradient(),
+          // Like heart animation
+          if (_showLikeHeart)
+            const IgnorePointer(
+              child: Center(
+                child: Icon(
+                  Icons.favorite,
+                  color: Colors.red,
+                  size: 100,
+                ),
+              ),
             ),
-          ),
-        ),
 
-        // Right Side Actions
-        Positioned(
-          right: 16,
-          bottom: 180,
-          child: _buildSideActions(),
-        ),
+          // Loading indicator
+          if (_isLoading && widget.reel.bunnyUrl.isNotEmpty && widget.isActive)
+            const IgnorePointer(
+              child: Center(
+                child: CircularProgressIndicator(
+                  color: Color(0xFFFFC107),
+                  strokeWidth: 2,
+                ),
+              ),
+            ),
 
-        // Bottom Content Info
-        Positioned(
-          left: 16,
-          right: 80,
-          bottom: 100,
-          child: _buildContentInfo(),
-        ),
-
-        // CTA Button
-        if (widget.reel.redirectType.isNotEmpty)
+          // Bottom Gradient
           Positioned(
-            left: 24,
-            right: 24,
-            bottom: 40,
-            child: _buildCTAButton(),
+            left: 0,
+            right: 0,
+            bottom: 0,
+            height: 250,
+            child: IgnorePointer(
+              child: Container(
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.bottomCenter,
+                    end: Alignment.topCenter,
+                    colors: [
+                      Color(0xFF1A1A1A),
+                      Colors.transparent,
+                    ],
+                  ),
+                ),
+              ),
+            ),
           ),
-      ],
+
+          // BOTTOM CONTENT
+          Positioned(
+            left: 16,
+            right: 16,
+            bottom: bottomPadding + 40,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                // LEFT - Profile Info + Subscribe Button
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IgnorePointer(
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          _buildAvatar(),
+                          const SizedBox(width: 8),
+                          Text(
+                            widget.reel.owner.name.isNotEmpty
+                                ? widget.reel.owner.name
+                                : 'ليرنفاي',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    IgnorePointer(
+                      child: Text(
+                        widget.reel.description.isNotEmpty
+                            ? widget.reel.description
+                            : 'تعلم كيفية نطق الحروف',
+                        style: TextStyle(
+                          color: Colors.white.withOpacity(0.7),
+                          fontSize: 13,
+                        ),
+                        textAlign: TextAlign.left,
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+                    GestureDetector(
+                      onTap: widget.onRedirect,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFFC107),
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: const Text(
+                          'اشترك من هنا',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const Spacer(),
+                // RIGHT - Actions
+                Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    GestureDetector(
+                      onTap: widget.onLike,
+                      child: Icon(
+                        Icons.favorite,
+                        color: widget.isLiked ? Colors.red : Colors.white,
+                        size: 38,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    IgnorePointer(
+                      child: Text(
+                        _formatCount(widget.likeCount),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    GestureDetector(
+                      onTap: widget.onShare,
+                      child: Transform(
+                        alignment: Alignment.center,
+                        transform: Matrix4.rotationY(3.14159),
+                        child: const Icon(
+                          Icons.reply,
+                          color: Colors.white,
+                          size: 32,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    const IgnorePointer(
+                      child: Text(
+                        'مشاركة',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 11,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 
   Widget _buildThumbnail() {
     if (widget.reel.thumbnailUrl.isEmpty) {
-      return const ColoredBox(
-        color: AppColors.primaryOpacity30,
-        child: Center(
+      return Container(
+        color: const Color(0xFF1A1A1A),
+        child: const Center(
           child: Icon(
             Icons.play_circle_outline,
-            color: Colors.white,
+            color: Colors.white24,
             size: 80,
           ),
         ),
@@ -352,21 +510,21 @@ class _ReelPlayerWidgetState extends State<ReelPlayerWidget>
     return CachedNetworkImage(
       imageUrl: widget.reel.thumbnailUrl,
       fit: BoxFit.cover,
-      memCacheWidth: 720, // Limit memory cache size for better performance
-      placeholder: (context, url) => const ColoredBox(
-        color: Colors.black,
-        child: Center(
+      placeholder: (context, url) => Container(
+        color: const Color(0xFF1A1A1A),
+        child: const Center(
           child: CircularProgressIndicator(
-            color: AppColors.primary,
+            color: Color(0xFFFFC107),
+            strokeWidth: 2,
           ),
         ),
       ),
-      errorWidget: (context, url, error) => const ColoredBox(
-        color: AppColors.primaryOpacity30,
-        child: Center(
+      errorWidget: (context, url, error) => Container(
+        color: const Color(0xFF1A1A1A),
+        child: const Center(
           child: Icon(
             Icons.play_circle_outline,
-            color: Colors.white,
+            color: Colors.white24,
             size: 80,
           ),
         ),
@@ -374,324 +532,51 @@ class _ReelPlayerWidgetState extends State<ReelPlayerWidget>
     );
   }
 
-  Widget _buildSideActions() {
-    return Column(
-      children: [
-        // Owner Avatar
-        _buildOwnerAvatar(),
-        const SizedBox(height: 24),
-
-        // Like Button
-        _buildActionButton(
-          icon: Icons.favorite,
-          label: _formattedLikes,
-          isActive: widget.isLiked,
-          activeColor: Colors.red,
-          onTap: widget.onLike,
-        ),
-        const SizedBox(height: 20),
-
-        // Views
-        _buildActionButton(
-          icon: Icons.visibility,
-          label: _formattedViews,
-          onTap: () {},
-        ),
-        const SizedBox(height: 20),
-
-        // Share Button
-        _buildActionButton(
-          icon: Icons.share,
-          label: 'مشاركة',
-          onTap: widget.onShare,
-        ),
-      ],
-    );
-  }
-
-  Widget _buildOwnerAvatar() {
-    return GestureDetector(
-      onTap: () {
-        // Navigate to owner profile
-      },
-      child: Column(
-        children: [
-          Container(
-            width: 50,
-            height: 50,
-            decoration: const BoxDecoration(
-              shape: BoxShape.circle,
-              border: Border.fromBorderSide(
-                BorderSide(color: AppColors.primary, width: 2),
-              ),
-            ),
-            child: ClipOval(
-              child: widget.reel.owner.avatarUrl.isNotEmpty
-                  ? CachedNetworkImage(
-                      imageUrl: widget.reel.owner.avatarUrl,
-                      fit: BoxFit.cover,
-                      memCacheWidth: 100, // Small avatar, limit memory
-                      placeholder: (context, url) => const ColoredBox(
-                        color: AppColors.primaryOpacity30,
-                        child: Icon(Icons.person, color: Colors.white),
-                      ),
-                      errorWidget: (context, url, error) => const ColoredBox(
-                        color: AppColors.primaryOpacity30,
-                        child: Icon(Icons.person, color: Colors.white),
-                      ),
-                    )
-                  : ColoredBox(
-                      color: AppColors.primaryOpacity30,
-                      child: Center(
-                        child: Text(
-                          widget.reel.owner.name.isNotEmpty
-                              ? widget.reel.owner.name[0].toUpperCase()
-                              : 'L',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ),
-            ),
-          ),
-          const SizedBox(height: 4),
-          Container(
-            padding: const EdgeInsets.all(4),
-            decoration: const BoxDecoration(
-              color: AppColors.primary,
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(
-              Icons.add,
-              color: Colors.white,
-              size: 12,
-            ),
-          ),
-        ],
+  Widget _buildAvatar() {
+    final defaultAvatar = Container(
+      width: 40,
+      height: 40,
+      decoration: const BoxDecoration(
+        shape: BoxShape.circle,
+        color: Colors.white,
+      ),
+      padding: const EdgeInsets.all(6),
+      child: Image.asset(
+        'assets/images/app_logo.png',
+        fit: BoxFit.contain,
       ),
     );
-  }
 
-  Widget _buildActionButton({
-    required IconData icon,
-    required String label,
-    required VoidCallback onTap,
-    bool isActive = false,
-    Color activeColor = Colors.white,
-  }) {
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: onTap,
-      child: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: const BoxDecoration(
-              color: AppColors.whiteOpacity15,
-              shape: BoxShape.circle,
-            ),
-            child: Icon(
-              icon,
-              color: isActive ? activeColor : Colors.white,
-              size: 26,
-            ),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            label,
-            style: TextStyle(
-              fontFamily: cairoFontFamily,
-              fontSize: 12,
-              color: Colors.white,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildContentInfo() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        // Owner Name
-        Row(
-          children: [
-            Text(
-              '@${widget.reel.owner.name}',
-              style: TextStyle(
-                fontFamily: cairoFontFamily,
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
-            ),
-            const SizedBox(width: 8),
-            if (widget.reel.owner.name.isNotEmpty)
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                decoration: BoxDecoration(
-                  color: AppColors.primary,
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: Text(
-                  'متابعة',
-                  style: TextStyle(
-                    fontFamily: cairoFontFamily,
-                    fontSize: 11,
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-          ],
-        ),
-        const SizedBox(height: 8),
-
-        // Title
-        Text(
-          widget.reel.title,
-          style: TextStyle(
-            fontFamily: cairoFontFamily,
-            fontSize: 15,
-            fontWeight: FontWeight.w600,
-            color: Colors.white,
-          ),
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-        ),
-        const SizedBox(height: 4),
-
-        // Description
-        if (widget.reel.description.isNotEmpty)
-          Text(
-            widget.reel.description,
-            style: TextStyle(
-              fontFamily: cairoFontFamily,
-              fontSize: 13,
-              color: AppColors.whiteOpacity80,
-              height: 1.4,
-            ),
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-          ),
-
-        const SizedBox(height: 8),
-
-        // Created at
-        Row(
-          children: [
-            const Icon(
-              Icons.access_time,
-              color: AppColors.whiteOpacity60,
-              size: 14,
-            ),
-            const SizedBox(width: 4),
-            Text(
-              widget.reel.createdAt,
-              style: TextStyle(
-                fontFamily: cairoFontFamily,
-                fontSize: 12,
-                color: AppColors.whiteOpacity60,
-              ),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-
-  Widget _buildCTAButton() {
-    String buttonText = 'اشترك الآن';
-    IconData buttonIcon = Icons.school;
-
-    if (widget.reel.redirectType == 'course') {
-      buttonText = 'شاهد الكورس';
-      buttonIcon = Icons.play_circle_filled;
+    if (widget.reel.owner.avatarUrl.isEmpty) {
+      return defaultAvatar;
     }
 
-    return ElevatedButton(
-      onPressed: widget.onRedirect,
-      style: ElevatedButton.styleFrom(
-        backgroundColor: AppColors.primary,
-        padding: const EdgeInsets.symmetric(vertical: 14),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(30),
-        ),
-        elevation: 8,
-        shadowColor: AppColors.primaryOpacity50,
+    return Container(
+      width: 40,
+      height: 40,
+      decoration: const BoxDecoration(
+        shape: BoxShape.circle,
+        color: Colors.white,
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            buttonIcon,
-            color: Colors.white,
-            size: 22,
-          ),
-          const SizedBox(width: 8),
-          Text(
-            buttonText,
-            style: TextStyle(
-              fontFamily: cairoFontFamily,
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// Extracted gradient widgets for const optimization and RepaintBoundary
-class _BottomGradient extends StatelessWidget {
-  const _BottomGradient();
-
-  @override
-  Widget build(BuildContext context) {
-    return const DecoratedBox(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.bottomCenter,
-          end: Alignment.topCenter,
-          colors: [
-            AppColors.blackOpacity90,
-            AppColors.blackOpacity60,
-            Colors.transparent,
-          ],
+      child: ClipOval(
+        child: CachedNetworkImage(
+          imageUrl: widget.reel.owner.avatarUrl,
+          width: 40,
+          height: 40,
+          fit: BoxFit.cover,
+          placeholder: (context, url) => defaultAvatar,
+          errorWidget: (context, url, error) => defaultAvatar,
         ),
       ),
     );
   }
-}
 
-class _TopGradient extends StatelessWidget {
-  const _TopGradient();
-
-  @override
-  Widget build(BuildContext context) {
-    return const DecoratedBox(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            AppColors.blackOpacity60,
-            Colors.transparent,
-          ],
-        ),
-      ),
-    );
+  String _formatCount(int value) {
+    if (value >= 1000000) {
+      return '${(value / 1000000).toStringAsFixed(1)}M';
+    } else if (value >= 1000) {
+      return '${(value / 1000).toStringAsFixed(1)}k';
+    }
+    return value.toString();
   }
 }
-
-
-
-
