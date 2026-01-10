@@ -70,10 +70,41 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
   bool _showLessonsList = true; // Open by default
   WebViewController? _videoController;
   String? _currentVideoUrl;
+  bool _autoLandscape = false;
 
   @override
   void initState() {
     super.initState();
+    _autoLandscape = _shouldAutoLandscape();
+    
+    // Allow all orientations for video playback
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.landscapeLeft,
+      DeviceOrientation.landscapeRight,
+    ]);
+    
+    // If it's an intro video or first lesson, auto-rotate to landscape
+    if (_autoLandscape) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _enterLandscape();
+      });
+    }
+  }
+
+  bool _shouldAutoLandscape() {
+    // Auto landscape for intro videos (lessonId <= 0) or when no chapter (intro context)
+    return widget.lessonId <= 0 || widget.chapter == null;
+  }
+
+  void _enterLandscape() {
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.landscapeLeft,
+      DeviceOrientation.landscapeRight,
+    ]);
+  }
+
+  void _exitLandscape() {
     SystemChrome.setPreferredOrientations([
       DeviceOrientation.portraitUp,
       DeviceOrientation.landscapeLeft,
@@ -83,6 +114,7 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
 
   @override
   void dispose() {
+    // Restore portrait orientation when leaving
     SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
     super.dispose();
   }

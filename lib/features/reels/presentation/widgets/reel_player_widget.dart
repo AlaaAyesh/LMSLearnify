@@ -6,6 +6,7 @@ import 'package:webview_flutter/webview_flutter.dart';
 import 'package:webview_flutter_android/webview_flutter_android.dart';
 import 'package:webview_flutter_wkwebview/webview_flutter_wkwebview.dart';
 import '../../domain/entities/reel.dart';
+import '../../../home/presentation/pages/main_navigation_page.dart';
 
 class ReelPlayerWidget extends StatefulWidget {
   final Reel reel;
@@ -18,6 +19,7 @@ class ReelPlayerWidget extends StatefulWidget {
   final VoidCallback onShare;
   final VoidCallback onRedirect;
   final VoidCallback onViewed;
+  final VoidCallback? onLogoTap;
 
   const ReelPlayerWidget({
     super.key,
@@ -30,19 +32,23 @@ class ReelPlayerWidget extends StatefulWidget {
     required this.onShare,
     required this.onRedirect,
     required this.onViewed,
+    this.onLogoTap,
   });
 
   @override
   State<ReelPlayerWidget> createState() => _ReelPlayerWidgetState();
 }
 
-class _ReelPlayerWidgetState extends State<ReelPlayerWidget> {
+class _ReelPlayerWidgetState extends State<ReelPlayerWidget> with WidgetsBindingObserver {
   WebViewController? _controller;
   bool _isLoading = true;
   bool _showThumbnail = true;
   bool _isInitialized = false;
   bool _isPaused = false;
   bool _showLikeHeart = false;
+  bool _wasActiveBeforeBackground = false;
+  TabIndexNotifier? _tabNotifier;
+  Timer? _tabCheckTimer;
 
   // View tracking
   Timer? _viewTimer;
@@ -53,12 +59,77 @@ class _ReelPlayerWidgetState extends State<ReelPlayerWidget> {
   DateTime? _lastTapTime;
   static const _doubleTapDuration = Duration(milliseconds: 300);
 
+  /// Check if the Shorts tab is currently active (index 1)
+  bool get _isShortsTabActive {
+    if (_tabNotifier != null) {
+      return _tabNotifier!.value == 1;
+    }
+    return widget.isActive; // Fallback to widget prop
+  }
+
+  /// Combined check: widget says active AND shorts tab is active
+  bool get _shouldPlay {
+    return widget.isActive && _isShortsTabActive;
+  }
+
   @override
   void initState() {
     super.initState();
-    if (widget.isActive && widget.reel.bunnyUrl.isNotEmpty) {
+    WidgetsBinding.instance.addObserver(this);
+    
+    // Start a timer to periodically check tab state (failsafe)
+    _tabCheckTimer = Timer.periodic(const Duration(milliseconds: 500), (_) {
+      _checkAndStopIfNeeded();
+    });
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Subscribe to tab changes
+    final notifier = TabIndexProvider.of(context);
+    if (notifier != null && _tabNotifier != notifier) {
+      _tabNotifier?.removeListener(_onTabChanged);
+      _tabNotifier = notifier;
+      _tabNotifier!.addListener(_onTabChanged);
+    }
+    
+    // Initialize player if active
+    if (_shouldPlay && widget.reel.bunnyUrl.isNotEmpty && !_isInitialized) {
       _initializePlayer();
       _startViewTimer();
+    }
+  }
+
+  void _onTabChanged() {
+    _checkAndStopIfNeeded();
+  }
+
+  void _checkAndStopIfNeeded() {
+    if (!mounted) return;
+    
+    // If video is playing but shouldn't be, stop it
+    if (!_shouldPlay && !_isPaused && _controller != null) {
+      _stopVideo();
+    }
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    // Pause video when app goes to background
+    if (state == AppLifecycleState.paused || 
+        state == AppLifecycleState.inactive ||
+        state == AppLifecycleState.hidden) {
+      _wasActiveBeforeBackground = _shouldPlay && !_isPaused;
+      if (_controller != null && !_isPaused) {
+        _stopVideo();
+      }
+    } else if (state == AppLifecycleState.resumed) {
+      // Resume only if was active before going to background
+      if (_wasActiveBeforeBackground && _shouldPlay && _isPaused) {
+        _playVideo();
+      }
     }
   }
 
@@ -66,8 +137,13 @@ class _ReelPlayerWidgetState extends State<ReelPlayerWidget> {
   void didUpdateWidget(ReelPlayerWidget oldWidget) {
     super.didUpdateWidget(oldWidget);
 
-    if (widget.isActive != oldWidget.isActive) {
-      if (widget.isActive) {
+    final wasActive = oldWidget.isActive;
+    final nowActive = widget.isActive;
+
+    // Check if active state changed OR if tab state changed
+    if (wasActive != nowActive || !_shouldPlay) {
+      if (_shouldPlay) {
+        // Becoming active - initialize or resume
         if (!_isInitialized && widget.reel.bunnyUrl.isNotEmpty) {
           _initializePlayer();
         } else if (_controller != null && _isPaused) {
@@ -75,7 +151,8 @@ class _ReelPlayerWidgetState extends State<ReelPlayerWidget> {
         }
         _startViewTimer();
       } else {
-        _pauseVideo();
+        // Becoming inactive - STOP video immediately (not just pause)
+        _stopVideo();
         _cancelViewTimer();
       }
     }
@@ -83,7 +160,17 @@ class _ReelPlayerWidgetState extends State<ReelPlayerWidget> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _tabNotifier?.removeListener(_onTabChanged);
+    _tabCheckTimer?.cancel();
     _cancelViewTimer();
+    // Ensure video is stopped before disposing
+    if (_controller != null) {
+      _controller!.runJavaScript('''
+        var iframe = document.getElementById('bunny-player');
+        if (iframe) { iframe.src = "about:blank"; }
+      ''');
+    }
     _controller = null;
     super.dispose();
   }
@@ -93,7 +180,7 @@ class _ReelPlayerWidgetState extends State<ReelPlayerWidget> {
     _cancelViewTimer();
 
     _viewTimer = Timer(_viewDuration, () {
-      if (mounted && widget.isActive && !_hasRecordedView) {
+      if (mounted && _shouldPlay && !_hasRecordedView) {
         _hasRecordedView = true;
         widget.onViewed();
       }
@@ -232,7 +319,7 @@ class _ReelPlayerWidgetState extends State<ReelPlayerWidget> {
   }
 
   void _playVideo() {
-    if (_controller == null) return;
+    if (_controller == null || !_shouldPlay) return; // Don't play if not on Shorts tab
     setState(() => _isPaused = false);
 
     final playUrl = _getEmbedUrl(widget.reel.bunnyUrl);
@@ -248,6 +335,20 @@ class _ReelPlayerWidgetState extends State<ReelPlayerWidget> {
     if (_controller == null) return;
     setState(() => _isPaused = true);
 
+    _controller!.runJavaScript('''
+      var iframe = document.getElementById('bunny-player');
+      if (iframe) {
+        iframe.src = "about:blank";
+      }
+    ''');
+  }
+
+  /// Completely stops the video - used when navigating away from the page
+  void _stopVideo() {
+    if (_controller == null) return;
+    setState(() => _isPaused = true);
+
+    // Set iframe src to about:blank to completely stop video playback and audio
     _controller!.runJavaScript('''
       var iframe = document.getElementById('bunny-player');
       if (iframe) {
@@ -338,7 +439,7 @@ class _ReelPlayerWidgetState extends State<ReelPlayerWidget> {
             ),
 
           // Loading indicator
-          if (_isLoading && widget.reel.bunnyUrl.isNotEmpty && widget.isActive)
+          if (_isLoading && widget.reel.bunnyUrl.isNotEmpty && _shouldPlay)
             const IgnorePointer(
               child: Center(
                 child: CircularProgressIndicator(
@@ -383,7 +484,8 @@ class _ReelPlayerWidgetState extends State<ReelPlayerWidget> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    IgnorePointer(
+                    GestureDetector(
+                      onTap: widget.onLogoTap,
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [

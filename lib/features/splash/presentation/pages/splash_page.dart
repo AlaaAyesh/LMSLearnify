@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:learnify_lms/core/theme/app_text_styles.dart';
 
 
+import '../../../../core/constants/app_constants.dart';
 import '../../../../core/di/injection_container.dart';
-import '../../../../core/storage/secure_storage_service.dart';
+import '../../../../core/storage/hive_service.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../widgets/animated_logo.dart';
 
@@ -18,12 +19,13 @@ class _SplashPageState extends State<SplashPage>
     with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
+  bool _isFirstTime = true;
 
   @override
   void initState() {
     super.initState();
     _initAnimation();
-    _navigate();
+    _checkFirstTime();
   }
 
   void _initAnimation() {
@@ -42,22 +44,31 @@ class _SplashPageState extends State<SplashPage>
     _animationController.forward();
   }
 
-  Future<void> _navigate() async {
-    await Future.delayed(const Duration(seconds: 2));
-
+  Future<void> _checkFirstTime() async {
+    final hiveService = sl<HiveService>();
+    final isFirstTime = await hiveService.getData(AppConstants.keyIsFirstTime);
+    
     if (!mounted) return;
-
-    final secureStorage = sl<SecureStorageService>();
-
-    final token = await secureStorage.getAccessToken();
-
-    if (!mounted) return;
-
-    if (token != null && token.isNotEmpty) {
-      // User has token - go to home (server will handle verification check)
+    
+    setState(() {
+      _isFirstTime = isFirstTime == null || isFirstTime == true;
+    });
+    
+    if (_isFirstTime) {
+      // First time: Show welcome screen for 2 seconds, then go to Home
+      await Future.delayed(const Duration(seconds: 2));
+      if (!mounted) return;
+      
+      // Mark as not first time
+      await hiveService.saveData(AppConstants.keyIsFirstTime, false);
+      
+      // Go directly to Home
       Navigator.of(context).pushReplacementNamed('/home');
     } else {
-      Navigator.of(context).pushReplacementNamed('/login');
+      // Not first time: Go directly to Home after brief splash
+      await Future.delayed(const Duration(milliseconds: 500));
+      if (!mounted) return;
+      Navigator.of(context).pushReplacementNamed('/home');
     }
   }
 

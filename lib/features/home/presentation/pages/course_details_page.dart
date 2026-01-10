@@ -6,6 +6,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/di/injection_container.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/custom_app_bar.dart';
+import '../../../authentication/data/datasources/auth_local_datasource.dart';
 import '../../../lessons/presentation/pages/lesson_player_page.dart';
 import '../../../subscriptions/data/models/payment_model.dart';
 import '../../../subscriptions/presentation/bloc/subscription_bloc.dart';
@@ -622,12 +623,8 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> {
         course.chapters.first.lessons.first.id == lesson.id;
     
     if (!isFirstLesson) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('يجب الاشتراك أولاً للوصول إلى هذا الدرس'),
-          backgroundColor: AppColors.warning,
-        ),
-      );
+      // Locked lesson - handle based on course type and login status
+      await _handleLockedLessonTap(context);
       return;
     }
 
@@ -643,6 +640,74 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> {
     );
     // Mark as viewed when returning from lesson player
     _markLessonAsViewed(lesson.id);
+  }
+
+  Future<void> _handleLockedLessonTap(BuildContext context) async {
+    final authLocalDataSource = sl<AuthLocalDataSource>();
+    final token = await authLocalDataSource.getAccessToken();
+    final isGuest = await authLocalDataSource.isGuestMode();
+    
+    final isAuthenticated = token != null && token.isNotEmpty && !isGuest;
+    
+    if (_isFreeCourse) {
+      // Free course - only require login
+      if (!isAuthenticated) {
+        // Not logged in - show message and redirect to login
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('الكورس مجاني! سجل دخولك للمشاهدة'),
+            backgroundColor: AppColors.primary,
+            action: SnackBarAction(
+              label: 'تسجيل الدخول',
+              textColor: Colors.white,
+              onPressed: () async {
+                final result = await Navigator.pushNamed(
+                  context,
+                  '/login',
+                  arguments: {'returnTo': 'course', 'courseId': course.id},
+                );
+                // After login, user will find the course unlocked
+                if (result == true && mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('تم تسجيل الدخول! الكورس متاح الآن'),
+                      backgroundColor: AppColors.success,
+                    ),
+                  );
+                }
+              },
+            ),
+          ),
+        );
+      } else {
+        // Logged in but no access - this shouldn't happen for free courses
+        // Show a refresh message
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('يرجى تحديث الصفحة للوصول إلى الدروس'),
+            backgroundColor: AppColors.warning,
+          ),
+        );
+      }
+    } else {
+      // Paid course - redirect to payment
+      if (!isAuthenticated) {
+        // Not logged in - go to login first, then payment
+        final result = await Navigator.pushNamed(
+          context,
+          '/login',
+          arguments: {'returnTo': 'payment', 'courseId': course.id},
+        );
+        
+        if (result == true && mounted) {
+          // After login, show phone dialog for payment
+          _showPhoneInputDialog();
+        }
+      } else {
+        // Logged in - go directly to payment
+        _showPhoneInputDialog();
+      }
+    }
   }
 
   void _onEnrollPressed(BuildContext context) async {

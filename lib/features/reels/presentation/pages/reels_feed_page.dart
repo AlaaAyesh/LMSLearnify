@@ -3,29 +3,45 @@ import 'package:learnify_lms/core/theme/app_text_styles.dart';
 
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../../core/di/injection_container.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../authentication/data/datasources/auth_local_datasource.dart';
 import '../../domain/entities/reel.dart';
 import '../bloc/reels_bloc.dart';
 import '../bloc/reels_event.dart';
 import '../bloc/reels_state.dart';
+import '../widgets/reel_paywall_widget.dart';
 import '../widgets/reel_player_widget.dart';
+import 'collected_reels_page.dart';
+
+/// Global RouteObserver to track page visibility
+final RouteObserver<PageRoute> routeObserver = RouteObserver<PageRoute>();
 
 class ReelsFeedPage extends StatefulWidget {
   final int initialIndex;
+  final bool showBackButton;
+  final int freeReelsLimit; // Number of free reels before paywall (0 = unlimited)
+  final bool isTabActive; // Whether the shorts tab is currently active
 
   const ReelsFeedPage({
     super.key,
     this.initialIndex = 0,
+    this.showBackButton = true,
+    this.freeReelsLimit = 5, // Default: show paywall after 5 reels
+    this.isTabActive = false, // Default to false - only true when in Shorts tab
   });
 
   @override
   State<ReelsFeedPage> createState() => _ReelsFeedPageState();
 }
 
-class _ReelsFeedPageState extends State<ReelsFeedPage> {
+class _ReelsFeedPageState extends State<ReelsFeedPage> with RouteAware, WidgetsBindingObserver {
   late PageController _pageController;
   int _currentIndex = 0;
-  int _selectedCategoryIndex = 3; // برمجة selected by default (rightmost)
+  int _selectedCategoryIndex = 0; // عام selected by default (leftmost)
+  bool _showPaywall = false;
+  bool _isSubscribed = false;
+  bool _isPageVisible = true; // Track if this page is visible (not covered by another page)
   
   // Display order (left to right): عام, انجلش, رسم, برمجة
   final List<String> _categories = ['عام', 'انجلش', 'رسم', 'برمجة'];
@@ -33,10 +49,95 @@ class _ReelsFeedPageState extends State<ReelsFeedPage> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _currentIndex = widget.initialIndex;
     _pageController = PageController(initialPage: widget.initialIndex);
+    _checkSubscriptionStatus();
 
-    // Set status bar to light for dark background
+    // Set status bar to light for dark background only when tab is active
+    if (widget.isTabActive) {
+      _setDarkStatusBar();
+    }
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    // When app goes to background, mark page as not visible to stop videos
+    if (state == AppLifecycleState.paused || 
+        state == AppLifecycleState.inactive ||
+        state == AppLifecycleState.hidden) {
+      if (_isPageVisible) {
+        setState(() => _isPageVisible = false);
+      }
+    } else if (state == AppLifecycleState.resumed) {
+      // When app comes back, restore visibility if tab is active
+      if (widget.isTabActive && !_isPageVisible) {
+        setState(() {
+          _isPageVisible = true;
+          _setDarkStatusBar();
+        });
+      }
+    }
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Subscribe to route changes to detect when page is covered
+    final route = ModalRoute.of(context);
+    if (route is PageRoute) {
+      routeObserver.subscribe(this, route);
+    }
+  }
+
+  @override
+  void didUpdateWidget(ReelsFeedPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    
+    // Handle status bar and trigger rebuild when tab becomes active/inactive
+    if (widget.isTabActive != oldWidget.isTabActive) {
+      if (widget.isTabActive) {
+        _setDarkStatusBar();
+      } else {
+        _setLightStatusBar();
+      }
+      // Force rebuild to update all ReelPlayerWidgets with new isActive state
+      setState(() {});
+    }
+  }
+
+  // RouteAware callbacks
+  @override
+  void didPush() {
+    // This page became visible (pushed onto navigator)
+    setState(() => _isPageVisible = true);
+  }
+
+  @override
+  void didPopNext() {
+    // Another page was popped, this page is visible again
+    setState(() {
+      _isPageVisible = true;
+      if (widget.isTabActive) {
+        _setDarkStatusBar();
+      }
+    });
+  }
+
+  @override
+  void didPushNext() {
+    // Another page was pushed on top, this page is now hidden
+    setState(() => _isPageVisible = false);
+  }
+
+  @override
+  void didPop() {
+    // This page was popped
+    setState(() => _isPageVisible = false);
+  }
+
+  void _setDarkStatusBar() {
     SystemChrome.setSystemUIOverlayStyle(
       const SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
@@ -45,16 +146,93 @@ class _ReelsFeedPageState extends State<ReelsFeedPage> {
     );
   }
 
-  @override
-  void dispose() {
-    _pageController.dispose();
-    // Reset status bar
+  void _setLightStatusBar() {
     SystemChrome.setSystemUIOverlayStyle(
       const SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
         statusBarIconBrightness: Brightness.dark,
       ),
     );
+  }
+
+  Future<void> _checkSubscriptionStatus() async {
+    final authLocalDataSource = sl<AuthLocalDataSource>();
+    final token = await authLocalDataSource.getAccessToken();
+    final isGuest = await authLocalDataSource.isGuestMode();
+    
+    // For now, consider subscribed if user has token and is not guest
+    // In production, you'd check actual subscription status from API
+    setState(() {
+      _isSubscribed = token != null && token.isNotEmpty && !isGuest;
+    });
+  }
+
+  void _checkPaywall(int index) {
+    // If already subscribed or no limit set, don't show paywall
+    if (_isSubscribed || widget.freeReelsLimit <= 0) {
+      return;
+    }
+    
+    // Show paywall after reaching the limit
+    if (index >= widget.freeReelsLimit && !_showPaywall) {
+      setState(() {
+        _showPaywall = true;
+      });
+    }
+  }
+
+  void _handleSubscribe() async {
+    // Pause videos before navigating
+    setState(() => _isPageVisible = false);
+    
+    // Wait for the frame to rebuild and pause the video
+    await Future.delayed(const Duration(milliseconds: 100));
+    
+    if (!mounted) return;
+    
+    final authLocalDataSource = sl<AuthLocalDataSource>();
+    final token = await authLocalDataSource.getAccessToken();
+    final isGuest = await authLocalDataSource.isGuestMode();
+    
+    final isAuthenticated = token != null && token.isNotEmpty && !isGuest;
+    
+    if (!isAuthenticated) {
+      // Not logged in - go to login first, then subscriptions
+      final result = await Navigator.pushNamed(
+        context,
+        '/login',
+        arguments: {
+          'returnTo': 'subscriptions',
+        },
+      );
+      
+      if (result == true && mounted) {
+        // After login, navigate to subscriptions
+        await Navigator.pushNamed(context, '/subscriptions');
+      }
+    } else {
+      // Logged in - go directly to subscriptions/payment
+      await Navigator.pushNamed(context, '/subscriptions');
+    }
+    
+    // Resume videos when returning
+    if (mounted) {
+      setState(() {
+        _isPageVisible = true;
+        if (widget.isTabActive) {
+          _setDarkStatusBar();
+        }
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    routeObserver.unsubscribe(this);
+    _pageController.dispose();
+    // Reset status bar
+    _setLightStatusBar();
     super.dispose();
   }
 
@@ -158,30 +336,40 @@ class _ReelsFeedPageState extends State<ReelsFeedPage> {
             },
           ),
           
-          // Top bar with back button and category filters
-          Positioned(
-            top: topPadding + 12,
-            left: 0,
-            right: 0,
-            child: Row(
-              children: [
-                // Back button
-                Padding(
-                  padding: const EdgeInsets.only(left: 16),
-                  child: GestureDetector(
-                    onTap: () => Navigator.of(context).pop(),
-                    child: const Icon(
-                      Icons.arrow_back_ios_new,
-                      color: Colors.white,
-                      size: 24,
-                    ),
-                  ),
-                ),
-                // Category filters
-                Expanded(child: _buildCategoryFilters()),
-              ],
+          // Paywall overlay
+          if (_showPaywall)
+            Positioned.fill(
+              child: ReelPaywallWidget(
+                onSubscribe: _handleSubscribe,
+              ),
             ),
-          ),
+          
+          // Top bar with back button and category filters
+          if (!_showPaywall)
+            Positioned(
+              top: topPadding + 12,
+              left: 0,
+              right: 0,
+              child: Row(
+                children: [
+                  // Back button (only show if enabled)
+                  if (widget.showBackButton)
+                    Padding(
+                      padding: const EdgeInsets.only(left: 16),
+                      child: GestureDetector(
+                        onTap: () => Navigator.of(context).pop(),
+                        child: const Icon(
+                          Icons.arrow_back_ios_new,
+                          color: Colors.white,
+                          size: 24,
+                        ),
+                      ),
+                    ),
+                  // Category filters
+                  Expanded(child: _buildCategoryFilters()),
+                ],
+              ),
+            ),
         ],
       ),
     );
@@ -235,6 +423,9 @@ class _ReelsFeedPageState extends State<ReelsFeedPage> {
       itemCount: state.reels.length + (state.hasMore ? 1 : 0),
       onPageChanged: (index) {
         setState(() => _currentIndex = index);
+        
+        // Check if paywall should be shown
+        _checkPaywall(index);
 
         if (index >= state.reels.length - 3 && state.hasMore && !state.isLoadingMore) {
           context.read<ReelsBloc>().add(const LoadMoreReelsEvent());
@@ -260,7 +451,8 @@ class _ReelsFeedPageState extends State<ReelsFeedPage> {
           isLiked: isLiked,
           viewCount: viewCount,
           likeCount: likeCount,
-          isActive: index == _currentIndex,
+          // Video only plays when: current index + tab is active + page is visible (not covered)
+          isActive: index == _currentIndex && widget.isTabActive && _isPageVisible,
           onLike: () {
             context.read<ReelsBloc>().add(ToggleReelLikeEvent(reelId: reel.id));
           },
@@ -269,6 +461,7 @@ class _ReelsFeedPageState extends State<ReelsFeedPage> {
           onViewed: () {
             context.read<ReelsBloc>().add(MarkReelViewedEvent(reelId: reel.id));
           },
+          onLogoTap: () => _navigateToCollectedReels(context),
         );
       },
     );
@@ -297,6 +490,32 @@ class _ReelsFeedPageState extends State<ReelsFeedPage> {
           backgroundColor: AppColors.primary,
         ),
       );
+    }
+  }
+
+  void _navigateToCollectedReels(BuildContext context) async {
+    // Pause videos before navigating
+    setState(() => _isPageVisible = false);
+    
+    // Wait for the frame to rebuild and pause the video
+    await Future.delayed(const Duration(milliseconds: 100));
+    
+    if (!mounted) return;
+    
+    await Navigator.of(context, rootNavigator: true).push(
+      MaterialPageRoute(
+        builder: (_) => const CollectedReelsPage(),
+      ),
+    );
+    
+    // Resume videos when returning
+    if (mounted) {
+      setState(() {
+        _isPageVisible = true;
+        if (widget.isTabActive) {
+          _setDarkStatusBar();
+        }
+      });
     }
   }
 }

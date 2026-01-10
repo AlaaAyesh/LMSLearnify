@@ -7,6 +7,24 @@ import '../../../shorts/presentation/pages/shorts_page.dart';
 import '../../../subscriptions/presentation/pages/subscriptions_page.dart';
 import 'home_tab.dart';
 
+/// Notifier for tab index changes
+class TabIndexNotifier extends ValueNotifier<int> {
+  TabIndexNotifier(super.value);
+}
+
+/// Inherited widget to provide tab index notifier to descendants
+class TabIndexProvider extends InheritedNotifier<TabIndexNotifier> {
+  const TabIndexProvider({
+    super.key,
+    required TabIndexNotifier notifier,
+    required super.child,
+  }) : super(notifier: notifier);
+
+  static TabIndexNotifier? of(BuildContext context) {
+    return context.dependOnInheritedWidgetOfExactType<TabIndexProvider>()?.notifier;
+  }
+}
+
 class MainNavigationPage extends StatefulWidget {
   const MainNavigationPage({super.key});
 
@@ -16,6 +34,7 @@ class MainNavigationPage extends StatefulWidget {
 
 class MainNavigationPageState extends State<MainNavigationPage> {
   int _selectedIndex = 0;
+  late final TabIndexNotifier _tabIndexNotifier;
   
   // Global keys for each tab's navigator
   final List<GlobalKey<NavigatorState>> _navigatorKeys = [
@@ -28,6 +47,21 @@ class MainNavigationPageState extends State<MainNavigationPage> {
   // Track if we should show bottom nav (for full screen pages)
   bool _showBottomNav = true;
 
+  // Getter for current tab index (used by child widgets)
+  int get currentTabIndex => _selectedIndex;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabIndexNotifier = TabIndexNotifier(_selectedIndex);
+  }
+
+  @override
+  void dispose() {
+    _tabIndexNotifier.dispose();
+    super.dispose();
+  }
+
   void setShowBottomNav(bool show) {
     if (_showBottomNav != show) {
       setState(() => _showBottomNav = show);
@@ -36,32 +70,35 @@ class MainNavigationPageState extends State<MainNavigationPage> {
 
   @override
   Widget build(BuildContext context) {
-    return PopScope(
-      canPop: false,
-      onPopInvokedWithResult: (didPop, result) {
-        if (didPop) return;
-        // Handle back button - pop the current tab's navigator first
-        final currentNavigator = _navigatorKeys[_selectedIndex].currentState;
-        if (currentNavigator != null && currentNavigator.canPop()) {
-          currentNavigator.pop();
-        } else {
-          // Allow system back if we can't pop
-          Navigator.of(context).maybePop();
-        }
-      },
-      child: Scaffold(
-        body: IndexedStack(
-          index: _selectedIndex,
-          children: [
-            _buildNavigator(0, const HomeTab()),
-            _buildNavigator(1, const ShortsPage()),
-            _buildNavigator(2, const SubscriptionsPage(showBackButton: false)),
-            _buildNavigator(3, const MenuPage()),
-          ],
+    return TabIndexProvider(
+      notifier: _tabIndexNotifier,
+      child: PopScope(
+        canPop: false,
+        onPopInvokedWithResult: (didPop, result) {
+          if (didPop) return;
+          // Handle back button - pop the current tab's navigator first
+          final currentNavigator = _navigatorKeys[_selectedIndex].currentState;
+          if (currentNavigator != null && currentNavigator.canPop()) {
+            currentNavigator.pop();
+          } else {
+            // Allow system back if we can't pop
+            Navigator.of(context).maybePop();
+          }
+        },
+        child: Scaffold(
+          body: IndexedStack(
+            index: _selectedIndex,
+            children: [
+              _buildNavigator(0, const HomeTab()),
+              _buildNavigator(1, const ShortsPage()),
+              _buildNavigator(2, const SubscriptionsPage(showBackButton: false)),
+              _buildNavigator(3, const MenuPage()),
+            ],
+          ),
+          bottomNavigationBar: _showBottomNav 
+              ? _buildBottomNavigationBar()
+              : null,
         ),
-        bottomNavigationBar: _showBottomNav 
-            ? _buildBottomNavigationBar()
-            : null,
       ),
     );
   }
@@ -114,7 +151,10 @@ class MainNavigationPageState extends State<MainNavigationPage> {
         if (_selectedIndex == index) {
           _navigatorKeys[index].currentState?.popUntil((route) => route.isFirst);
         } else {
-          setState(() => _selectedIndex = index);
+          setState(() {
+            _selectedIndex = index;
+            _tabIndexNotifier.value = index;
+          });
         }
       },
       behavior: HitTestBehavior.opaque,

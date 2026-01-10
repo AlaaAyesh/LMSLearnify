@@ -3,6 +3,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 
 import 'core/routing/app_router.dart';
 import 'core/theme/app_theme.dart';
+import 'features/reels/presentation/pages/reels_feed_page.dart';
 
 class LearnifyApp extends StatelessWidget {
   const LearnifyApp({super.key});
@@ -28,6 +29,9 @@ class LearnifyApp extends StatelessWidget {
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
+
+      // Route observer for tracking page visibility
+      navigatorObservers: [routeObserver],
 
       initialRoute: AppRouter.splash,
       onGenerateRoute: AppRouter.generateRoute,

@@ -11,7 +11,7 @@ import '../../../home/presentation/pages/course_details_page.dart';
 import '../bloc/courses_bloc.dart';
 import '../bloc/courses_event.dart';
 import '../bloc/courses_state.dart';
-import '../widgets/course_grid_item.dart';
+import '../widgets/course_circle_item.dart';
 
 class AllCoursesPage extends StatelessWidget {
   final int? categoryId;
@@ -112,19 +112,20 @@ class _AllCoursesPageContent extends StatelessWidget {
         color: AppColors.primary,
         child: CustomScrollView(
           slivers: [
+            // Circular course items in a grid
             SliverPadding(
               padding: const EdgeInsets.all(16),
               sliver: SliverGrid(
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  childAspectRatio: 0.72,
-                  crossAxisSpacing: 12,
-                  mainAxisSpacing: 12,
+                  crossAxisCount: 3, // 3 circles per row
+                  childAspectRatio: 0.75,
+                  crossAxisSpacing: 8,
+                  mainAxisSpacing: 16,
                 ),
                 delegate: SliverChildBuilderDelegate(
                   (context, index) {
                     final course = state.courses[index];
-                    return CourseGridItem(
+                    return CourseCircleItem(
                       course: course,
                       onTap: () => _navigateToCourseDetails(context, course),
                     );

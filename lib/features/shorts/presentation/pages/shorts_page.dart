@@ -1,16 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:learnify_lms/core/theme/app_text_styles.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/di/injection_container.dart';
-import '../../../../core/theme/app_colors.dart';
-import '../../../reels/domain/entities/reel.dart';
+import '../../../home/presentation/pages/main_navigation_page.dart';
 import '../../../reels/presentation/bloc/reels_bloc.dart';
 import '../../../reels/presentation/bloc/reels_event.dart';
-import '../../../reels/presentation/bloc/reels_state.dart';
 import '../../../reels/presentation/pages/reels_feed_page.dart';
-import '../widgets/reels_grid.dart';
 
+/// ShortsPage now directly shows the ReelsFeedPage
+/// User scrolls through reels directly when tapping Shorts tab
 class ShortsPage extends StatefulWidget {
   const ShortsPage({super.key});
 
@@ -18,339 +16,82 @@ class ShortsPage extends StatefulWidget {
   State<ShortsPage> createState() => _ShortsPageState();
 }
 
-class _ShortsPageState extends State<ShortsPage> with SingleTickerProviderStateMixin {
-  late TabController _tabController;
+class _ShortsPageState extends State<ShortsPage> {
+  ReelsBloc? _reelsBloc;
+  bool _hasLoadedOnce = false;
+  bool _isActive = false;
+  TabIndexNotifier? _tabNotifier;
 
   @override
-  void initState() {
-    super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Listen to tab index changes
+    final notifier = TabIndexProvider.of(context);
+    if (notifier != null && _tabNotifier != notifier) {
+      // Remove listener from old notifier
+      _tabNotifier?.removeListener(_onTabChanged);
+      // Add listener to new notifier
+      _tabNotifier = notifier;
+      _tabNotifier!.addListener(_onTabChanged);
+      // Update active state immediately
+      final newIsActive = _tabNotifier!.value == 1; // Shorts tab is index 1
+      if (_isActive != newIsActive) {
+        _isActive = newIsActive;
+      }
+    }
+  }
+
+  void _onTabChanged() {
+    if (_tabNotifier != null && mounted) {
+      final newIsActive = _tabNotifier!.value == 1;
+      if (_isActive != newIsActive) {
+        setState(() {
+          _isActive = newIsActive;
+        });
+      }
+    }
   }
 
   @override
   void dispose() {
-    _tabController.dispose();
+    _tabNotifier?.removeListener(_onTabChanged);
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) => sl<ReelsBloc>()..add(const LoadReelsFeedEvent(perPage: 20)),
-      child: Scaffold(
-        backgroundColor: Colors.white,
-        body: SafeArea(
-          child: Column(
-            children: [
-              const SizedBox(height: 16),
-              // Logo
-              _buildHeader(),
-              const SizedBox(height: 24),
-              // Tabs
-              _buildTabs(),
-              const SizedBox(height: 16),
-              // Content
-              Expanded(
-                child: BlocBuilder<ReelsBloc, ReelsState>(
-                  builder: (context, state) {
-                    return TabBarView(
-                      controller: _tabController,
-                      children: [
-                        _buildMyVideosTab(context, state),
-                        _buildLikedVideosTab(context, state),
-                      ],
-                    );
-                  },
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildMyVideosTab(BuildContext context, ReelsState state) {
-    if (state is ReelsLoading) {
-      return const Center(
-        child: CircularProgressIndicator(
-          color: AppColors.primary,
-        ),
-      );
-    }
-
-    if (state is ReelsError) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.error_outline,
-              size: 64,
-              color: Colors.grey[400],
-            ),
-            const SizedBox(height: 16),
-            Text(
-              state.message,
-              style: TextStyle(
-                fontFamily: cairoFontFamily,
-                fontSize: 14,
-                color: Colors.grey[600],
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: () {
-                context.read<ReelsBloc>().add(const LoadReelsFeedEvent(perPage: 20));
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
-                ),
-              ),
-              child: Text(
-                'إعادة المحاولة',
-                style: TextStyle(
-                  fontFamily: cairoFontFamily,
-                  color: Colors.white,
-                ),
-              ),
-            ),
-          ],
-        ),
-      );
-    }
-
-    if (state is ReelsEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.video_library_outlined,
-              size: 80,
-              color: Colors.grey[400],
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'لا توجد فيديوهات',
-              style: TextStyle(
-                fontFamily: cairoFontFamily,
-                fontSize: 16,
-                color: Colors.grey[600],
-              ),
-            ),
-          ],
-        ),
-      );
-    }
-
-    if (state is ReelsLoaded) {
-      return ReelsGrid(
-        reels: state.reels,
-        onReelTap: (reel, index) => _onVideoTap(context, state.reels, index),
-        onLoadMore: state.hasMore && !state.isLoadingMore
-            ? () => context.read<ReelsBloc>().add(const LoadMoreReelsEvent())
-            : null,
-        isLoadingMore: state.isLoadingMore,
-        // Pass real-time state for updates
-        likedReels: state.likedReels,
-        viewCounts: state.viewCounts,
-        likeCounts: state.likeCounts,
-      );
-    }
-
-    return const SizedBox.shrink();
-  }
-
-  Widget _buildLikedVideosTab(BuildContext context, ReelsState state) {
-    if (state is ReelsLoaded) {
-      // Filter liked videos
-      final likedReels = state.reels.where((reel) {
-        return state.likedReels[reel.id] == true || reel.liked;
-      }).toList();
-
-      if (likedReels.isEmpty) {
-        return Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                Icons.favorite_border,
-                size: 80,
-                color: Colors.grey[400],
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'لا توجد فيديوهات مفضلة',
-                style: TextStyle(
-                  fontFamily: cairoFontFamily,
-                  fontSize: 16,
-                  color: Colors.grey[600],
-                ),
-              ),
-            ],
-          ),
-        );
+    // Don't load anything until tab is active for the first time
+    if (!_hasLoadedOnce) {
+      if (_isActive) {
+        _hasLoadedOnce = true;
+      } else {
+        // Return empty black screen when tab has never been active
+        return const ColoredBox(color: Colors.black);
       }
-
-      return ReelsGrid(
-        reels: likedReels,
-        onReelTap: (reel, index) => _onVideoTap(context, likedReels, index),
-        // Pass real-time state for updates
-        likedReels: state.likedReels,
-        viewCounts: state.viewCounts,
-        likeCounts: state.likeCounts,
-      );
     }
 
-    if (state is ReelsLoading) {
-      return const Center(
-        child: CircularProgressIndicator(
-          color: AppColors.primary,
+    // Use existing bloc if already created, pass current active state
+    if (_reelsBloc != null) {
+      return BlocProvider.value(
+        value: _reelsBloc!,
+        child: ReelsFeedPage(
+          showBackButton: false,
+          freeReelsLimit: 5,
+          isTabActive: _isActive,
         ),
       );
     }
 
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.favorite_border,
-            size: 80,
-            color: Colors.grey[400],
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'لا توجد فيديوهات مفضلة',
-            style: TextStyle(
-              fontFamily: cairoFontFamily,
-              fontSize: 16,
-              color: Colors.grey[600],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildHeader() {
-    return Column(
-      children: [
-        // Logo Circle
-        Container(
-          width: 100,
-          height: 100,
-          decoration: const BoxDecoration(
-            shape: BoxShape.circle,
-            border: Border.fromBorderSide(
-              BorderSide(color: AppColors.primary, width: 3),
-            ),
-          ),
-          child: ClipOval(
-            child: Image.asset(
-              'assets/images/app_logo.png',
-              fit: BoxFit.cover,
-              cacheWidth: 200, // Cache at 2x size for retina
-              errorBuilder: (context, error, stackTrace) {
-                return const ColoredBox(
-                  color: AppColors.primaryOpacity10,
-                  child: Center(
-                    child: Text(
-                      'L',
-                      style: TextStyle(
-                        fontSize: 40,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.primary,
-                      ),
-                    ),
-                  ),
-                );
-              },
-            ),
-          ),
-        ),
-        const SizedBox(height: 12),
-        // Title
-        Text(
-          'Learnify',
-          style: TextStyle(
-            fontFamily: cairoFontFamily,
-            fontSize: 22,
-            fontWeight: FontWeight.bold,
-            color: AppColors.textPrimary,
-          ),
-        ),
-        const SizedBox(height: 4),
-        // Subtitle with emojis
-        Text(
-          'I love a colorful life 🧡🧡🧡',
-          style: TextStyle(
-            fontFamily: cairoFontFamily,
-            fontSize: 14,
-            color: AppColors.textSecondary,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildTabs() {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 60),
-      child: TabBar(
-        controller: _tabController,
-        indicatorColor: AppColors.primary,
-        indicatorWeight: 2,
-        labelColor: AppColors.primary,
-        unselectedLabelColor: AppColors.textSecondary,
-        labelStyle: TextStyle(
-          fontFamily: cairoFontFamily,
-          fontSize: 14,
-          fontWeight: FontWeight.w600,
-        ),
-        unselectedLabelStyle: TextStyle(
-          fontFamily: cairoFontFamily,
-          fontSize: 14,
-          fontWeight: FontWeight.w500,
-        ),
-        tabs: const [
-          Tab(
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.play_arrow_outlined, size: 20),
-                SizedBox(width: 6),
-                Text('My Videos'),
-              ],
-            ),
-          ),
-          Tab(
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.favorite_border, size: 20),
-                SizedBox(width: 6),
-                Text('Liked'),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _onVideoTap(BuildContext context, List<Reel> reels, int index) {
-    // Use rootNavigator to push above the bottom navigation bar
-    Navigator.of(context, rootNavigator: true).push(
-      MaterialPageRoute(
-        builder: (_) => BlocProvider.value(
-          value: context.read<ReelsBloc>(),
-          child: ReelsFeedPage(initialIndex: index),
-        ),
+    // First time creating bloc
+    return BlocProvider(
+      create: (_) {
+        _reelsBloc = sl<ReelsBloc>()..add(const LoadReelsFeedEvent(perPage: 10));
+        return _reelsBloc!;
+      },
+      child: ReelsFeedPage(
+        showBackButton: false,
+        freeReelsLimit: 5,
+        isTabActive: _isActive,
       ),
     );
   }
