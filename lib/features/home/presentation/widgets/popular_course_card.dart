@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:learnify_lms/core/theme/app_text_styles.dart';
-
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/utils/responsive.dart';
 import '../../domain/entities/course.dart';
 
 class PopularCourseCard extends StatelessWidget {
@@ -20,16 +20,16 @@ class PopularCourseCard extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: 200,
-        margin: const EdgeInsets.only(left: 16),
+        width: Responsive.width(context, 200),
+        margin: Responsive.margin(context, left: 16),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(Responsive.radius(context, 16)),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.08),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
+              blurRadius: Responsive.width(context, 10),
+              offset: Offset(0, Responsive.height(context, 4)),
             ),
           ],
         ),
@@ -40,29 +40,31 @@ class PopularCourseCard extends StatelessWidget {
             Stack(
               children: [
                 ClipRRect(
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-                  child: _buildThumbnail(),
+                  borderRadius: BorderRadius.vertical(
+                    top: Radius.circular(Responsive.radius(context, 16)),
+                  ),
+                  child: _buildThumbnail(context),
                 ),
                 // Play button overlay
                 Positioned.fill(
                   child: Center(
                     child: Container(
-                      padding: const EdgeInsets.all(12),
+                      padding: Responsive.padding(context, all: 12),
                       decoration: BoxDecoration(
                         color: AppColors.primary,
                         shape: BoxShape.circle,
                         boxShadow: [
                           BoxShadow(
                             color: AppColors.primary.withOpacity(0.3),
-                            blurRadius: 8,
-                            offset: const Offset(0, 2),
+                            blurRadius: Responsive.width(context, 8),
+                            offset: Offset(0, Responsive.height(context, 2)),
                           ),
                         ],
                       ),
-                      child: const Icon(
+                      child: Icon(
                         Icons.play_arrow,
                         color: Colors.white,
-                        size: 24,
+                        size: Responsive.iconSize(context, 24),
                       ),
                     ),
                   ),
@@ -70,19 +72,19 @@ class PopularCourseCard extends StatelessWidget {
                 // Badge
                 if (course.soon)
                   Positioned(
-                    top: 8,
-                    right: 8,
+                    top: Responsive.height(context, 8),
+                    right: Responsive.width(context, 8),
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      padding: Responsive.padding(context, horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
                         color: AppColors.warning,
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(Responsive.radius(context, 8)),
                       ),
                       child: Text(
                         'قريباً',
                         style: TextStyle(
                           fontFamily: cairoFontFamily,
-                          fontSize: 10,
+                          fontSize: Responsive.fontSize(context, 10),
                           fontWeight: FontWeight.bold,
                           color: Colors.white,
                         ),
@@ -93,7 +95,7 @@ class PopularCourseCard extends StatelessWidget {
             ),
             // Content
             Padding(
-              padding: const EdgeInsets.all(12),
+              padding: Responsive.padding(context, all: 12),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -103,7 +105,7 @@ class PopularCourseCard extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
                       fontFamily: cairoFontFamily,
-                      fontSize: 14,
+                      fontSize: Responsive.fontSize(context, 14),
                       fontWeight: FontWeight.bold,
                       color: AppColors.textPrimary,
                     ),
@@ -117,22 +119,22 @@ class PopularCourseCard extends StatelessWidget {
     );
   }
 
-  Widget _buildThumbnail() {
+  Widget _buildThumbnail(BuildContext context) {
     final thumbnailUrl = course.effectiveThumbnail;
     if (thumbnailUrl != null && thumbnailUrl.isNotEmpty) {
       return CachedNetworkImage(
         imageUrl: thumbnailUrl,
-        height: 120,
+        height: Responsive.height(context, 120),
         width: double.infinity,
         fit: BoxFit.cover,
-        placeholder: (context, url) => _buildPlaceholder(),
-        errorWidget: (context, url, error) => _buildPlaceholder(),
+        placeholder: (context, url) => _buildPlaceholder(context),
+        errorWidget: (context, url, error) => _buildPlaceholder(context),
       );
     }
-    return _buildPlaceholder();
+    return _buildPlaceholder(context);
   }
 
-  Widget _buildPlaceholder() {
+  Widget _buildPlaceholder(BuildContext context) {
     final gradientColors = [
       [const Color(0xFFFFD54F), const Color(0xFFFFB300)],
       [const Color(0xFF81D4FA), const Color(0xFF29B6F6)],
@@ -143,7 +145,7 @@ class PopularCourseCard extends StatelessWidget {
     final colors = gradientColors[course.id % gradientColors.length];
     
     return Container(
-      height: 120,
+      height: Responsive.height(context, 120),
       width: double.infinity,
       decoration: BoxDecoration(
         gradient: LinearGradient(
@@ -155,7 +157,7 @@ class PopularCourseCard extends StatelessWidget {
       child: Center(
         child: Icon(
           Icons.school_outlined,
-          size: 50,
+          size: Responsive.iconSize(context, 50),
           color: Colors.white.withOpacity(0.5),
         ),
       ),

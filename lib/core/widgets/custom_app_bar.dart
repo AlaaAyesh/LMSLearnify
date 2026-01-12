@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:learnify_lms/core/theme/app_text_styles.dart';
-
+import '../utils/responsive.dart';
 import '../theme/app_colors.dart';
 
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
@@ -29,7 +29,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
       automaticallyImplyLeading: false,
 
       title: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20),
+        padding: Responsive.padding(context, horizontal: 20),
         child: Row(
           children: [
             const Spacer(),
@@ -38,7 +38,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
               title,
               style: TextStyle(
                 fontFamily: cairoFontFamily,
-                fontSize: 22,
+                fontSize: Responsive.fontSize(context, 22),
                 fontWeight: FontWeight.bold,
                 color: AppColors.primary,
               ),
@@ -51,20 +51,19 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
               GestureDetector(
                 onTap: onBack ?? () => Navigator.pop(context),
                 child: Container(
-                  width: 26,
-                  height: 26,
+                  width: Responsive.width(context, 26),
+                  height: Responsive.width(context, 26),
                   decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(5),
+                    borderRadius: BorderRadius.circular(Responsive.radius(context, 5)),
                     border: Border.all(
                       color: AppColors.primary,
-                      width: 2.5,
+                      width: Responsive.width(context, 2.5),
                     ),
                   ),
                   alignment: Alignment.center,
-                  child: const Icon(
+                  child: Icon(
                     Icons.arrow_forward_ios,
-                    size: 18,
-
+                    size: Responsive.iconSize(context, 18),
                     color: AppColors.primary,
                   ),
                 ),

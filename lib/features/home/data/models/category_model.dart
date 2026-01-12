@@ -8,6 +8,7 @@ class CategoryModel extends Category {
     super.description,
     super.specialtyId,
     super.imageUrl,
+    super.coursesCount,
   });
 
   factory CategoryModel.fromJson(Map<String, dynamic> json) {
@@ -18,6 +19,7 @@ class CategoryModel extends Category {
       description: json['description']?.toString(),
       specialtyId: _parseNullableInt(json['specialty_id']),
       imageUrl: json['image_url']?.toString(),
+      coursesCount: _parseNullableInt(json['courses_count']),
     );
   }
 
@@ -43,6 +45,7 @@ class CategoryModel extends Category {
       'description': description,
       'specialty_id': specialtyId,
       'image_url': imageUrl,
+      'courses_count': coursesCount,
     };
   }
 }

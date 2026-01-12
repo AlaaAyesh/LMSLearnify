@@ -11,10 +11,14 @@ class GetReelsFeedUseCase {
   Future<Either<Failure, ReelsFeedResponseModel>> call({
     int perPage = 10,
     String? cursor,
+    String? nextPageUrl,
+    int? categoryId,
   }) async {
     return await repository.getReelsFeed(
       perPage: perPage,
       cursor: cursor,
+      nextPageUrl: nextPageUrl,
+      categoryId: categoryId,
     );
   }
 }

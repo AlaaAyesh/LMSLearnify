@@ -1,8 +1,9 @@
 /// Payment service types supported by the API
 enum PaymentService {
-  iap,    // In-App Purchase
-  stripe, // Stripe payment gateway
-  wallet, // Digital wallet
+  iap,     // In-App Purchase
+  stripe,  // Stripe payment gateway
+  wallet,  // Digital wallet
+  kashier, // Kashier payment gateway
 }
 
 extension PaymentServiceExtension on PaymentService {
@@ -14,6 +15,8 @@ extension PaymentServiceExtension on PaymentService {
         return 'stripe';
       case PaymentService.wallet:
         return 'wallet';
+      case PaymentService.kashier:
+        return 'kashier';
     }
   }
 
@@ -25,6 +28,8 @@ extension PaymentServiceExtension on PaymentService {
         return PaymentService.stripe;
       case 'wallet':
         return PaymentService.wallet;
+      case 'kashier':
+        return PaymentService.kashier;
       default:
         return PaymentService.iap;
     }
@@ -133,17 +138,26 @@ class PurchaseModel {
   });
 
   factory PurchaseModel.fromJson(Map<String, dynamic> json) {
+    // Handle empty or null JSON gracefully
+    if (json.isEmpty) {
+      throw ArgumentError('Cannot create PurchaseModel from empty JSON');
+    }
+    
     return PurchaseModel(
-      id: json['id'] as int,
-      userId: json['user_id'] as int,
+      id: json['id'] as int? ?? 0,
+      userId: json['user_id'] as int? ?? 0,
       purchasableType: json['purchasable_type'] as String? ?? '',
-      purchasableId: json['purchasable_id'] as int,
+      purchasableId: json['purchasable_id'] as int? ?? 0,
       status: PaymentStatusExtension.fromString(json['status'] as String? ?? 'pending'),
       amount: (json['amount'] as num?)?.toDouble() ?? 0.0,
       currency: json['currency'] as String? ?? 'USD',
       paymentService: PaymentServiceExtension.fromString(json['payment_service'] as String? ?? 'iap'),
-      createdAt: DateTime.parse(json['created_at'] as String),
-      updatedAt: DateTime.parse(json['updated_at'] as String),
+      createdAt: json['created_at'] != null 
+          ? DateTime.parse(json['created_at'] as String)
+          : DateTime.now(),
+      updatedAt: json['updated_at'] != null
+          ? DateTime.parse(json['updated_at'] as String)
+          : DateTime.now(),
     );
   }
 
@@ -174,28 +188,44 @@ class PaymentResponseModel {
   final String status;
   final String message;
   final String? dataMessage;
-  final PurchaseModel purchase;
+  final PurchaseModel? purchase;
+  final String? checkoutUrl;
 
   PaymentResponseModel({
     required this.status,
     required this.message,
     this.dataMessage,
-    required this.purchase,
+    this.purchase,
+    this.checkoutUrl,
   });
 
   factory PaymentResponseModel.fromJson(Map<String, dynamic> json) {
     final data = json['data'] as Map<String, dynamic>?;
     
+    // Parse purchase if available
+    PurchaseModel? purchaseModel;
+    if (data?['purchase'] != null && data!['purchase'] is Map) {
+      try {
+        purchaseModel = PurchaseModel.fromJson(data['purchase'] as Map<String, dynamic>);
+      } catch (e) {
+        print('Error parsing purchase: $e');
+      }
+    }
+    
     return PaymentResponseModel(
       status: json['status'] as String? ?? 'success',
       message: json['message'] as String? ?? '',
       dataMessage: data?['message'] as String?,
-      purchase: PurchaseModel.fromJson(data?['purchase'] as Map<String, dynamic>? ?? {}),
+      purchase: purchaseModel,
+      checkoutUrl: data?['checkout_url']?.toString(),
     );
   }
 
   /// Check if payment was successfully initiated
   bool get isSuccess => status == 'success';
+  
+  /// Check if checkout URL is available (for redirecting to payment gateway)
+  bool get hasCheckoutUrl => checkoutUrl != null && checkoutUrl!.isNotEmpty;
 }
 
 

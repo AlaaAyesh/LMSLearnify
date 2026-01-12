@@ -5,6 +5,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:webview_flutter_android/webview_flutter_android.dart';
 import 'package:webview_flutter_wkwebview/webview_flutter_wkwebview.dart';
+import '../../../../core/utils/responsive.dart';
 import '../../domain/entities/reel.dart';
 import '../../../home/presentation/pages/main_navigation_page.dart';
 
@@ -404,7 +405,7 @@ class _ReelPlayerWidgetState extends State<ReelPlayerWidget> with WidgetsBinding
           AbsorbPointer(
             child: widget.reel.bunnyUrl.isNotEmpty && _controller != null && !_showThumbnail
                 ? WebViewWidget(controller: _controller!)
-                : _buildThumbnail(),
+                : _buildThumbnail(context),
           ),
 
           // Pause icon overlay
@@ -412,15 +413,15 @@ class _ReelPlayerWidgetState extends State<ReelPlayerWidget> with WidgetsBinding
             IgnorePointer(
               child: Center(
                 child: Container(
-                  padding: const EdgeInsets.all(20),
+                  padding: Responsive.padding(context, all: 20),
                   decoration: BoxDecoration(
                     color: Colors.black.withOpacity(0.5),
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.play_arrow,
                     color: Colors.white,
-                    size: 50,
+                    size: Responsive.iconSize(context, 50),
                   ),
                 ),
               ),
@@ -428,23 +429,23 @@ class _ReelPlayerWidgetState extends State<ReelPlayerWidget> with WidgetsBinding
 
           // Like heart animation
           if (_showLikeHeart)
-            const IgnorePointer(
+            IgnorePointer(
               child: Center(
                 child: Icon(
                   Icons.favorite,
                   color: Colors.red,
-                  size: 100,
+                  size: Responsive.iconSize(context, 100),
                 ),
               ),
             ),
 
           // Loading indicator
           if (_isLoading && widget.reel.bunnyUrl.isNotEmpty && _shouldPlay)
-            const IgnorePointer(
+            IgnorePointer(
               child: Center(
                 child: CircularProgressIndicator(
-                  color: Color(0xFFFFC107),
-                  strokeWidth: 2,
+                  color: const Color(0xFFFFC107),
+                  strokeWidth: Responsive.width(context, 2),
                 ),
               ),
             ),
@@ -454,7 +455,7 @@ class _ReelPlayerWidgetState extends State<ReelPlayerWidget> with WidgetsBinding
             left: 0,
             right: 0,
             bottom: 0,
-            height: 250,
+            height: Responsive.height(context, 250),
             child: IgnorePointer(
               child: Container(
                 decoration: const BoxDecoration(
@@ -473,9 +474,9 @@ class _ReelPlayerWidgetState extends State<ReelPlayerWidget> with WidgetsBinding
 
           // BOTTOM CONTENT
           Positioned(
-            left: 16,
-            right: 16,
-            bottom: bottomPadding + 40,
+            left: Responsive.width(context, 16),
+            right: Responsive.width(context, 16),
+            bottom: bottomPadding + Responsive.height(context, 40),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
@@ -489,22 +490,22 @@ class _ReelPlayerWidgetState extends State<ReelPlayerWidget> with WidgetsBinding
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          _buildAvatar(),
-                          const SizedBox(width: 8),
+                          _buildAvatar(context),
+                          SizedBox(width: Responsive.width(context, 8)),
                           Text(
                             widget.reel.owner.name.isNotEmpty
                                 ? widget.reel.owner.name
                                 : 'ليرنفاي',
-                            style: const TextStyle(
+                            style: TextStyle(
                               color: Colors.white,
-                              fontSize: 16,
+                              fontSize: Responsive.fontSize(context, 16),
                               fontWeight: FontWeight.bold,
                             ),
                           ),
                         ],
                       ),
                     ),
-                    const SizedBox(height: 6),
+                    SizedBox(height: Responsive.spacing(context, 6)),
                     IgnorePointer(
                       child: Text(
                         widget.reel.description.isNotEmpty
@@ -512,26 +513,26 @@ class _ReelPlayerWidgetState extends State<ReelPlayerWidget> with WidgetsBinding
                             : 'تعلم كيفية نطق الحروف',
                         style: TextStyle(
                           color: Colors.white.withOpacity(0.7),
-                          fontSize: 13,
+                          fontSize: Responsive.fontSize(context, 13),
                         ),
                         textAlign: TextAlign.left,
                       ),
                     ),
-                    const SizedBox(height: 14),
+                    SizedBox(height: Responsive.spacing(context, 14)),
                     GestureDetector(
                       onTap: widget.onRedirect,
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                        padding: Responsive.padding(context, horizontal: 24, vertical: 12),
                         decoration: BoxDecoration(
                           color: const Color(0xFFFFC107),
-                          borderRadius: BorderRadius.circular(16),
+                          borderRadius: BorderRadius.circular(Responsive.radius(context, 16)),
                         ),
-                        child: const Text(
+                        child: Text(
                           'اشترك من هنا',
                           style: TextStyle(
                             color: Colors.white,
                             fontWeight: FontWeight.bold,
-                            fontSize: 14,
+                            fontSize: Responsive.fontSize(context, 14),
                           ),
                         ),
                       ),
@@ -548,40 +549,40 @@ class _ReelPlayerWidgetState extends State<ReelPlayerWidget> with WidgetsBinding
                       child: Icon(
                         Icons.favorite,
                         color: widget.isLiked ? Colors.red : Colors.white,
-                        size: 38,
+                        size: Responsive.iconSize(context, 38),
                       ),
                     ),
-                    const SizedBox(height: 4),
+                    SizedBox(height: Responsive.spacing(context, 4)),
                     IgnorePointer(
                       child: Text(
                         _formatCount(widget.likeCount),
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: Colors.white,
-                          fontSize: 13,
+                          fontSize: Responsive.fontSize(context, 13),
                           fontWeight: FontWeight.w500,
                         ),
                       ),
                     ),
-                    const SizedBox(height: 20),
+                    SizedBox(height: Responsive.spacing(context, 20)),
                     GestureDetector(
                       onTap: widget.onShare,
                       child: Transform(
                         alignment: Alignment.center,
                         transform: Matrix4.rotationY(3.14159),
-                        child: const Icon(
+                        child: Icon(
                           Icons.reply,
                           color: Colors.white,
-                          size: 32,
+                          size: Responsive.iconSize(context, 32),
                         ),
                       ),
                     ),
-                    const SizedBox(height: 4),
-                    const IgnorePointer(
+                    SizedBox(height: Responsive.spacing(context, 4)),
+                    IgnorePointer(
                       child: Text(
                         'مشاركة',
                         style: TextStyle(
                           color: Colors.white,
-                          fontSize: 11,
+                          fontSize: Responsive.fontSize(context, 11),
                         ),
                       ),
                     ),
@@ -595,15 +596,15 @@ class _ReelPlayerWidgetState extends State<ReelPlayerWidget> with WidgetsBinding
     );
   }
 
-  Widget _buildThumbnail() {
+  Widget _buildThumbnail(BuildContext context) {
     if (widget.reel.thumbnailUrl.isEmpty) {
       return Container(
         color: const Color(0xFF1A1A1A),
-        child: const Center(
+        child: Center(
           child: Icon(
             Icons.play_circle_outline,
             color: Colors.white24,
-            size: 80,
+            size: Responsive.iconSize(context, 80),
           ),
         ),
       );
@@ -614,35 +615,35 @@ class _ReelPlayerWidgetState extends State<ReelPlayerWidget> with WidgetsBinding
       fit: BoxFit.cover,
       placeholder: (context, url) => Container(
         color: const Color(0xFF1A1A1A),
-        child: const Center(
+        child: Center(
           child: CircularProgressIndicator(
-            color: Color(0xFFFFC107),
-            strokeWidth: 2,
+            color: const Color(0xFFFFC107),
+            strokeWidth: Responsive.width(context, 2),
           ),
         ),
       ),
       errorWidget: (context, url, error) => Container(
         color: const Color(0xFF1A1A1A),
-        child: const Center(
+        child: Center(
           child: Icon(
             Icons.play_circle_outline,
             color: Colors.white24,
-            size: 80,
+            size: Responsive.iconSize(context, 80),
           ),
         ),
       ),
     );
   }
 
-  Widget _buildAvatar() {
+  Widget _buildAvatar(BuildContext context) {
     final defaultAvatar = Container(
-      width: 40,
-      height: 40,
+      width: Responsive.width(context, 40),
+      height: Responsive.height(context, 40),
       decoration: const BoxDecoration(
         shape: BoxShape.circle,
         color: Colors.white,
       ),
-      padding: const EdgeInsets.all(6),
+      padding: Responsive.padding(context, all: 6),
       child: Image.asset(
         'assets/images/app_logo.png',
         fit: BoxFit.contain,
@@ -654,8 +655,8 @@ class _ReelPlayerWidgetState extends State<ReelPlayerWidget> with WidgetsBinding
     }
 
     return Container(
-      width: 40,
-      height: 40,
+      width: Responsive.width(context, 40),
+      height: Responsive.height(context, 40),
       decoration: const BoxDecoration(
         shape: BoxShape.circle,
         color: Colors.white,
@@ -663,8 +664,8 @@ class _ReelPlayerWidgetState extends State<ReelPlayerWidget> with WidgetsBinding
       child: ClipOval(
         child: CachedNetworkImage(
           imageUrl: widget.reel.owner.avatarUrl,
-          width: 40,
-          height: 40,
+          width: Responsive.width(context, 40),
+          height: Responsive.height(context, 40),
           fit: BoxFit.cover,
           placeholder: (context, url) => defaultAvatar,
           errorWidget: (context, url, error) => defaultAvatar,

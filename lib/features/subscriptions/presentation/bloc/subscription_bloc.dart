@@ -165,16 +165,30 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
       (failure) => emit(PaymentFailed(failure.message)),
       (response) {
         if (response.isSuccess) {
-          // Payment initiated - status is pending, waiting for confirmation
-          if (response.purchase.status == PaymentStatus.completed) {
-            emit(PaymentCompleted(
-              purchase: response.purchase,
-              message: response.dataMessage ?? 'تمت عملية الدفع بنجاح',
-            ));
-          } else {
-            emit(PaymentInitiated(
-              purchase: response.purchase,
+          // Check if checkout URL is available (for payment gateways like Kashier)
+          if (response.hasCheckoutUrl) {
+            emit(PaymentCheckoutReady(
+              checkoutUrl: response.checkoutUrl!,
               message: response.dataMessage ?? 'تم بدء عملية الدفع',
+            ));
+          } else if (response.purchase != null) {
+            // Payment initiated - status is pending, waiting for confirmation
+            if (response.purchase!.status == PaymentStatus.completed) {
+              emit(PaymentCompleted(
+                purchase: response.purchase!,
+                message: response.dataMessage ?? 'تمت عملية الدفع بنجاح',
+              ));
+            } else {
+              emit(PaymentInitiated(
+                purchase: response.purchase!,
+                message: response.dataMessage ?? 'تم بدء عملية الدفع',
+              ));
+            }
+          } else {
+            // Success but no purchase or checkout URL (shouldn't happen, but handle gracefully)
+            emit(PaymentInitiated(
+              purchase: null,
+              message: response.dataMessage ?? response.message,
             ));
           }
         } else {

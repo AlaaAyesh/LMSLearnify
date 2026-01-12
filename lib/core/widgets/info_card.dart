@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:learnify_lms/core/theme/app_text_styles.dart';
+import '../utils/responsive.dart';
 
 
 class InfoCard extends StatelessWidget {
@@ -28,11 +29,19 @@ class InfoCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.all(16),
-      padding: padding,
+      margin: Responsive.margin(context, all: 16),
+      padding: padding is EdgeInsets
+          ? Responsive.padding(
+              context,
+              top: (padding as EdgeInsets).top,
+              bottom: (padding as EdgeInsets).bottom,
+              left: (padding as EdgeInsets).left,
+              right: (padding as EdgeInsets).right,
+            )
+          : padding,
       decoration: BoxDecoration(
         color: backgroundColor,
-        borderRadius: BorderRadius.circular(borderRadius),
+        borderRadius: BorderRadius.circular(Responsive.radius(context, borderRadius)),
       ),
       child: Text(
         text,
@@ -40,7 +49,7 @@ class InfoCard extends StatelessWidget {
         textDirection: TextDirection.rtl,
         style: TextStyle(
           fontFamily: cairoFontFamily,
-          fontSize: fontSize,
+          fontSize: Responsive.fontSize(context, fontSize),
           height: 1.6,
           color: textColor,
           fontWeight: FontWeight.bold,

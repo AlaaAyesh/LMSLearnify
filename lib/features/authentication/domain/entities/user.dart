@@ -14,6 +14,7 @@ class User extends Equatable {
   final bool isSubscribed;
   final String? subscriptionExpiryDate;
   final String? gender;
+  final String? religion;
   final String? birthday;
   final int? age;
   final bool approved;
@@ -35,6 +36,7 @@ class User extends Equatable {
     this.isSubscribed = false,
     this.subscriptionExpiryDate,
     this.gender,
+    this.religion,
     this.birthday,
     this.age,
     this.approved = false,
@@ -69,6 +71,7 @@ class User extends Equatable {
         isSubscribed,
         subscriptionExpiryDate,
         gender,
+        religion,
         birthday,
         age,
         approved,

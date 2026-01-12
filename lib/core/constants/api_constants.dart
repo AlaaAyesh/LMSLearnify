@@ -54,6 +54,11 @@ class ApiConstants {
   static const String reelsFeed = 'reels/feed';
   static const String recordReelView = 'reels/{id}/views';
   static const String likeReel = 'reels/{id}/like';
+  static const String reelCategoriesWithReels = 'reel-categories/with-reels';
+
+  // Banners Endpoints
+  static const String siteBanners = 'site-banners';
+  static const String recordBannerClick = 'site-banners/{id}/click';
 }
 
 

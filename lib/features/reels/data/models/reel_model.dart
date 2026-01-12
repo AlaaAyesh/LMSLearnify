@@ -1,4 +1,5 @@
 import '../../domain/entities/reel.dart';
+import 'reel_category_model.dart';
 import 'reel_owner_model.dart';
 
 class ReelModel extends Reel {
@@ -13,6 +14,7 @@ class ReelModel extends Reel {
     required super.likesCount,
     required super.viewsCount,
     required super.owner,
+    super.categories,
     required super.viewed,
     required super.liked,
     required super.createdAt,
@@ -33,6 +35,11 @@ class ReelModel extends Reel {
       owner: json['owner'] != null && json['owner'] is Map
           ? ReelOwnerModel.fromJson(json['owner'])
           : const ReelOwnerModel(id: 0, name: '', email: ''),
+      categories: json['categories'] != null && json['categories'] is List
+          ? (json['categories'] as List)
+              .map((c) => ReelCategoryModel.fromJson(c as Map<String, dynamic>))
+              .toList()
+          : [],
       viewed: _parseBool(json['viewed']),
       liked: _parseBool(json['liked']),
       createdAt: json['created_at']?.toString() ?? '',
@@ -52,6 +59,7 @@ class ReelModel extends Reel {
       'likes_count': likesCount,
       'views_count': viewsCount,
       'owner': (owner as ReelOwnerModel).toJson(),
+      'categories': categories.map((c) => (c as ReelCategoryModel).toJson()).toList(),
       'viewed': viewed,
       'liked': liked,
       'created_at': createdAt,

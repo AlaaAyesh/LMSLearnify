@@ -17,6 +17,7 @@ class RegisterUseCase {
     required String phone,
     required int specialtyId,
     required String gender,
+    String? religion,
     String? birthday,
   }) async {
     return await repository.register(
@@ -28,6 +29,7 @@ class RegisterUseCase {
       phone: phone,
       specialtyId: specialtyId,
       gender: gender,
+      religion: religion,
       birthday: birthday,
     );
   }

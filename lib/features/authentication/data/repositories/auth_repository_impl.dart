@@ -61,6 +61,7 @@ class AuthRepositoryImpl implements AuthRepository {
     required String phone,
     required int specialtyId,
     required String gender,
+    String? religion,
     String? birthday,
   }) async {
     try {
@@ -73,6 +74,7 @@ class AuthRepositoryImpl implements AuthRepository {
         phone: phone,
         specialtyId: specialtyId,
         gender: gender,
+        religion: religion,
         birthday: birthday,
       );
 
@@ -101,11 +103,16 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<Either<Failure, void>> logout() async {
     try {
-      // Try to logout from server (ignore errors if offline)
-      try {
-        await remoteDataSource.logout();
-      } catch (_) {
-        // Ignore server errors - still clear local data
+      // Check if user is in guest mode
+      final isGuest = guestService.isGuestMode();
+      
+      // Only try to logout from server if user is authenticated (not guest)
+      if (!isGuest) {
+        try {
+          await remoteDataSource.logout();
+        } catch (_) {
+          // Ignore server errors - still clear local data
+        }
       }
       
       // Clear all local data
@@ -287,6 +294,7 @@ class AuthRepositoryImpl implements AuthRepository {
     String? phone,
     int? specialtyId,
     String? gender,
+    String? religion,
     String? birthday,
   }) async {
     try {
@@ -297,6 +305,7 @@ class AuthRepositoryImpl implements AuthRepository {
         phone: phone,
         specialtyId: specialtyId,
         gender: gender,
+        religion: religion,
         birthday: birthday,
       );
 

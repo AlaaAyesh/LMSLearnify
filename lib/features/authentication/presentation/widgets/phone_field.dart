@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:learnify_lms/core/theme/app_text_styles.dart';
-
 import 'package:flutter/services.dart';
-
+import '../../../../core/utils/responsive.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/validators.dart';
 
@@ -23,8 +22,8 @@ class PhoneField extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: AppColors.inputBackground,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.inputBorder),
+        borderRadius: BorderRadius.circular(Responsive.radius(context, 12)),
+        border: Border.all(color: AppColors.inputBorder, width: Responsive.width(context, 1)),
       ),
       child: Row(
         textDirection: TextDirection.ltr,
@@ -32,12 +31,17 @@ class PhoneField extends StatelessWidget {
           // Country Code Selector
           InkWell(
             onTap: () => _showCountryPicker(context),
-            borderRadius: const BorderRadius.horizontal(left: Radius.circular(12)),
+            borderRadius: BorderRadius.horizontal(
+              left: Radius.circular(Responsive.radius(context, 12)),
+            ),
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
-              decoration: const BoxDecoration(
+              padding: Responsive.padding(context, horizontal: 12, vertical: 16),
+              decoration: BoxDecoration(
                 border: Border(
-                  right: BorderSide(color: AppColors.inputBorder),
+                  right: BorderSide(
+                    color: AppColors.inputBorder,
+                    width: Responsive.width(context, 1),
+                  ),
                 ),
               ),
               child: Row(
@@ -45,22 +49,22 @@ class PhoneField extends StatelessWidget {
                 children: [
                   Text(
                     _getFlag(countryCode) ?? '🌍',
-                    style: const TextStyle(fontSize: 20),
+                    style: TextStyle(fontSize: Responsive.fontSize(context, 20)),
                   ),
-                  SizedBox(width: 4),
+                  SizedBox(width: Responsive.width(context, 4)),
                   Text(
                     countryCode ?? '+20',
                     style: TextStyle(
                       fontFamily: cairoFontFamily,
-                      fontSize: 14,
+                      fontSize: Responsive.fontSize(context, 14),
                       fontWeight: FontWeight.w600,
                       color: AppColors.textPrimary,
                     ),
                   ),
-                  SizedBox(width: 4),
-                  const Icon(
+                  SizedBox(width: Responsive.width(context, 4)),
+                  Icon(
                     Icons.keyboard_arrow_down,
-                    size: 18,
+                    size: Responsive.iconSize(context, 18),
                     color: AppColors.textSecondary,
                   ),
                 ],
@@ -77,7 +81,7 @@ class PhoneField extends StatelessWidget {
                 textAlign: TextAlign.left,
                 style: TextStyle(
                   fontFamily: cairoFontFamily,
-                  fontSize: 16,
+                  fontSize: Responsive.fontSize(context, 16),
                   color: AppColors.textPrimary,
                 ),
                 inputFormatters: [
@@ -88,10 +92,10 @@ class PhoneField extends StatelessWidget {
                   hintStyle: TextStyle(
                     color: AppColors.textHint,
                     fontFamily: cairoFontFamily,
-                    fontSize: 14,
+                    fontSize: Responsive.fontSize(context, 14),
                   ),
                   border: InputBorder.none,
-                  contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                  contentPadding: Responsive.padding(context, horizontal: 16, vertical: 16),
                 ),
                 validator: Validators.phone,
               ),
@@ -99,11 +103,11 @@ class PhoneField extends StatelessWidget {
           ),
           // Phone Icon
           Padding(
-            padding: EdgeInsets.only(right: 12),
+            padding: Responsive.padding(context, right: 12),
             child: Icon(
               Icons.phone_outlined,
               color: AppColors.primary,
-              size: 22,
+              size: Responsive.iconSize(context, 22),
             ),
           ),
         ],
@@ -115,8 +119,10 @@ class PhoneField extends StatelessWidget {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(Responsive.radius(context, 20)),
+        ),
       ),
       builder: (context) => _CountryPickerSheet(
         selectedCode: countryCode,
@@ -194,10 +200,13 @@ class _CountryPickerSheet extends StatelessWidget {
       children: [
         // Header
         Container(
-          padding: const EdgeInsets.all(16),
-          decoration: const BoxDecoration(
+          padding: Responsive.padding(context, all: 16),
+          decoration: BoxDecoration(
             border: Border(
-              bottom: BorderSide(color: AppColors.greyLight),
+              bottom: BorderSide(
+                color: AppColors.greyLight,
+                width: Responsive.width(context, 1),
+              ),
             ),
           ),
           child: Row(
@@ -207,7 +216,7 @@ class _CountryPickerSheet extends StatelessWidget {
                   'اختر الدولة',
                   style: TextStyle(
                     fontFamily: cairoFontFamily,
-                    fontSize: 18,
+                    fontSize: Responsive.fontSize(context, 18),
                     fontWeight: FontWeight.bold,
                     color: AppColors.textPrimary,
                   ),
@@ -216,7 +225,11 @@ class _CountryPickerSheet extends StatelessWidget {
               ),
               IconButton(
                 onPressed: () => Navigator.pop(context),
-                icon: const Icon(Icons.close, color: AppColors.textSecondary),
+                icon: Icon(
+                  Icons.close,
+                  color: AppColors.textSecondary,
+                  size: Responsive.iconSize(context, 24),
+                ),
               ),
             ],
           ),
@@ -234,13 +247,13 @@ class _CountryPickerSheet extends StatelessWidget {
                 onTap: () => onSelected(country['code']!),
                 leading: Text(
                   country['flag']!,
-                  style: const TextStyle(fontSize: 28),
+                  style: TextStyle(fontSize: Responsive.fontSize(context, 28)),
                 ),
                 title: Text(
                   country['name']!,
                   style: TextStyle(
                     fontFamily: cairoFontFamily,
-                    fontSize: 16,
+                    fontSize: Responsive.fontSize(context, 16),
                     fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                     color: isSelected ? AppColors.primary : AppColors.textPrimary,
                   ),
@@ -249,12 +262,16 @@ class _CountryPickerSheet extends StatelessWidget {
                   country['code']!,
                   style: TextStyle(
                     fontFamily: cairoFontFamily,
-                    fontSize: 14,
+                    fontSize: Responsive.fontSize(context, 14),
                     color: isSelected ? AppColors.primary : AppColors.textSecondary,
                   ),
                 ),
                 trailing: isSelected
-                    ? const Icon(Icons.check_circle, color: AppColors.primary)
+                    ? Icon(
+                        Icons.check_circle,
+                        color: AppColors.primary,
+                        size: Responsive.iconSize(context, 24),
+                      )
                     : null,
                 selected: isSelected,
                 selectedTileColor: AppColors.primary.withOpacity(0.1),
@@ -262,7 +279,7 @@ class _CountryPickerSheet extends StatelessWidget {
             },
           ),
         ),
-        SizedBox(height: 16),
+        SizedBox(height: Responsive.spacing(context, 16)),
       ],
     );
   }

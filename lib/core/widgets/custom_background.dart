@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import '../utils/responsive.dart';
 
 class CustomBackground extends StatelessWidget {
   const CustomBackground({super.key});
@@ -9,46 +10,46 @@ class CustomBackground extends StatelessWidget {
     return Stack(
       children: [
         Positioned(
-          top: 20,
-          left: 30,
+          top: Responsive.height(context, 20),
+          left: Responsive.width(context, 30),
           child: Transform.rotate(
             angle: -0.3,
             child: SvgPicture.asset(
               'assets/icons/sun1.svg',
-              width: 80,
+              width: Responsive.width(context, 80),
             ),
           ),
         ),
         Positioned(
-          top: 140,
-          right: 190,
+          top: Responsive.height(context, 140),
+          right: Responsive.width(context, 190),
           child: Transform.rotate(
             angle: 0.25,
             child: SvgPicture.asset(
               'assets/icons/code1.svg',
-              width: 50,
+              width: Responsive.width(context, 50),
             ),
           ),
         ),
         Positioned(
-          top: 350,
-          left: 30,
+          top: Responsive.height(context, 350),
+          left: Responsive.width(context, 30),
           child: Transform.rotate(
             angle: 0.25,
             child: SvgPicture.asset(
               'assets/icons/laptop.svg',
-              width: 70,
+              width: Responsive.width(context, 70),
             ),
           ),
         ),
         Positioned(
-          top: 250,
-          right: 70,
+          top: Responsive.height(context, 250),
+          right: Responsive.width(context, 70),
           child: Transform.rotate(
             angle: 270,
             child: SvgPicture.asset(
               'assets/icons/pen011.svg',
-              width: 55,
+              width: Responsive.width(context, 55),
               colorFilter: ColorFilter.mode(
                 Colors.grey.withOpacity(0.08),
                 BlendMode.srcIn,
@@ -57,13 +58,13 @@ class CustomBackground extends StatelessWidget {
           ),
         ),
         Positioned(
-          bottom: 175,
-          left: 180,
+          bottom: Responsive.height(context, 175),
+          left: Responsive.width(context, 180),
           child: Transform.rotate(
             angle: -0.3,
             child: SvgPicture.asset(
               'assets/icons/sun1.svg',
-              width: 80,
+              width: Responsive.width(context, 80),
             ),
           ),
         ),

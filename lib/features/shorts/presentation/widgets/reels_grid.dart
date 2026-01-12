@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:learnify_lms/core/theme/app_text_styles.dart';
-
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/utils/responsive.dart';
 import '../../../reels/domain/entities/reel.dart';
 
 class ReelsGrid extends StatelessWidget {
@@ -36,15 +36,15 @@ class ReelsGrid extends StatelessWidget {
           children: [
             Icon(
               Icons.video_library_outlined,
-              size: 80,
+              size: Responsive.iconSize(context, 80),
               color: Colors.grey[400],
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: Responsive.spacing(context, 16)),
             Text(
               'لا توجد فيديوهات',
               style: TextStyle(
                 fontFamily: cairoFontFamily,
-                fontSize: 16,
+                fontSize: Responsive.fontSize(context, 16),
                 color: Colors.grey[600],
               ),
             ),
@@ -62,24 +62,24 @@ class ReelsGrid extends StatelessWidget {
         return false;
       },
       child: GridView.builder(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        padding: Responsive.padding(context, horizontal: 16),
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 3,
-          mainAxisSpacing: 8,
-          crossAxisSpacing: 8,
+          mainAxisSpacing: Responsive.height(context, 8),
+          crossAxisSpacing: Responsive.width(context, 8),
           childAspectRatio: 0.65,
         ),
         // Add cacheExtent for smoother scrolling
-        cacheExtent: 500,
+        cacheExtent: Responsive.width(context, 500),
         itemCount: reels.length + (isLoadingMore ? 1 : 0),
         itemBuilder: (context, index) {
           if (index >= reels.length) {
-            return const Center(
+            return Center(
               child: Padding(
-                padding: EdgeInsets.all(16),
+                padding: Responsive.padding(context, all: 16),
                 child: CircularProgressIndicator(
                   color: AppColors.primary,
-                  strokeWidth: 2,
+                  strokeWidth: Responsive.width(context, 2),
                 ),
               ),
             );
@@ -129,7 +129,7 @@ class _ReelTile extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(Responsive.radius(context, 12)),
         child: Stack(
           fit: StackFit.expand,
           children: [
@@ -137,22 +137,22 @@ class _ReelTile extends StatelessWidget {
             CachedNetworkImage(
               imageUrl: reel.thumbnailUrl,
               fit: BoxFit.cover,
-              memCacheWidth: 240, // Optimize memory for grid thumbnails
-              placeholder: (context, url) => const ColoredBox(
+              memCacheWidth: (Responsive.width(context, 240)).toInt(), // Optimize memory for grid thumbnails
+              placeholder: (context, url) => ColoredBox(
                 color: AppColors.primaryOpacity10,
                 child: Center(
                   child: CircularProgressIndicator(
                     color: AppColors.primary,
-                    strokeWidth: 2,
+                    strokeWidth: Responsive.width(context, 2),
                   ),
                 ),
               ),
-              errorWidget: (context, url, error) => const ColoredBox(
+              errorWidget: (context, url, error) => ColoredBox(
                 color: AppColors.primaryOpacity10,
                 child: Icon(
                   Icons.play_circle_outline,
                   color: AppColors.primary,
-                  size: 40,
+                  size: Responsive.iconSize(context, 40),
                 ),
               ),
             ),
@@ -163,7 +163,7 @@ class _ReelTile extends StatelessWidget {
               right: 0,
               child: RepaintBoundary(
                 child: Container(
-                  padding: const EdgeInsets.all(8),
+                  padding: Responsive.padding(context, all: 8),
                   decoration: const BoxDecoration(
                     gradient: LinearGradient(
                       begin: Alignment.bottomCenter,
@@ -176,18 +176,18 @@ class _ReelTile extends StatelessWidget {
                   ),
                   child: Row(
                     children: [
-                      const Icon(
+                      Icon(
                         Icons.play_arrow,
                         color: Colors.white,
-                        size: 14,
+                        size: Responsive.iconSize(context, 14),
                       ),
-                      const SizedBox(width: 4),
+                      SizedBox(width: Responsive.width(context, 4)),
                       Expanded(
                         child: Text(
                           _formatViews(viewCount),
                           style: TextStyle(
                             fontFamily: cairoFontFamily,
-                            fontSize: 10,
+                            fontSize: Responsive.fontSize(context, 10),
                             color: Colors.white,
                             fontWeight: FontWeight.w500,
                           ),
@@ -202,18 +202,18 @@ class _ReelTile extends StatelessWidget {
             // Liked indicator - uses real-time isLiked value
             if (isLiked)
               Positioned(
-                top: 8,
-                right: 8,
+                top: Responsive.height(context, 8),
+                right: Responsive.width(context, 8),
                 child: Container(
-                  padding: const EdgeInsets.all(4),
+                  padding: Responsive.padding(context, all: 4),
                   decoration: const BoxDecoration(
                     color: AppColors.blackOpacity50,
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.favorite,
                     color: Colors.red,
-                    size: 14,
+                    size: Responsive.iconSize(context, 14),
                   ),
                 ),
               ),

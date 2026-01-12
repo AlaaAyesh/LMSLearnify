@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:learnify_lms/core/theme/app_text_styles.dart';
-
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:learnify_lms/core/theme/app_text_styles.dart';
+
+import '../../../../core/constants/api_constants.dart';
 import '../../../../core/di/injection_container.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/utils/responsive.dart';
 import '../../../authentication/data/datasources/auth_local_datasource.dart';
 import '../../domain/entities/reel.dart';
+import '../../data/models/reel_category_model.dart';
 import '../bloc/reels_bloc.dart';
 import '../bloc/reels_event.dart';
 import '../bloc/reels_state.dart';
@@ -38,13 +41,12 @@ class ReelsFeedPage extends StatefulWidget {
 class _ReelsFeedPageState extends State<ReelsFeedPage> with RouteAware, WidgetsBindingObserver {
   late PageController _pageController;
   int _currentIndex = 0;
-  int _selectedCategoryIndex = 0; // عام selected by default (leftmost)
+  int _selectedCategoryIndex = 0; // Default to first category (General)
   bool _showPaywall = false;
   bool _isSubscribed = false;
   bool _isPageVisible = true; // Track if this page is visible (not covered by another page)
   
-  // Display order (left to right): عام, انجلش, رسم, برمجة
-  final List<String> _categories = ['عام', 'انجلش', 'رسم', 'برمجة'];
+  List<ReelCategoryModel> _categories = []; // Categories loaded from API
 
   @override
   void initState() {
@@ -53,6 +55,9 @@ class _ReelsFeedPageState extends State<ReelsFeedPage> with RouteAware, WidgetsB
     _currentIndex = widget.initialIndex;
     _pageController = PageController(initialPage: widget.initialIndex);
     _checkSubscriptionStatus();
+    
+    // Load categories from API first, then load reels for default category
+    context.read<ReelsBloc>().add(const LoadReelCategoriesEvent());
 
     // Set status bar to light for dark background only when tab is active
     if (widget.isTabActive) {
@@ -168,17 +173,8 @@ class _ReelsFeedPageState extends State<ReelsFeedPage> with RouteAware, WidgetsB
   }
 
   void _checkPaywall(int index) {
-    // If already subscribed or no limit set, don't show paywall
-    if (_isSubscribed || widget.freeReelsLimit <= 0) {
-      return;
-    }
-    
-    // Show paywall after reaching the limit
-    if (index >= widget.freeReelsLimit && !_showPaywall) {
-      setState(() {
-        _showPaywall = true;
-      });
-    }
+    // Paywall is now handled directly in itemBuilder, no need for this logic
+    // Keep this method for potential future use
   }
 
   void _handleSubscribe() async {
@@ -246,7 +242,37 @@ class _ReelsFeedPageState extends State<ReelsFeedPage> with RouteAware, WidgetsB
       body: Stack(
         children: [
           // Main content (full screen)
-          BlocBuilder<ReelsBloc, ReelsState>(
+          BlocConsumer<ReelsBloc, ReelsState>(
+            listener: (context, state) {
+              if (state is ReelsWithCategories) {
+                setState(() {
+                  _categories = state.categories.where((c) => c.isActive).toList();
+                  
+                  // Find "General" category (slug: "general" or name contains "عام")
+                  if (_categories.isNotEmpty) {
+                    final generalCategory = _categories.firstWhere(
+                      (c) => c.slug.toLowerCase() == 'general' || 
+                             c.name.contains('عام'),
+                      orElse: () => _categories[0], // Fallback to first category
+                    );
+                    
+                    // Set selected index to General category
+                    _selectedCategoryIndex = _categories.indexOf(generalCategory);
+                    if (_selectedCategoryIndex == -1) {
+                      _selectedCategoryIndex = 0; // Fallback to first category
+                    }
+                    
+                    // Load reels for General category
+                    context.read<ReelsBloc>().add(
+                      LoadReelsFeedEvent(
+                        perPage: 10,
+                        categoryId: generalCategory.id,
+                      ),
+                    );
+                  }
+                });
+              }
+            },
             builder: (context, state) {
               if (state is ReelsLoading) {
                 return Center(
@@ -261,40 +287,42 @@ class _ReelsFeedPageState extends State<ReelsFeedPage> with RouteAware, WidgetsB
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Icon(
+                      Icon(
                         Icons.error_outline,
                         color: Colors.white54,
-                        size: 64,
+                        size: Responsive.iconSize(context, 64),
                       ),
-                      const SizedBox(height: 16),
+                      SizedBox(height: Responsive.spacing(context, 16)),
                       Text(
                         state.message,
                         style: TextStyle(
                           fontFamily: cairoFontFamily,
                           color: Colors.white70,
-                          fontSize: 16,
+                          fontSize: Responsive.fontSize(context, 16),
                         ),
                         textAlign: TextAlign.center,
                       ),
-                      const SizedBox(height: 24),
+                      SizedBox(height: Responsive.spacing(context, 24)),
                       ElevatedButton(
                         onPressed: () {
                           context.read<ReelsBloc>().add(const LoadReelsFeedEvent());
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.primary,
-                          padding: const EdgeInsets.symmetric(
+                          padding: Responsive.padding(
+                            context,
                             horizontal: 32,
                             vertical: 12,
                           ),
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(24),
+                            borderRadius: BorderRadius.circular(Responsive.radius(context, 24)),
                           ),
                         ),
                         child: Text(
                           'إعادة المحاولة',
                           style: TextStyle(
                             fontFamily: cairoFontFamily,
+                            fontSize: Responsive.fontSize(context, 14),
                             color: Colors.white,
                           ),
                         ),
@@ -309,18 +337,18 @@ class _ReelsFeedPageState extends State<ReelsFeedPage> with RouteAware, WidgetsB
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Icon(
+                      Icon(
                         Icons.video_library_outlined,
                         color: Colors.white54,
-                        size: 64,
+                        size: Responsive.iconSize(context, 64),
                       ),
-                      const SizedBox(height: 16),
+                      SizedBox(height: Responsive.spacing(context, 16)),
                       Text(
                         'لا توجد فيديوهات حالياً',
                         style: TextStyle(
                           fontFamily: cairoFontFamily,
                           color: Colors.white70,
-                          fontSize: 16,
+                          fontSize: Responsive.fontSize(context, 16),
                         ),
                       ),
                     ],
@@ -332,22 +360,23 @@ class _ReelsFeedPageState extends State<ReelsFeedPage> with RouteAware, WidgetsB
                 return _buildReelsFeed(context, state);
               }
 
+              // If categories are loaded but reels are not, show loading
+              if (state is ReelsWithCategories) {
+                return Center(
+                  child: CircularProgressIndicator(
+                    color: AppColors.primary,
+                  ),
+                );
+              }
+
               return const SizedBox.shrink();
             },
           ),
           
-          // Paywall overlay
-          if (_showPaywall)
-            Positioned.fill(
-              child: ReelPaywallWidget(
-                onSubscribe: _handleSubscribe,
-              ),
-            ),
-          
           // Top bar with back button and category filters
-          if (!_showPaywall)
+          if (!(_currentIndex == 0 && !_isSubscribed))
             Positioned(
-              top: topPadding + 12,
+              top: topPadding + Responsive.height(context, 12),
               left: 0,
               right: 0,
               child: Row(
@@ -355,18 +384,18 @@ class _ReelsFeedPageState extends State<ReelsFeedPage> with RouteAware, WidgetsB
                   // Back button (only show if enabled)
                   if (widget.showBackButton)
                     Padding(
-                      padding: const EdgeInsets.only(left: 16),
+                      padding: Responsive.padding(context, left: 16),
                       child: GestureDetector(
                         onTap: () => Navigator.of(context).pop(),
-                        child: const Icon(
+                        child: Icon(
                           Icons.arrow_back_ios_new,
                           color: Colors.white,
-                          size: 24,
+                          size: Responsive.iconSize(context, 24),
                         ),
                       ),
                     ),
                   // Category filters
-                  Expanded(child: _buildCategoryFilters()),
+                  Expanded(child: _buildCategoryFilters(context)),
                 ],
               ),
             ),
@@ -375,35 +404,48 @@ class _ReelsFeedPageState extends State<ReelsFeedPage> with RouteAware, WidgetsB
     );
   }
 
-  Widget _buildCategoryFilters() {
+  Widget _buildCategoryFilters(BuildContext context) {
+    // If no categories loaded yet, show empty
+    if (_categories.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
     return SizedBox(
-      height: 36,
+      height: Responsive.height(context, 36),
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 20),
+        padding: Responsive.padding(context, horizontal: 20),
         itemCount: _categories.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 10),
+        separatorBuilder: (_, __) => SizedBox(width: Responsive.width(context, 10)),
         itemBuilder: (context, index) {
           final isSelected = index == _selectedCategoryIndex;
+          final category = _categories[index];
 
           return GestureDetector(
             onTap: () {
               setState(() => _selectedCategoryIndex = index);
+              // Filter reels by category
+              context.read<ReelsBloc>().add(
+                    LoadReelsFeedEvent(
+                      perPage: 10,
+                      categoryId: category.id,
+                    ),
+                  );
             },
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 6),
+              padding: Responsive.padding(context, horizontal: 18, vertical: 6),
               decoration: BoxDecoration(
                 color: isSelected
                     ? const Color(0xFF6A4BC3)
                     : const Color(0xFF2C2C36),
-                borderRadius: BorderRadius.circular(18),
+                borderRadius: BorderRadius.circular(Responsive.radius(context, 18)),
               ),
               child: Center(
                 child: Text(
-                  _categories[index],
-                  style: const TextStyle(
+                  category.name,
+                  style: TextStyle(
                     color: Colors.white,
-                    fontSize: 13,
+                    fontSize: Responsive.fontSize(context, 13),
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -416,22 +458,52 @@ class _ReelsFeedPageState extends State<ReelsFeedPage> with RouteAware, WidgetsB
   }
 
   Widget _buildReelsFeed(BuildContext context, ReelsLoaded state) {
+    // Ensure we have at least one item for paywall if user is not subscribed
+    final itemCount = state.reels.isEmpty && !_isSubscribed
+        ? 1 // Show paywall even if no reels
+        : state.reels.length + (state.hasMore ? 1 : 0);
+
     return PageView.builder(
       controller: _pageController,
       scrollDirection: Axis.vertical,
       allowImplicitScrolling: true,
-      itemCount: state.reels.length + (state.hasMore ? 1 : 0),
+      itemCount: itemCount,
       onPageChanged: (index) {
         setState(() => _currentIndex = index);
         
         // Check if paywall should be shown
         _checkPaywall(index);
 
-        if (index >= state.reels.length - 3 && state.hasMore && !state.isLoadingMore) {
+        if (state.reels.isNotEmpty && 
+            index >= state.reels.length - 3 && 
+            state.hasMore && 
+            !state.isLoadingMore) {
           context.read<ReelsBloc>().add(const LoadMoreReelsEvent());
         }
       },
       itemBuilder: (context, index) {
+        // For non-subscribed users, show paywall for the first item (index 0)
+        if (index == 0 && !_isSubscribed) {
+          // If we have reels, use the first reel's thumbnail, otherwise use null
+          final thumbnailUrl = state.reels.isNotEmpty 
+              ? state.reels[0].thumbnailUrl 
+              : null;
+          return ReelPaywallWidget(
+            onSubscribe: _handleSubscribe,
+            thumbnailUrl: thumbnailUrl,
+          );
+        }
+
+        // If no reels available, show loading
+        if (state.reels.isEmpty) {
+          return const Center(
+            child: CircularProgressIndicator(
+              color: AppColors.primary,
+            ),
+          );
+        }
+
+        // Loading indicator for pagination
         if (index >= state.reels.length) {
           return const Center(
             child: CircularProgressIndicator(
@@ -468,13 +540,22 @@ class _ReelsFeedPageState extends State<ReelsFeedPage> with RouteAware, WidgetsB
   }
 
   void _shareReel(Reel reel) {
+    // Create reel link (remove /api/ from baseUrl to get app URL)
+    final baseAppUrl = ApiConstants.baseUrl.replaceAll('/api/', '');
+    final reelLink = '$baseAppUrl/reels/${reel.id}';
+    
+    // Copy to clipboard
+    Clipboard.setData(ClipboardData(text: reelLink));
+    
+    // Show success message
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
-          'مشاركة الفيديو',
+          'تم نسخ رابط الريل',
           style: TextStyle(fontFamily: cairoFontFamily),
         ),
         backgroundColor: AppColors.primary,
+        duration: const Duration(seconds: 2),
       ),
     );
   }

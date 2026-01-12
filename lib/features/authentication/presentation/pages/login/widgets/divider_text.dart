@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:learnify_lms/core/theme/app_text_styles.dart';
-
-
+import '../../../../../../core/utils/responsive.dart';
 import '../../../../../../core/theme/app_colors.dart';
 
 class DividerText extends StatelessWidget {
@@ -13,11 +12,12 @@ class DividerText extends StatelessWidget {
       children: [
         Expanded(child: Divider(color: AppColors.greyLight)),
         Padding(
-          padding: EdgeInsets.symmetric(horizontal: 16),
+          padding: Responsive.padding(context, horizontal: 16),
           child: Text(
             'أو الدخول بواسطة',
             style: TextStyle(
               fontFamily: cairoFontFamily,
+              fontSize: Responsive.fontSize(context, 13),
               color: AppColors.textSecondary,
             ),
           ),

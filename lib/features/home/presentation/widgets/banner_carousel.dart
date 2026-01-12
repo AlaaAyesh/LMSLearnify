@@ -1,9 +1,9 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:learnify_lms/core/theme/app_text_styles.dart';
-
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/utils/responsive.dart';
 import '../../domain/entities/banner.dart';
 
 class BannerCarousel extends StatefulWidget {
@@ -80,7 +80,7 @@ class _BannerCarouselState extends State<BannerCarousel> {
     return Column(
       children: [
         SizedBox(
-          height: 180,
+          height: Responsive.height(context, 180),
           child: GestureDetector(
             onPanDown: (_) => _stopAutoScroll(),
             onPanEnd: (_) => _onUserInteraction(),
@@ -94,19 +94,19 @@ class _BannerCarouselState extends State<BannerCarousel> {
               return GestureDetector(
                 onTap: () => widget.onBannerTap?.call(banner),
                 child: Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 16),
+                  margin: Responsive.margin(context, horizontal: 16),
                   decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(Responsive.radius(context, 16)),
                     boxShadow: [
                       BoxShadow(
                         color: Colors.black.withOpacity(0.1),
-                        blurRadius: 10,
-                        offset: const Offset(0, 4),
+                        blurRadius: Responsive.width(context, 10),
+                        offset: Offset(0, Responsive.height(context, 4)),
                       ),
                     ],
                   ),
                   child: ClipRRect(
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(Responsive.radius(context, 16)),
                     child: banner.imageUrl != null && banner.imageUrl!.isNotEmpty
                         ? CachedNetworkImage(
                             imageUrl: banner.imageUrl!,
@@ -115,14 +115,14 @@ class _BannerCarouselState extends State<BannerCarousel> {
                               color: AppColors.primary.withOpacity(0.1),
                               child: Center(
                                 child: CircularProgressIndicator(
-                                  strokeWidth: 2,
+                                  strokeWidth: Responsive.width(context, 2),
                                   color: AppColors.primary,
                                 ),
                               ),
                             ),
-                            errorWidget: (context, url, error) => _buildPlaceholderBanner(banner),
+                            errorWidget: (context, url, error) => _buildPlaceholderBanner(context, banner),
                           )
-                        : _buildPlaceholderBanner(banner),
+                        : _buildPlaceholderBanner(context, banner),
                   ),
                 ),
               );
@@ -133,21 +133,23 @@ class _BannerCarouselState extends State<BannerCarousel> {
         // Dots indicator
         if (widget.banners.length > 1)
           Padding(
-            padding: const EdgeInsets.only(top: 12),
+            padding: Responsive.padding(context, top: 12),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: List.generate(
                 widget.banners.length,
                 (index) => AnimatedContainer(
                   duration: const Duration(milliseconds: 200),
-                  margin: const EdgeInsets.symmetric(horizontal: 4),
-                  width: _currentIndex == index ? 24 : 8,
-                  height: 8,
+                  margin: Responsive.margin(context, horizontal: 4),
+                  width: _currentIndex == index 
+                      ? Responsive.width(context, 24) 
+                      : Responsive.width(context, 8),
+                  height: Responsive.height(context, 8),
                   decoration: BoxDecoration(
                     color: _currentIndex == index
                         ? AppColors.primary
                         : AppColors.primary.withOpacity(0.3),
-                    borderRadius: BorderRadius.circular(4),
+                    borderRadius: BorderRadius.circular(Responsive.radius(context, 4)),
                   ),
                 ),
               ),
@@ -157,7 +159,7 @@ class _BannerCarouselState extends State<BannerCarousel> {
     );
   }
 
-  Widget _buildPlaceholderBanner(HomeBanner banner) {
+  Widget _buildPlaceholderBanner(BuildContext context, HomeBanner banner) {
     return Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(
@@ -173,19 +175,19 @@ class _BannerCarouselState extends State<BannerCarousel> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(
+            Icon(
               Icons.campaign,
-              size: 48,
+              size: Responsive.iconSize(context, 48),
               color: Colors.white,
             ),
             if (banner.title != null)
               Padding(
-                padding: const EdgeInsets.only(top: 8),
+                padding: Responsive.padding(context, top: 8),
                 child: Text(
                   banner.title!,
                   style: TextStyle(
                     fontFamily: cairoFontFamily,
-                    fontSize: 18,
+                    fontSize: Responsive.fontSize(context, 18),
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
                   ),

@@ -116,6 +116,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       phone: event.phone,
       specialtyId: event.specialtyId,
       gender: event.gender,
+      religion: event.religion,
       birthday: event.birthday,
     );
 

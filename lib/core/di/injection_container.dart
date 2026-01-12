@@ -53,7 +53,13 @@ import '../../features/reels/domain/repositories/reels_repository.dart';
 import '../../features/reels/domain/usecases/get_reels_feed_usecase.dart';
 import '../../features/reels/domain/usecases/record_reel_view_usecase.dart';
 import '../../features/reels/domain/usecases/toggle_reel_like_usecase.dart';
+import '../../features/reels/domain/usecases/get_reel_categories_usecase.dart';
 import '../../features/reels/presentation/bloc/reels_bloc.dart';
+import '../../features/banners/data/datasources/banners_remote_datasource.dart';
+import '../../features/banners/data/repositories/banners_repository_impl.dart';
+import '../../features/banners/domain/repositories/banners_repository.dart';
+import '../../features/banners/domain/usecases/get_site_banners_usecase.dart';
+import '../../features/banners/domain/usecases/record_banner_click_usecase.dart';
 import '../network/dio_client.dart';
 import '../services/guest_service.dart';
 import '../storage/hive_service.dart';
@@ -86,6 +92,7 @@ Future<void> initDependencies() async {
   _initLessons();
   _initChapters();
   _initReels();
+  _initBanners();
 }
 
 void _initAuth() {
@@ -302,6 +309,7 @@ void _initReels() {
   sl.registerLazySingleton(() => GetReelsFeedUseCase(sl()));
   sl.registerLazySingleton(() => RecordReelViewUseCase(sl()));
   sl.registerLazySingleton(() => ToggleReelLikeUseCase(sl()));
+  sl.registerLazySingleton(() => GetReelCategoriesUseCase(sl()));
 
   // Bloc
   sl.registerFactory(
@@ -309,8 +317,25 @@ void _initReels() {
       getReelsFeedUseCase: sl(),
       recordReelViewUseCase: sl(),
       toggleReelLikeUseCase: sl(),
+      getReelCategoriesUseCase: sl(),
     ),
   );
+}
+
+void _initBanners() {
+  // Data Sources
+  sl.registerLazySingleton<BannersRemoteDataSource>(
+        () => BannersRemoteDataSourceImpl(sl()),
+  );
+
+  // Repository
+  sl.registerLazySingleton<BannersRepository>(
+        () => BannersRepositoryImpl(sl()),
+  );
+
+  // Use Cases
+  sl.registerLazySingleton(() => GetSiteBannersUseCase(sl()));
+  sl.registerLazySingleton(() => RecordBannerClickUseCase(sl()));
 }
 
 

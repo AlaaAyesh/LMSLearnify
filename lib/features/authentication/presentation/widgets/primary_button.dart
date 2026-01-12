@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/utils/responsive.dart';
 
 class PrimaryButton extends StatelessWidget {
   final String text;
@@ -22,7 +23,7 @@ class PrimaryButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return SizedBox(
       width: width ?? double.infinity,
-      height: height,
+      height: Responsive.height(context, height),
       child: ElevatedButton(
         onPressed: isLoading ? null : onPressed, // ✅ correct
         style: ElevatedButton.styleFrom(
@@ -30,23 +31,25 @@ class PrimaryButton extends StatelessWidget {
           foregroundColor: AppColors.white,
           elevation: 0,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(22),
+            borderRadius: BorderRadius.circular(Responsive.radius(context, 22)),
           ),
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+          padding: Responsive.padding(context, horizontal: 24, vertical: 16),
         ),
         child: isLoading
             ? SizedBox(
-          height: 28,
-          width: 26,
+          height: Responsive.height(context, 28),
+          width: Responsive.width(context, 26),
           child: CircularProgressIndicator(
-            strokeWidth: 2.5,
+            strokeWidth: Responsive.width(context, 2.5),
             valueColor:
             AlwaysStoppedAnimation<Color>(AppColors.white),
           ),
         )
             : Text(
           text,
-          style: AppTextStyles.button,
+          style: AppTextStyles.button.copyWith(
+            fontSize: Responsive.fontSize(context, AppTextStyles.button.fontSize ?? 16),
+          ),
         ),
       ),
     );

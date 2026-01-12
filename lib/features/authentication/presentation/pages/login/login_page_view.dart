@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:learnify_lms/core/theme/app_text_styles.dart';
-
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../../../core/utils/responsive.dart';
 import 'package:learnify_lms/features/authentication/presentation/pages/login/widgets/create_account_button.dart';
 import 'package:learnify_lms/features/authentication/presentation/pages/login/widgets/divider_text.dart';
 import 'package:learnify_lms/features/authentication/presentation/pages/login/widgets/header.dart';
@@ -68,19 +68,19 @@ class LoginPageViewState extends State<LoginPageView> {
             listener: _authListener,
             child: SafeArea(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.all(24),
+                padding: Responsive.padding(context, all: 24),
                 child: Form(
                   key: _formKey,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      SizedBox(height: 40),
+                      SizedBox(height: Responsive.spacing(context, 40)),
                       const Header(),
-                      SizedBox(height: 50),
+                      SizedBox(height: Responsive.spacing(context, 50)),
                       const LoginTitle(),
-                      SizedBox(height: 18),
+                      SizedBox(height: Responsive.spacing(context, 18)),
                       EmailField(controller: _emailController),
-                      SizedBox(height: 25),
+                      SizedBox(height: Responsive.spacing(context, 25)),
                       PasswordField(
                         controller: _passwordController,
                         obscure: _obscurePassword,
@@ -90,7 +90,7 @@ class LoginPageViewState extends State<LoginPageView> {
                           });
                         },
                       ),
-                      SizedBox(height: 42),
+                      SizedBox(height: Responsive.spacing(context, 42)),
                       BlocBuilder<AuthBloc, AuthState>(
                         builder: (context, state) {
                           final isLoading = state is AuthLoading;
@@ -102,34 +102,34 @@ class LoginPageViewState extends State<LoginPageView> {
                           );
                         },
                       ),
-                      SizedBox(height: 16),
+                      SizedBox(height: Responsive.spacing(context, 16)),
                       OptionsRow(
                         rememberMe: _rememberMe,
                         onRememberChanged: (v) =>
                             setState(() => _rememberMe = v),
                       ),
-                      SizedBox(height: 24),
+                      SizedBox(height: Responsive.spacing(context, 24)),
                       const CustomDividerWithText(text: "أو التسجيل بواسطة"),
-                      SizedBox(height: 24),
+                      SizedBox(height: Responsive.spacing(context, 24)),
                       const SocialLoginButtons(),
-                      SizedBox(height: 40),
+                      SizedBox(height: Responsive.spacing(context, 40)),
                       const CreateAccountButton(),
 
                       // 🆕 زر الدخول كضيف
-                      SizedBox(height: 16),
+                      SizedBox(height: Responsive.spacing(context, 16)),
                       TextButton.icon(
                         onPressed: _onGuestLoginPressed,
-                        icon: const Icon(
+                        icon: Icon(
                           Icons.visibility_outlined,
                           color: AppColors.textSecondary,
-                          size: 20,
+                          size: Responsive.iconSize(context, 20),
                         ),
                         label: Text(
                           'تصفح كضيف',
                           style: TextStyle(
                             fontFamily: cairoFontFamily,
                             color: AppColors.textSecondary,
-                            fontSize: 16,
+                            fontSize: Responsive.fontSize(context, 16),
                             fontWeight: FontWeight.w600,
                           ),
                         ),

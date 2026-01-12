@@ -26,6 +26,7 @@ class RegisterEvent extends AuthEvent {
   final String phone;
   final int specialtyId;
   final String gender;
+  final String? religion; // 'muslim' or 'christian'
   final String? birthday; // Format: YYYY-MM-DD
 
   const RegisterEvent({
@@ -37,11 +38,12 @@ class RegisterEvent extends AuthEvent {
     required this.phone,
     required this.specialtyId,
     required this.gender,
+    this.religion,
     this.birthday,
   });
 
   @override
-  List<Object?> get props => [name, email, password, passwordConfirmation, role, phone, specialtyId, gender, birthday];
+  List<Object?> get props => [name, email, password, passwordConfirmation, role, phone, specialtyId, gender, religion, birthday];
 }
 
 class SocialLoginEvent extends AuthEvent {
@@ -60,6 +62,7 @@ class CompleteProfileEvent extends AuthEvent {
   final String role;
   final int specialtyId;
   final String gender;
+  final String? religion; // 'muslim' or 'christian'
   final String? birthday;
   final String providerId;
   final String accessToken; // Google/Apple token for registration
@@ -71,13 +74,14 @@ class CompleteProfileEvent extends AuthEvent {
     required this.role,
     required this.specialtyId,
     required this.gender,
+    this.religion,
     this.birthday,
     required this.providerId,
     required this.accessToken,
   });
 
   @override
-  List<Object?> get props => [name, email, phone, role, specialtyId, gender, birthday, providerId, accessToken];
+  List<Object?> get props => [name, email, phone, role, specialtyId, gender, religion, birthday, providerId, accessToken];
 }
 
 class LogoutEvent extends AuthEvent {}

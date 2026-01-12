@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../domain/usecases/get_reels_feed_usecase.dart';
 import '../../domain/usecases/record_reel_view_usecase.dart';
 import '../../domain/usecases/toggle_reel_like_usecase.dart';
+import '../../domain/usecases/get_reel_categories_usecase.dart';
 import 'reels_event.dart';
 import 'reels_state.dart';
 
@@ -10,20 +11,24 @@ class ReelsBloc extends Bloc<ReelsEvent, ReelsState> {
   final GetReelsFeedUseCase getReelsFeedUseCase;
   final RecordReelViewUseCase recordReelViewUseCase;
   final ToggleReelLikeUseCase toggleReelLikeUseCase;
+  final GetReelCategoriesUseCase getReelCategoriesUseCase;
 
   int _perPage = 10;
+  int? _currentCategoryId; // Track current category filter
   final Set<int> _viewedReelIds = {}; // Track viewed reels to avoid duplicate API calls
 
   ReelsBloc({
     required this.getReelsFeedUseCase,
     required this.recordReelViewUseCase,
     required this.toggleReelLikeUseCase,
+    required this.getReelCategoriesUseCase,
   }) : super(const ReelsInitial()) {
     on<LoadReelsFeedEvent>(_onLoadReelsFeed);
     on<LoadMoreReelsEvent>(_onLoadMoreReels);
     on<RefreshReelsFeedEvent>(_onRefreshReelsFeed);
     on<ToggleReelLikeEvent>(_onToggleReelLike);
     on<MarkReelViewedEvent>(_onMarkReelViewed);
+    on<LoadReelCategoriesEvent>(_onLoadReelCategories);
   }
 
   Future<void> _onLoadReelsFeed(
@@ -32,8 +37,12 @@ class ReelsBloc extends Bloc<ReelsEvent, ReelsState> {
   ) async {
     emit(const ReelsLoading());
     _perPage = event.perPage;
+    _currentCategoryId = event.categoryId;
 
-    final result = await getReelsFeedUseCase(perPage: _perPage);
+    final result = await getReelsFeedUseCase(
+      perPage: _perPage,
+      categoryId: _currentCategoryId,
+    );
 
     result.fold(
       (failure) => emit(ReelsError(failure.message)),
@@ -54,6 +63,7 @@ class ReelsBloc extends Bloc<ReelsEvent, ReelsState> {
           emit(ReelsLoaded(
             reels: response.reels,
             nextCursor: response.meta.nextCursor,
+            nextPageUrl: response.meta.nextPageUrl,
             hasMore: response.meta.hasMore,
             likedReels: likedReels,
           ));
@@ -72,9 +82,12 @@ class ReelsBloc extends Bloc<ReelsEvent, ReelsState> {
 
     emit(currentState.copyWith(isLoadingMore: true));
 
+    // Use nextPageUrl if available, otherwise fall back to cursor
     final result = await getReelsFeedUseCase(
       perPage: _perPage,
       cursor: currentState.nextCursor,
+      nextPageUrl: currentState.nextPageUrl,
+      categoryId: _currentCategoryId,
     );
 
     result.fold(
@@ -95,6 +108,7 @@ class ReelsBloc extends Bloc<ReelsEvent, ReelsState> {
         emit(currentState.copyWith(
           reels: [...currentState.reels, ...response.reels],
           nextCursor: response.meta.nextCursor,
+          nextPageUrl: response.meta.nextPageUrl,
           hasMore: response.meta.hasMore,
           isLoadingMore: false,
           likedReels: newLikedReels,
@@ -107,7 +121,10 @@ class ReelsBloc extends Bloc<ReelsEvent, ReelsState> {
     RefreshReelsFeedEvent event,
     Emitter<ReelsState> emit,
   ) async {
-    final result = await getReelsFeedUseCase(perPage: _perPage);
+    final result = await getReelsFeedUseCase(
+      perPage: _perPage,
+      categoryId: _currentCategoryId,
+    );
 
     result.fold(
       (failure) => emit(ReelsError(failure.message)),
@@ -126,6 +143,7 @@ class ReelsBloc extends Bloc<ReelsEvent, ReelsState> {
           emit(ReelsLoaded(
             reels: response.reels,
             nextCursor: response.meta.nextCursor,
+            nextPageUrl: response.meta.nextPageUrl,
             hasMore: response.meta.hasMore,
             likedReels: likedReels,
           ));
@@ -253,6 +271,23 @@ class ReelsBloc extends Bloc<ReelsEvent, ReelsState> {
       },
       (_) {
         debugPrint('ReelsBloc: View API success for reel ${event.reelId}');
+      },
+    );
+  }
+
+  Future<void> _onLoadReelCategories(
+    LoadReelCategoriesEvent event,
+    Emitter<ReelsState> emit,
+  ) async {
+    final result = await getReelCategoriesUseCase();
+
+    result.fold(
+      (failure) {
+        // Don't emit error state, just keep current state
+        debugPrint('ReelsBloc: Failed to load categories - ${failure.message}');
+      },
+      (categories) {
+        emit(ReelsWithCategories(categories: categories));
       },
     );
   }

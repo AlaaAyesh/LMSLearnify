@@ -1,5 +1,6 @@
 import '../../domain/entities/home_data.dart';
 import 'banner_model.dart';
+import 'category_course_block_model.dart';
 import 'course_model.dart';
 import 'mentor_model.dart';
 import 'partner_model.dart';
@@ -12,6 +13,7 @@ class HomeDataModel extends HomeData {
     super.popularCourses,
     super.topMentors,
     super.partners,
+    super.categoryCourseBlocks,
   });
 
   factory HomeDataModel.fromJson(Map<String, dynamic> json) {
@@ -22,6 +24,7 @@ class HomeDataModel extends HomeData {
       popularCourses: _parseCourses(json['popular_courses']),
       topMentors: _parseMentors(json['top_mentors']),
       partners: _parsePartners(json['partners']),
+      categoryCourseBlocks: _parseCategoryCourseBlocks(json['category_course_blocks']),
     );
   }
 
@@ -114,6 +117,25 @@ class HomeDataModel extends HomeData {
     return [];
   }
 
+  static List<CategoryCourseBlockModel> _parseCategoryCourseBlocks(dynamic blocksData) {
+    if (blocksData == null) return [];
+    
+    try {
+      if (blocksData is Map && blocksData['data'] != null) {
+        final data = blocksData['data'];
+        if (data is List) {
+          return data.map((b) => CategoryCourseBlockModel.fromJson(b as Map<String, dynamic>)).toList();
+        }
+      } else if (blocksData is List) {
+        return blocksData.map((b) => CategoryCourseBlockModel.fromJson(b as Map<String, dynamic>)).toList();
+      }
+    } catch (e) {
+      print('Error parsing category_course_blocks: $e');
+    }
+    
+    return [];
+  }
+
   Map<String, dynamic> toJson() {
     return {
       'banners': {
@@ -134,6 +156,7 @@ class HomeDataModel extends HomeData {
       'partners': {
         'data': partners.map((p) => (p as PartnerModel).toJson()).toList(),
       },
+      'category_course_blocks': categoryCourseBlocks.map((b) => (b as CategoryCourseBlockModel).toJson()).toList(),
     };
   }
 }

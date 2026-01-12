@@ -3,6 +3,7 @@ import '../../../../core/error/exceptions.dart';
 import '../../../../core/error/failures.dart';
 import '../../domain/repositories/reels_repository.dart';
 import '../datasources/reels_remote_datasource.dart';
+import '../models/reel_category_model.dart';
 import '../models/reels_feed_response_model.dart';
 
 class ReelsRepositoryImpl implements ReelsRepository {
@@ -16,11 +17,15 @@ class ReelsRepositoryImpl implements ReelsRepository {
   Future<Either<Failure, ReelsFeedResponseModel>> getReelsFeed({
     int perPage = 10,
     String? cursor,
+    String? nextPageUrl,
+    int? categoryId,
   }) async {
     try {
       final response = await remoteDataSource.getReelsFeed(
         perPage: perPage,
         cursor: cursor,
+        nextPageUrl: nextPageUrl,
+        categoryId: categoryId,
       );
       return Right(response);
     } on ServerException catch (e) {
@@ -59,6 +64,18 @@ class ReelsRepositoryImpl implements ReelsRepository {
     try {
       await remoteDataSource.unlikeReel(reelId);
       return const Right(null);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    } catch (e) {
+      return Left(ServerFailure('حدث خطأ غير متوقع: $e'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, List<ReelCategoryModel>>> getReelCategoriesWithReels() async {
+    try {
+      final categories = await remoteDataSource.getReelCategoriesWithReels();
+      return Right(categories);
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
     } catch (e) {

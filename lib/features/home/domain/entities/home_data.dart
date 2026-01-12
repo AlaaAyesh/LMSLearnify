@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'banner.dart';
 import 'category.dart';
+import 'category_course_block.dart';
 import 'course.dart';
 import 'mentor.dart';
 import 'partner.dart';
@@ -12,6 +13,7 @@ class HomeData extends Equatable {
   final List<Course> popularCourses;
   final List<Mentor> topMentors;
   final List<Partner> partners;
+  final List<CategoryCourseBlock> categoryCourseBlocks;
 
   const HomeData({
     this.banners = const [],
@@ -20,12 +22,19 @@ class HomeData extends Equatable {
     this.popularCourses = const [],
     this.topMentors = const [],
     this.partners = const [],
+    this.categoryCourseBlocks = const [],
   });
 
   /// Get unique categories from all courses
   List<Category> get categories {
     final Map<int, Category> categoriesMap = {};
     
+    // Add categories from category_course_blocks
+    for (final block in categoryCourseBlocks) {
+      categoriesMap[block.category.id] = block.category;
+    }
+    
+    // Add categories from individual course lists
     for (final course in [...latestCourses, ...freeCourses, ...popularCourses]) {
       for (final category in course.categories) {
         categoriesMap[category.id] = category;
@@ -68,6 +77,7 @@ class HomeData extends Equatable {
         popularCourses,
         topMentors,
         partners,
+        categoryCourseBlocks,
       ];
 }
 

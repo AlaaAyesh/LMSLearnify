@@ -1,41 +1,92 @@
 import 'package:flutter/material.dart';
 import 'package:learnify_lms/core/theme/app_text_styles.dart';
-
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/di/injection_container.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/utils/responsive.dart';
 import '../../../../core/widgets/custom_background.dart';
 import '../../domain/entities/category.dart';
+import '../../domain/entities/category_course_block.dart';
 import '../../domain/entities/course.dart';
 import '../../domain/entities/home_data.dart';
 import '../bloc/home_bloc.dart';
 import '../bloc/home_event.dart';
 import '../bloc/home_state.dart';
 import '../widgets/banner_carousel.dart';
+import '../widgets/site_banner_carousel.dart';
 import '../widgets/category_item.dart';
 import '../widgets/course_grid_card.dart';
 import '../widgets/popular_course_card.dart';
-import '../widgets/promo_banner.dart';
 import '../widgets/section_header.dart';
+import '../../../banners/domain/entities/banner.dart' as banner_entity;
+import '../../../banners/domain/usecases/get_site_banners_usecase.dart';
 import 'categories_page.dart';
 import 'course_details_page.dart';
 import 'main_navigation_page.dart';
 import 'single_category_page.dart';
 
-class HomeTab extends StatelessWidget {
+class HomeTab extends StatefulWidget {
   const HomeTab({super.key});
+
+  @override
+  State<HomeTab> createState() => _HomeTabState();
+}
+
+class _HomeTabState extends State<HomeTab> {
+  List<banner_entity.Banner> _siteBanners = [];
+  bool _isLoadingBanners = true;
+  final GetSiteBannersUseCase _getSiteBannersUseCase = sl<GetSiteBannersUseCase>();
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSiteBanners();
+  }
+
+  Future<void> _loadSiteBanners() async {
+    setState(() => _isLoadingBanners = true);
+    final result = await _getSiteBannersUseCase(perPage: 10, page: 1);
+    result.fold(
+      (failure) {
+        // Silently fail - banners are optional
+        if (mounted) {
+          setState(() {
+            _isLoadingBanners = false;
+            _siteBanners = [];
+          });
+        }
+      },
+      (response) {
+        if (mounted) {
+          setState(() {
+            _isLoadingBanners = false;
+            _siteBanners = response.banners;
+          });
+        }
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (context) => sl<HomeBloc>()..add(LoadHomeDataEvent()),
-      child: const _HomeTabContent(),
+      child: _HomeTabContent(
+        siteBanners: _siteBanners,
+        isLoadingBanners: _isLoadingBanners,
+      ),
     );
   }
 }
 
 class _HomeTabContent extends StatelessWidget {
-  const _HomeTabContent();
+  final List<banner_entity.Banner> siteBanners;
+  final bool isLoadingBanners;
+
+  const _HomeTabContent({
+    required this.siteBanners,
+    required this.isLoadingBanners,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -87,21 +138,19 @@ class _HomeTabContent extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SizedBox(height: 16),
+            SizedBox(height: Responsive.spacing(context, 16)),
 
-            // Promo Banner
-            PromoBanner(
-              title: 'افتح إمكاناتك الكاملة',
-              subtitle: 'استكشف آلاف الدورات التدريبية والمدربين الخبراء لتعزيز مهاراتك',
-              buttonText: 'ابدأ الآن',
-              onButtonPressed: () {
-                // Navigate to courses
-              },
-            ),
-            const SizedBox(height: 24),
+            // Site Banners (from API) - Show first if available
+            if (!isLoadingBanners && siteBanners.isNotEmpty) ...[
+              SiteBannerCarousel(
+                banners: siteBanners,
+                autoScrollDuration: const Duration(seconds: 3),
+              ),
+              SizedBox(height: Responsive.spacing(context, 24)),
+            ],
 
-            // Banners with auto-rotation
-            if (homeData.banners.isNotEmpty) ...[
+            // Home Banners (from home API) - Show as fallback
+            if (homeData.banners.isNotEmpty && (isLoadingBanners || siteBanners.isEmpty)) ...[
               BannerCarousel(
                 banners: homeData.banners,
                 autoScrollDuration: const Duration(seconds: 3),
@@ -109,7 +158,7 @@ class _HomeTabContent extends StatelessWidget {
                   // Handle banner tap
                 },
               ),
-              const SizedBox(height: 24),
+              SizedBox(height: Responsive.spacing(context, 24)),
             ],
 
             // Categories Section
@@ -118,17 +167,17 @@ class _HomeTabContent extends StatelessWidget {
                 title: 'التصنيفات',
                 onSeeAll: () => _navigateToCategoriesPage(context, homeData),
               ),
-              const SizedBox(height: 12),
+              SizedBox(height: Responsive.spacing(context, 12)),
               SizedBox(
-                height: 120,
+                height: Responsive.height(context, 120),
                 child: ListView.builder(
                   scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  padding: Responsive.padding(context, horizontal: 16),
                   itemCount: homeData.categories.length,
                   itemBuilder: (context, index) {
                     final category = homeData.categories[index];
                     return Padding(
-                      padding: const EdgeInsets.only(left: 16),
+                      padding: Responsive.padding(context, left: 16),
                       child: CategoryItem(
                         category: category,
                         onTap: () => _onCategoryTap(context, category, homeData),
@@ -137,18 +186,18 @@ class _HomeTabContent extends StatelessWidget {
                   },
                 ),
               ),
-              const SizedBox(height: 24),
+              SizedBox(height: Responsive.spacing(context, 24)),
             ],
 
             // Popular/Most Watched Courses
             if (homeData.popularCourses.isNotEmpty || homeData.latestCourses.isNotEmpty) ...[
               const SectionHeader(title: 'الأكثر مشاهدة'),
-              const SizedBox(height: 12),
+              SizedBox(height: Responsive.spacing(context, 12)),
               SizedBox(
-                height: 200,
+                height: Responsive.height(context, 200),
                 child: ListView.builder(
                   scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.only(right: 16),
+                  padding: Responsive.padding(context, right: 16),
                   itemCount: homeData.popularCourses.isNotEmpty 
                       ? homeData.popularCourses.length 
                       : homeData.latestCourses.length,
@@ -163,13 +212,20 @@ class _HomeTabContent extends StatelessWidget {
                   },
                 ),
               ),
-              const SizedBox(height: 24),
+              SizedBox(height: Responsive.spacing(context, 24)),
             ],
 
-            // Courses by Category
-            ...homeData.coursesByCategory.entries.map((entry) {
-              return _buildCategorySection(context, entry.key, entry.value, homeData);
-            }),
+            // Courses by Category from category_course_blocks (API format)
+            if (homeData.categoryCourseBlocks.isNotEmpty) ...[
+              ...homeData.categoryCourseBlocks.map((block) {
+                return _buildCategoryCourseBlockSection(context, block);
+              }),
+            ] else ...[
+              // Fallback: Use coursesByCategory if category_course_blocks is empty
+              ...homeData.coursesByCategory.entries.map((entry) {
+                return _buildCategorySection(context, entry.key, entry.value, homeData);
+              }),
+            ],
 
             // Free Courses
             if (homeData.freeCourses.isNotEmpty) ...[
@@ -179,15 +235,32 @@ class _HomeTabContent extends StatelessWidget {
                   // Navigate to free courses
                 },
               ),
-              const SizedBox(height: 12),
+              SizedBox(height: Responsive.spacing(context, 12)),
               _buildCoursesGrid(context, homeData.freeCourses),
-              const SizedBox(height: 24),
+              SizedBox(height: Responsive.spacing(context, 24)),
             ],
 
-            const SizedBox(height: 100),
+            SizedBox(height: Responsive.spacing(context, 100)),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildCategoryCourseBlockSection(BuildContext context, CategoryCourseBlock block) {
+    if (block.courses.isEmpty) return const SizedBox.shrink();
+    
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SectionHeader(
+          title: 'دورات ${block.category.nameAr}',
+          onSeeAll: () => _navigateToSingleCategory(context, block.category, block.courses),
+        ),
+        SizedBox(height: Responsive.spacing(context, 12)),
+        _buildCoursesGrid(context, block.courses),
+        SizedBox(height: Responsive.spacing(context, 24)),
+      ],
     );
   }
 
@@ -201,24 +274,24 @@ class _HomeTabContent extends StatelessWidget {
           title: 'دورات ${category.nameAr}',
           onSeeAll: () => _navigateToSingleCategory(context, category, courses),
         ),
-        const SizedBox(height: 12),
+        SizedBox(height: Responsive.spacing(context, 12)),
         _buildCoursesGrid(context, courses),
-        const SizedBox(height: 24),
+        SizedBox(height: Responsive.spacing(context, 24)),
       ],
     );
   }
 
   Widget _buildCoursesGrid(BuildContext context, List<Course> courses) {
     return SizedBox(
-      height: 130,
+      height: Responsive.height(context, 130),
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 16),
+        padding: Responsive.padding(context, horizontal: 16),
         itemCount: courses.length,
         itemBuilder: (context, index) {
           final course = courses[index];
           return Padding(
-            padding: const EdgeInsets.only(left: 20),
+            padding: Responsive.padding(context, left: 20),
             child: CourseGridCard(
               course: course,
               onTap: () => _onCourseTap(context, course),
@@ -265,41 +338,41 @@ class _HomeTabContent extends StatelessWidget {
   Widget _buildErrorState(BuildContext context, String message) {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(24),
+        padding: Responsive.padding(context, all: 24),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
               Icons.error_outline,
-              size: 80,
+              size: Responsive.iconSize(context, 80),
               color: Colors.red[400],
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: Responsive.spacing(context, 16)),
             Text(
               'حدث خطأ',
               style: TextStyle(
                 fontFamily: cairoFontFamily,
-                fontSize: 18,
+                fontSize: Responsive.fontSize(context, 18),
                 fontWeight: FontWeight.w500,
                 color: AppColors.textPrimary,
               ),
             ),
-            const SizedBox(height: 8),
+            SizedBox(height: Responsive.spacing(context, 8)),
             Text(
               message,
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontFamily: cairoFontFamily,
-                fontSize: 14,
+                fontSize: Responsive.fontSize(context, 14),
                 color: AppColors.textSecondary,
               ),
             ),
-            const SizedBox(height: 24),
+            SizedBox(height: Responsive.spacing(context, 24)),
             ElevatedButton.icon(
               onPressed: () {
                 context.read<HomeBloc>().add(LoadHomeDataEvent());
               },
-              icon: const Icon(Icons.refresh),
+              icon: Icon(Icons.refresh, size: Responsive.iconSize(context, 20)),
               label: Text(
                 'إعادة المحاولة',
                 style: TextStyle(fontFamily: cairoFontFamily),
@@ -307,9 +380,9 @@ class _HomeTabContent extends StatelessWidget {
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
                 foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                padding: Responsive.padding(context, horizontal: 24, vertical: 12),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(Responsive.radius(context, 12)),
                 ),
               ),
             ),

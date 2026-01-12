@@ -43,6 +43,7 @@ class Course extends Equatable {
   final int purchaseCount;
   final bool hidden;
   final bool soon;
+  final bool locked;
   final bool hasAccess;
   final bool userHasCertificate;
 
@@ -73,6 +74,7 @@ class Course extends Equatable {
     this.purchaseCount = 0,
     this.hidden = false,
     this.soon = false,
+    this.locked = false,
     this.hasAccess = false,
     this.userHasCertificate = false,
   });
@@ -161,6 +163,7 @@ class Course extends Equatable {
         reviews,
         hasAccess,
         soon,
+        locked,
       ];
 }
 

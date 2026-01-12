@@ -30,10 +30,11 @@ class CourseModel extends Course {
     super.introVideoDuration,
     super.introVideoStatus,
     super.purchaseCount,
-    super.hidden,
-    super.soon,
-    super.hasAccess,
-    super.userHasCertificate,
+      super.hidden,
+      super.soon,
+      super.locked,
+      super.hasAccess,
+      super.userHasCertificate,
   });
 
   factory CourseModel.fromJson(Map<String, dynamic> json) {
@@ -76,6 +77,7 @@ class CourseModel extends Course {
       purchaseCount: _parseInt(json['purchase_count']),
       hidden: _parseBool(json['hidden']),
       soon: _parseBool(json['soon']),
+      locked: _parseBool(json['locked']),
       hasAccess: _parseBool(json['hasAccess']),
       userHasCertificate: _parseBool(json['userHasCertificate']),
     );
@@ -125,6 +127,7 @@ class CourseModel extends Course {
       'purchase_count': purchaseCount,
       'hidden': hidden,
       'soon': soon,
+      'locked': locked,
       'hasAccess': hasAccess,
       'userHasCertificate': userHasCertificate,
     };

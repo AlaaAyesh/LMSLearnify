@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:learnify_lms/core/theme/app_text_styles.dart';
-
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/utils/responsive.dart';
 import '../../domain/entities/category.dart';
 
 class CategoryItem extends StatelessWidget {
@@ -20,8 +20,8 @@ class CategoryItem extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: SizedBox(
-        height: 120, // نفس القيود اللي جاية من Grid/List
-        width: 80,
+        height: Responsive.height(context, 120),
+        width: Responsive.width(context, 80),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
@@ -44,11 +44,11 @@ class CategoryItem extends StatelessWidget {
               ),
             ),
 
-            SizedBox(height: 4),
+            SizedBox(height: Responsive.spacing(context, 4)),
 
             // Category Name (fixed height, no overflow)
             SizedBox(
-              height: 28, // يكفي سطرين
+              height: Responsive.height(context, 28),
               child: Text(
                 category.nameAr,
                 textAlign: TextAlign.center,
@@ -56,7 +56,7 @@ class CategoryItem extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
                   fontFamily: cairoFontFamily,
-                  fontSize: 12,
+                  fontSize: Responsive.fontSize(context, 12),
                   fontWeight: FontWeight.w600,
                   color: AppColors.textPrimary,
                 ),

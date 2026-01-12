@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'reel_category.dart';
 import 'reel_owner.dart';
 
 class Reel extends Equatable {
@@ -12,6 +13,7 @@ class Reel extends Equatable {
   final int likesCount;
   final int viewsCount;
   final ReelOwner owner;
+  final List<ReelCategory> categories;
   final bool viewed;
   final bool liked;
   final String createdAt;
@@ -28,6 +30,7 @@ class Reel extends Equatable {
     required this.likesCount,
     required this.viewsCount,
     required this.owner,
+    this.categories = const [],
     required this.viewed,
     required this.liked,
     required this.createdAt,
@@ -64,6 +67,7 @@ class Reel extends Equatable {
         likesCount,
         viewsCount,
         owner,
+        categories,
         viewed,
         liked,
         createdAt,

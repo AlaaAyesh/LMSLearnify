@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:learnify_lms/core/theme/app_text_styles.dart';
-
+import '../../../../../../core/utils/responsive.dart';
 import '../../../../../../core/theme/app_colors.dart';
 
 class RegisterHeader extends StatelessWidget {
@@ -22,12 +22,12 @@ class RegisterHeader extends StatelessWidget {
           textAlign: TextAlign.center,
           style: TextStyle(
             fontFamily: cairoFontFamily,
-            fontSize: 28,
+            fontSize: Responsive.fontSize(context, 28),
             fontWeight: FontWeight.bold,
             color: AppColors.textPrimary,
           ),
         ),
-        SizedBox(height: 4),
+        SizedBox(height: Responsive.spacing(context, 4)),
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -35,13 +35,13 @@ class RegisterHeader extends StatelessWidget {
               highlight,
               style: TextStyle(
                 fontFamily: cairoFontFamily,
-                fontSize: 28,
+                fontSize: Responsive.fontSize(context, 28),
                 fontWeight: FontWeight.bold,
                 color: AppColors.primary,
               ),
             ),
-            SizedBox(width: 6),
-            const Text('👋', style: TextStyle(fontSize: 28)),
+            SizedBox(width: Responsive.width(context, 6)),
+            Text('👋', style: TextStyle(fontSize: Responsive.fontSize(context, 28))),
           ],
         ),
       ],

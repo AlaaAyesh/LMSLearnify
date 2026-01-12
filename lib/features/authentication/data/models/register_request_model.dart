@@ -9,6 +9,7 @@ class RegisterRequestModel {
   final String phone;
   final int specialtyId;
   final String gender; // 'male' or 'female'
+  final String? religion; // 'muslim' or 'christian'
   final String? birthday; // Format: YYYY-MM-DD
 
   RegisterRequestModel({
@@ -20,6 +21,7 @@ class RegisterRequestModel {
     required this.phone,
     required this.specialtyId,
     required this.gender,
+    this.religion,
     this.birthday,
   });
 
@@ -35,6 +37,10 @@ class RegisterRequestModel {
       'specialty_id': specialtyId,
       'gender': gender,
     };
+
+    if (religion != null && religion!.isNotEmpty) {
+      map['religion'] = religion;
+    }
 
     if (birthday != null && birthday!.isNotEmpty) {
       map['birthday'] = birthday;

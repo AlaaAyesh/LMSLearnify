@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
+import 'core/di/injection_container.dart';
 import 'core/routing/app_router.dart';
 import 'core/theme/app_theme.dart';
+import 'features/authentication/presentation/bloc/auth_bloc.dart';
+import 'features/authentication/presentation/bloc/auth_event.dart';
 import 'features/reels/presentation/pages/reels_feed_page.dart';
 
 class LearnifyApp extends StatelessWidget {
@@ -10,7 +14,9 @@ class LearnifyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return BlocProvider(
+      create: (_) => sl<AuthBloc>()..add(CheckAuthStatusEvent()),
+      child: MaterialApp(
       title: 'Learnify',
       debugShowCheckedModeBanner: false,
 
@@ -46,6 +52,7 @@ class LearnifyApp extends StatelessWidget {
           child: child!,
         );
       },
+      ),
     );
   }
 }

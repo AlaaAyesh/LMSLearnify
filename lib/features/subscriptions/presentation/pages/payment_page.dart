@@ -12,6 +12,7 @@ import '../../domain/entities/subscription.dart';
 import '../bloc/subscription_bloc.dart';
 import '../bloc/subscription_event.dart';
 import '../bloc/subscription_state.dart';
+import 'payment_checkout_webview_page.dart';
 import 'widgets/payment_methods_row.dart';
 import 'widgets/payment_success_dialog.dart';
 
@@ -85,6 +86,9 @@ class _PaymentPageContentState extends State<_PaymentPageContent> {
         listener: (context, state) {
           if (state is PaymentProcessing) {
             setState(() => _isLoading = true);
+          } else if (state is PaymentCheckoutReady) {
+            setState(() => _isLoading = false);
+            _openCheckoutUrl(state.checkoutUrl);
           } else if (state is PaymentInitiated || state is PaymentCompleted) {
             setState(() => _isLoading = false);
             _showPaymentSuccessDialog();
@@ -398,15 +402,45 @@ class _PaymentPageContentState extends State<_PaymentPageContent> {
 
     final phone = _phoneController.text.trim();
 
+    // Use kashier for web-based payment gateways, iap for in-app purchases
+    final paymentService = PaymentService.kashier;
+
     context.read<SubscriptionBloc>().add(
           ProcessPaymentEvent(
-            service: PaymentService.iap,
+            service: paymentService,
             currency: _currencyCode,
             subscriptionId: widget.subscription.id,
             phone: phone,
             couponCode: widget.promoCode,
           ),
         );
+  }
+
+  Future<void> _openCheckoutUrl(String checkoutUrl) async {
+    // Open checkout URL in WebView
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => PaymentCheckoutWebViewPage(
+          checkoutUrl: checkoutUrl,
+        ),
+      ),
+    );
+
+    // Handle payment result
+    if (result == true && mounted) {
+      // Payment successful
+      _showPaymentSuccessDialog();
+    } else if (result == false && mounted) {
+      // Payment failed
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('فشلت عملية الدفع. يرجى المحاولة مرة أخرى'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+    // If result is null, user closed the page manually
   }
 
   void _showPaymentSuccessDialog() {

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:learnify_lms/core/theme/app_text_styles.dart';
-
+import '../../../../../core/utils/responsive.dart';
 import '../../../../../../core/theme/app_colors.dart';
 
 class CustomDividerWithText extends StatelessWidget {
@@ -30,14 +30,14 @@ class CustomDividerWithText extends StatelessWidget {
           ),
         ),
         Padding(
-          padding: EdgeInsets.symmetric(horizontal: spacing),
+          padding: Responsive.padding(context, horizontal: spacing),
           child: Text(
             text,
             style: textStyle ??
                 TextStyle(
                   fontFamily: cairoFontFamily,
                   color: AppColors.textSecondary,
-                  fontSize: 13,
+                  fontSize: Responsive.fontSize(context, 13),
                 ),
           ),
         ),

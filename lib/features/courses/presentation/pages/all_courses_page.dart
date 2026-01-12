@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:learnify_lms/core/theme/app_text_styles.dart';
-
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/di/injection_container.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/utils/responsive.dart';
 import '../../../../core/widgets/custom_app_bar.dart';
 import '../../../../core/widgets/custom_background.dart';
 import '../../../home/domain/entities/course.dart';
@@ -114,13 +114,13 @@ class _AllCoursesPageContent extends StatelessWidget {
           slivers: [
             // Circular course items in a grid
             SliverPadding(
-              padding: const EdgeInsets.all(16),
+              padding: Responsive.padding(context, all: 16),
               sliver: SliverGrid(
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 3, // 3 circles per row
                   childAspectRatio: 0.75,
-                  crossAxisSpacing: 8,
-                  mainAxisSpacing: 16,
+                  crossAxisSpacing: Responsive.width(context, 8),
+                  mainAxisSpacing: Responsive.height(context, 16),
                 ),
                 delegate: SliverChildBuilderDelegate(
                   (context, index) {
@@ -135,13 +135,13 @@ class _AllCoursesPageContent extends StatelessWidget {
               ),
             ),
             if (state.isLoadingMore)
-              const SliverToBoxAdapter(
+              SliverToBoxAdapter(
                 child: Padding(
-                  padding: EdgeInsets.all(16),
+                  padding: Responsive.padding(context, all: 16),
                   child: Center(
                     child: CircularProgressIndicator(
                       color: AppColors.primary,
-                      strokeWidth: 2,
+                      strokeWidth: Responsive.width(context, 2),
                     ),
                   ),
                 ),
@@ -159,41 +159,41 @@ class _AllCoursesPageContent extends StatelessWidget {
         children: [
           Icon(
             Icons.school_outlined,
-            size: 80,
+            size: Responsive.iconSize(context, 80),
             color: Colors.grey[400],
           ),
-          SizedBox(height: 16),
+          SizedBox(height: Responsive.spacing(context, 16)),
           Text(
             'لا توجد كورسات متاحة',
             style: TextStyle(
               fontFamily: cairoFontFamily,
-              fontSize: 18,
+              fontSize: Responsive.fontSize(context, 18),
               color: Colors.grey[600],
               fontWeight: FontWeight.w500,
             ),
           ),
-          SizedBox(height: 8),
+          SizedBox(height: Responsive.spacing(context, 8)),
           Text(
             'سيتم إضافة كورسات جديدة قريباً',
             style: TextStyle(
               fontFamily: cairoFontFamily,
-              fontSize: 14,
+              fontSize: Responsive.fontSize(context, 14),
               color: Colors.grey[500],
             ),
           ),
-          SizedBox(height: 24),
+          SizedBox(height: Responsive.spacing(context, 24)),
           ElevatedButton.icon(
             onPressed: () {
               context.read<CoursesBloc>().add(const LoadCoursesEvent(refresh: true));
             },
-            icon: const Icon(Icons.refresh),
+            icon: Icon(Icons.refresh, size: Responsive.iconSize(context, 20)),
             label: const Text('تحديث'),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primary,
               foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              padding: Responsive.padding(context, horizontal: 24, vertical: 12),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(Responsive.radius(context, 12)),
               ),
             ),
           ),
@@ -209,45 +209,45 @@ class _AllCoursesPageContent extends StatelessWidget {
         children: [
           Icon(
             Icons.error_outline,
-            size: 80,
+            size: Responsive.iconSize(context, 80),
             color: Colors.red[400],
           ),
-          SizedBox(height: 16),
+          SizedBox(height: Responsive.spacing(context, 16)),
           Text(
             'حدث خطأ',
             style: TextStyle(
               fontFamily: cairoFontFamily,
-              fontSize: 18,
+              fontSize: Responsive.fontSize(context, 18),
               color: Colors.grey[600],
               fontWeight: FontWeight.w500,
             ),
           ),
-          SizedBox(height: 8),
+          SizedBox(height: Responsive.spacing(context, 8)),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 32),
+            padding: Responsive.padding(context, horizontal: 32),
             child: Text(
               message,
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontFamily: cairoFontFamily,
-                fontSize: 14,
+                fontSize: Responsive.fontSize(context, 14),
                 color: Colors.grey[500],
               ),
             ),
           ),
-          SizedBox(height: 24),
+          SizedBox(height: Responsive.spacing(context, 24)),
           ElevatedButton.icon(
             onPressed: () {
               context.read<CoursesBloc>().add(const LoadCoursesEvent(refresh: true));
             },
-            icon: const Icon(Icons.refresh),
+            icon: Icon(Icons.refresh, size: Responsive.iconSize(context, 20)),
             label: const Text('إعادة المحاولة'),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primary,
               foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              padding: Responsive.padding(context, horizontal: 24, vertical: 12),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(Responsive.radius(context, 12)),
               ),
             ),
           ),

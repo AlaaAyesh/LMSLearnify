@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:learnify_lms/features/subscriptions/presentation/pages/widgets/plan_details_section.dart';
 import 'package:learnify_lms/features/subscriptions/presentation/pages/widgets/price_section.dart';
 import 'package:learnify_lms/features/subscriptions/presentation/pages/widgets/recommended_badge.dart';
+import '../../../../../core/utils/responsive.dart';
 import '../../../domain/entities/card_color.dart';
 import '../../../domain/entities/subscription_plan.dart';
 
@@ -27,12 +28,12 @@ class SubscriptionPlanCard extends StatelessWidget {
         clipBehavior: Clip.none,
         children: [
           Container(
-            constraints: const BoxConstraints(minHeight: 70),
-            padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 10),
+            constraints: BoxConstraints(minHeight: Responsive.height(context, 70)),
+            padding: Responsive.padding(context, horizontal: 28, vertical: 10),
             decoration: BoxDecoration(
               color: colors.background,
-              borderRadius: BorderRadius.circular(26),
-              border: Border.all(color: colors.border, width: 1),
+              borderRadius: BorderRadius.circular(Responsive.radius(context, 26)),
+              border: Border.all(color: colors.border, width: Responsive.width(context, 1)),
 
             ),
             child: Row(

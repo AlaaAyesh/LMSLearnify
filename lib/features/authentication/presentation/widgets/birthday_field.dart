@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:learnify_lms/core/theme/app_text_styles.dart';
-
 import 'package:flutter/services.dart';
+import '../../../../core/utils/responsive.dart';
 import '../../../../core/theme/app_colors.dart';
 
 class BirthdayField extends StatelessWidget {
@@ -25,18 +25,19 @@ class BirthdayField extends StatelessWidget {
           'تاريخ الميلاد',
           style: TextStyle(
             fontFamily: cairoFontFamily,
-            fontSize: 14,
+            fontSize: Responsive.fontSize(context, 14),
             fontWeight: FontWeight.w500,
             color: AppColors.textSecondary,
           ),
         ),
-        SizedBox(height: 8),
+        SizedBox(height: Responsive.spacing(context, 8)),
         Row(
           children: [
             // Year Field
             Expanded(
               flex: 2,
               child: _buildDatePart(
+                context,
                 controller: yearController,
                 hint: 'السنة',
                 maxLength: 4,
@@ -52,11 +53,12 @@ class BirthdayField extends StatelessWidget {
                 },
               ),
             ),
-            SizedBox(width: 12),
+            SizedBox(width: Responsive.width(context, 12)),
             // Month Field
             Expanded(
               flex: 1,
               child: _buildDatePart(
+                context,
                 controller: monthController,
                 hint: 'الشهر',
                 maxLength: 2,
@@ -72,11 +74,12 @@ class BirthdayField extends StatelessWidget {
                 },
               ),
             ),
-            SizedBox(width: 12),
+            SizedBox(width: Responsive.width(context, 12)),
             // Day Field
             Expanded(
               flex: 1,
               child: _buildDatePart(
+                context,
                 controller: dayController,
                 hint: 'اليوم',
                 maxLength: 2,
@@ -98,7 +101,8 @@ class BirthdayField extends StatelessWidget {
     );
   }
 
-  Widget _buildDatePart({
+  Widget _buildDatePart(
+    BuildContext context, {
     required TextEditingController controller,
     required String hint,
     required int maxLength,
@@ -116,28 +120,40 @@ class BirthdayField extends StatelessWidget {
         hintText: hint,
         hintStyle: TextStyle(
           fontFamily: cairoFontFamily,
-          fontSize: 14,
+          fontSize: Responsive.fontSize(context, 14),
           color: AppColors.textSecondary,
         ),
         counterText: '',
-        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+        contentPadding: Responsive.padding(context, horizontal: 12, vertical: 16),
         filled: true,
         fillColor: AppColors.inputBackground,
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: AppColors.inputBorder),
+          borderRadius: BorderRadius.circular(Responsive.radius(context, 12)),
+          borderSide: BorderSide(
+            color: AppColors.inputBorder,
+            width: Responsive.width(context, 1),
+          ),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: AppColors.inputBorder),
+          borderRadius: BorderRadius.circular(Responsive.radius(context, 12)),
+          borderSide: BorderSide(
+            color: AppColors.inputBorder,
+            width: Responsive.width(context, 1),
+          ),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: AppColors.primary, width: 2),
+          borderRadius: BorderRadius.circular(Responsive.radius(context, 12)),
+          borderSide: BorderSide(
+            color: AppColors.primary,
+            width: Responsive.width(context, 2),
+          ),
         ),
         errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: AppColors.error),
+          borderRadius: BorderRadius.circular(Responsive.radius(context, 12)),
+          borderSide: BorderSide(
+            color: AppColors.error,
+            width: Responsive.width(context, 1),
+          ),
         ),
       ),
       validator: validator,

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:learnify_lms/core/theme/app_text_styles.dart';
-
+import '../../../../core/utils/responsive.dart';
 import '../../../../core/theme/app_colors.dart';
 
 class PromoBanner extends StatelessWidget {
@@ -20,8 +20,8 @@ class PromoBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
-      padding: const EdgeInsets.all(20),
+      margin: Responsive.margin(context, horizontal: 16),
+      padding: Responsive.padding(context, all: 20),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
           colors: [
@@ -31,12 +31,12 @@ class PromoBanner extends StatelessWidget {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(Responsive.radius(context, 20)),
         boxShadow: [
           BoxShadow(
             color: AppColors.primary.withOpacity(0.3),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
+            blurRadius: Responsive.width(context, 12),
+            offset: Offset(0, Responsive.height(context, 4)),
           ),
         ],
       ),
@@ -47,30 +47,30 @@ class PromoBanner extends StatelessWidget {
             title,
             style: TextStyle(
               fontFamily: cairoFontFamily,
-              fontSize: 20,
+              fontSize: Responsive.fontSize(context, 20),
               fontWeight: FontWeight.bold,
               color: Colors.white,
             ),
           ),
-          SizedBox(height: 8),
+          SizedBox(height: Responsive.spacing(context, 8)),
           Text(
             subtitle,
             style: TextStyle(
               fontFamily: cairoFontFamily,
-              fontSize: 14,
+              fontSize: Responsive.fontSize(context, 14),
               color: Colors.white.withOpacity(0.9),
             ),
           ),
-          SizedBox(height: 16),
+          SizedBox(height: Responsive.spacing(context, 16)),
           ElevatedButton(
             onPressed: onButtonPressed,
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.white,
               foregroundColor: AppColors.primary,
               elevation: 0,
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              padding: Responsive.padding(context, horizontal: 24, vertical: 12),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(Responsive.radius(context, 12)),
               ),
             ),
             child: Text(

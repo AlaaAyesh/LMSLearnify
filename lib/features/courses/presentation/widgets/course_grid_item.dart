@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:learnify_lms/core/theme/app_text_styles.dart';
-
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/utils/responsive.dart';
 import '../../../home/domain/entities/course.dart';
 
 class CourseGridItem extends StatelessWidget {
@@ -22,12 +22,12 @@ class CourseGridItem extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(Responsive.radius(context, 16)),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.08),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
+              blurRadius: Responsive.width(context, 10),
+              offset: Offset(0, Responsive.height(context, 4)),
             ),
           ],
         ),
@@ -40,8 +40,10 @@ class CourseGridItem extends StatelessWidget {
               child: Stack(
                 children: [
                   ClipRRect(
-                    borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-                    child: _buildThumbnail(),
+                    borderRadius: BorderRadius.vertical(
+                      top: Radius.circular(Responsive.radius(context, 16)),
+                    ),
+                    child: _buildThumbnail(context),
                   ),
                   // Badges
                   _buildBadges(),
@@ -52,7 +54,7 @@ class CourseGridItem extends StatelessWidget {
             Expanded(
               flex: 2,
               child: Padding(
-                padding: const EdgeInsets.all(10),
+                padding: Responsive.padding(context, all: 10),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -64,7 +66,7 @@ class CourseGridItem extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                         fontFamily: cairoFontFamily,
-                        fontSize: 13,
+                        fontSize: Responsive.fontSize(context, 13),
                         fontWeight: FontWeight.bold,
                         color: AppColors.textPrimary,
                         height: 1.2,
@@ -75,22 +77,22 @@ class CourseGridItem extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         // Price
-                        _buildPrice(),
+                        _buildPrice(context),
                         // Rating
                         if (course.reviewsAvg != null)
                           Row(
                             children: [
-                              const Icon(
+                              Icon(
                                 Icons.star,
-                                size: 14,
+                                size: Responsive.iconSize(context, 14),
                                 color: AppColors.warning,
                               ),
-                              SizedBox(width: 2),
+                              SizedBox(width: Responsive.width(context, 2)),
                               Text(
                                 course.reviewsAvg!,
                                 style: TextStyle(
                                   fontFamily: cairoFontFamily,
-                                  fontSize: 11,
+                                  fontSize: Responsive.fontSize(context, 11),
                                   fontWeight: FontWeight.w600,
                                   color: AppColors.textSecondary,
                                 ),
@@ -109,7 +111,7 @@ class CourseGridItem extends StatelessWidget {
     );
   }
 
-  Widget _buildThumbnail() {
+  Widget _buildThumbnail(BuildContext context) {
     final thumbnailUrl = course.effectiveThumbnail;
     if (thumbnailUrl != null && thumbnailUrl.isNotEmpty) {
       return CachedNetworkImage(
@@ -117,14 +119,14 @@ class CourseGridItem extends StatelessWidget {
         width: double.infinity,
         height: double.infinity,
         fit: BoxFit.cover,
-        placeholder: (context, url) => _buildPlaceholder(),
-        errorWidget: (context, url, error) => _buildPlaceholder(),
+        placeholder: (context, url) => _buildPlaceholder(context),
+        errorWidget: (context, url, error) => _buildPlaceholder(context),
       );
     }
-    return _buildPlaceholder();
+    return _buildPlaceholder(context);
   }
 
-  Widget _buildPlaceholder() {
+  Widget _buildPlaceholder(BuildContext context) {
     // Use different gradient colors based on course ID for variety
     final gradientColors = [
       [const Color(0xFFFFD54F), const Color(0xFFFFB300)], // Yellow/Orange
@@ -150,32 +152,32 @@ class CourseGridItem extends StatelessWidget {
         children: [
           // Background pattern
           Positioned(
-            right: -20,
-            bottom: -20,
+            right: -Responsive.width(context, 20),
+            bottom: -Responsive.height(context, 20),
             child: Icon(
               _getCategoryIcon(),
-              size: 80,
+              size: Responsive.iconSize(context, 80),
               color: Colors.white.withOpacity(0.2),
             ),
           ),
           // Play button
           Center(
             child: Container(
-              padding: const EdgeInsets.all(12),
+              padding: Responsive.padding(context, all: 12),
               decoration: BoxDecoration(
                 color: Colors.white,
                 shape: BoxShape.circle,
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withOpacity(0.1),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
+                    blurRadius: Responsive.width(context, 8),
+                    offset: Offset(0, Responsive.height(context, 2)),
                   ),
                 ],
               ),
               child: Icon(
                 Icons.play_arrow_rounded,
-                size: 28,
+                size: Responsive.iconSize(context, 28),
                 color: colors[1],
               ),
             ),
@@ -207,23 +209,23 @@ class CourseGridItem extends StatelessWidget {
 
   Widget _buildBadges() {
     return Positioned(
-      top: 8,
-      right: 8,
+      top: Responsive.height(context, 8),
+      right: Responsive.width(context, 8),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           if (course.soon)
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              padding: Responsive.padding(context, horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
                 color: AppColors.warning,
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(Responsive.radius(context, 8)),
               ),
               child: Text(
                 'قريباً',
                 style: TextStyle(
                   fontFamily: cairoFontFamily,
-                  fontSize: 10,
+                  fontSize: Responsive.fontSize(context, 10),
                   fontWeight: FontWeight.bold,
                   color: Colors.white,
                 ),
@@ -231,43 +233,43 @@ class CourseGridItem extends StatelessWidget {
             ),
           if (course.hasAccess && !course.soon)
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              padding: Responsive.padding(context, horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
                 color: AppColors.success,
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(Responsive.radius(context, 8)),
               ),
               child: Text(
                 'متاح',
                 style: TextStyle(
                   fontFamily: cairoFontFamily,
-                  fontSize: 10,
+                  fontSize: Responsive.fontSize(context, 10),
                   fontWeight: FontWeight.bold,
                   color: Colors.white,
                 ),
               ),
             ),
           if (course.userHasCertificate) ...[
-            SizedBox(height: 4),
+            SizedBox(height: Responsive.spacing(context, 4)),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              padding: Responsive.padding(context, horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
                 color: AppColors.primary,
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(Responsive.radius(context, 8)),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Icon(
                     Icons.workspace_premium,
-                    size: 12,
+                    size: Responsive.iconSize(context, 12),
                     color: Colors.white,
                   ),
-                  SizedBox(width: 2),
+                  SizedBox(width: Responsive.width(context, 2)),
                   Text(
                     'شهادة',
                     style: TextStyle(
                       fontFamily: cairoFontFamily,
-                      fontSize: 10,
+                      fontSize: Responsive.fontSize(context, 10),
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
                     ),
@@ -281,22 +283,22 @@ class CourseGridItem extends StatelessWidget {
     );
   }
 
-  Widget _buildPrice() {
+  Widget _buildPrice(BuildContext context) {
     final hasDiscount = course.hasDiscount;
     final isFree = course.price == null || course.price!.isEmpty || course.price == '0';
 
     if (isFree) {
       return Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+        padding: Responsive.padding(context, horizontal: 8, vertical: 2),
         decoration: BoxDecoration(
           color: AppColors.success.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(4),
+          borderRadius: BorderRadius.circular(Responsive.radius(context, 4)),
         ),
         child: Text(
           'مجاني',
           style: TextStyle(
             fontFamily: cairoFontFamily,
-            fontSize: 11,
+            fontSize: Responsive.fontSize(context, 11),
             fontWeight: FontWeight.bold,
             color: AppColors.success,
           ),
@@ -311,18 +313,18 @@ class CourseGridItem extends StatelessWidget {
             '${course.priceBeforeDiscount}',
             style: TextStyle(
               fontFamily: cairoFontFamily,
-              fontSize: 10,
+              fontSize: Responsive.fontSize(context, 10),
               color: AppColors.textSecondary,
               decoration: TextDecoration.lineThrough,
             ),
           ),
-          SizedBox(width: 4),
+          SizedBox(width: Responsive.width(context, 4)),
         ],
         Text(
           '${course.price} جم',
           style: TextStyle(
             fontFamily: cairoFontFamily,
-            fontSize: 12,
+            fontSize: Responsive.fontSize(context, 12),
             fontWeight: FontWeight.bold,
             color: AppColors.primary,
           ),

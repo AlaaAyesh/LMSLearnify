@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import '../../domain/entities/reel.dart';
+import '../../data/models/reel_category_model.dart';
 
 abstract class ReelsState extends Equatable {
   const ReelsState();
@@ -21,7 +22,8 @@ class ReelsLoading extends ReelsState {
 /// Reels loaded successfully
 class ReelsLoaded extends ReelsState {
   final List<Reel> reels;
-  final String? nextCursor;
+  final String? nextCursor; // Deprecated, use nextPageUrl instead
+  final String? nextPageUrl; // URL for next page from API
   final bool hasMore;
   final bool isLoadingMore;
   final Map<int, bool> likedReels;
@@ -31,6 +33,7 @@ class ReelsLoaded extends ReelsState {
   const ReelsLoaded({
     required this.reels,
     this.nextCursor,
+    this.nextPageUrl,
     required this.hasMore,
     this.isLoadingMore = false,
     this.likedReels = const {},
@@ -51,6 +54,7 @@ class ReelsLoaded extends ReelsState {
   ReelsLoaded copyWith({
     List<Reel>? reels,
     String? nextCursor,
+    String? nextPageUrl,
     bool? hasMore,
     bool? isLoadingMore,
     Map<int, bool>? likedReels,
@@ -60,6 +64,7 @@ class ReelsLoaded extends ReelsState {
     return ReelsLoaded(
       reels: reels ?? this.reels,
       nextCursor: nextCursor ?? this.nextCursor,
+      nextPageUrl: nextPageUrl ?? this.nextPageUrl,
       hasMore: hasMore ?? this.hasMore,
       isLoadingMore: isLoadingMore ?? this.isLoadingMore,
       likedReels: likedReels ?? this.likedReels,
@@ -69,7 +74,7 @@ class ReelsLoaded extends ReelsState {
   }
 
   @override
-  List<Object?> get props => [reels, nextCursor, hasMore, isLoadingMore, likedReels, viewCounts, likeCounts];
+  List<Object?> get props => [reels, nextCursor, nextPageUrl, hasMore, isLoadingMore, likedReels, viewCounts, likeCounts];
 }
 
 /// No reels available
@@ -85,6 +90,16 @@ class ReelsError extends ReelsState {
 
   @override
   List<Object?> get props => [message];
+}
+
+/// Reels state with categories
+class ReelsWithCategories extends ReelsState {
+  final List<ReelCategoryModel> categories;
+
+  const ReelsWithCategories({required this.categories});
+
+  @override
+  List<Object?> get props => [categories];
 }
 
 

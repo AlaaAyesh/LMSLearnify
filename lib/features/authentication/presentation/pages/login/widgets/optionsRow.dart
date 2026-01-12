@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:learnify_lms/core/theme/app_text_styles.dart';
-
-
+import '../../../../../../core/utils/responsive.dart';
 import '../../../../../../core/theme/app_colors.dart';
 
 class OptionsRow extends StatelessWidget {
@@ -29,6 +28,7 @@ class OptionsRow extends StatelessWidget {
               'تذكرني',
               style: TextStyle(
                 fontFamily: cairoFontFamily,
+                fontSize: Responsive.fontSize(context, 14),
                 color: AppColors.textSecondary,
               ),
             ),
@@ -41,6 +41,7 @@ class OptionsRow extends StatelessWidget {
             'هل نسيت كلمة المرور؟',
             style: TextStyle(
               fontFamily: cairoFontFamily,
+              fontSize: Responsive.fontSize(context, 14),
               color: AppColors.textSecondary,
             ),
           ),

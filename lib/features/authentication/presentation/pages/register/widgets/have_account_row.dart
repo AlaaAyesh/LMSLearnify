@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:learnify_lms/core/theme/app_text_styles.dart';
-
-
+import '../../../../../../core/utils/responsive.dart';
 import '../../../../../../core/theme/app_colors.dart';
 
 class HaveAccountRow extends StatelessWidget {
@@ -17,7 +16,7 @@ class HaveAccountRow extends StatelessWidget {
           style: TextStyle(
             fontFamily: cairoFontFamily,
             color: AppColors.textSecondary,
-            fontSize: 14,
+            fontSize: Responsive.fontSize(context, 14),
           ),
         ),
         TextButton(
@@ -33,7 +32,7 @@ class HaveAccountRow extends StatelessWidget {
               fontFamily: cairoFontFamily,
               color: AppColors.primary,
               fontWeight: FontWeight.w600,
-              fontSize: 14,
+              fontSize: Responsive.fontSize(context, 14),
             ),
           ),
         ),

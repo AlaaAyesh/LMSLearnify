@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/utils/responsive.dart';
 import '../../../home/domain/entities/course.dart';
 
 /// A circular course item widget used in the All Courses Page
@@ -20,34 +21,36 @@ class CourseCircleItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
-      child: Container(
-        width: 110,
-        padding: const EdgeInsets.symmetric(horizontal: 4),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
+      child: SizedBox(
+        width: Responsive.width(context, 110),
+        child: Padding(
+          padding: Responsive.padding(context, horizontal: 4),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
             // Circle Image Container
             Stack(
               children: [
                 Container(
-                  width: 90,
-                  height: 90,
+                  width: Responsive.width(context, 90),
+                  height: Responsive.width(context, 90),
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     border: Border.all(
                       color: AppColors.primary.withOpacity(0.3),
-                      width: 3,
+                      width: Responsive.width(context, 3),
                     ),
                     boxShadow: [
                       BoxShadow(
                         color: AppColors.primary.withOpacity(0.15),
-                        blurRadius: 10,
-                        offset: const Offset(0, 4),
+                        blurRadius: Responsive.width(context, 10),
+                        offset: Offset(0, Responsive.height(context, 4)),
                       ),
                     ],
                   ),
                   child: ClipOval(
-                    child: _buildThumbnail(),
+                    child: _buildThumbnail(context),
                   ),
                 ),
                 // Badges
@@ -56,16 +59,16 @@ class CourseCircleItem extends StatelessWidget {
                     top: 0,
                     right: 0,
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      padding: Responsive.padding(context, horizontal: 6, vertical: 2),
                       decoration: BoxDecoration(
                         color: AppColors.warning,
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(Responsive.radius(context, 8)),
                       ),
                       child: Text(
                         'قريباً',
                         style: TextStyle(
                           fontFamily: cairoFontFamily,
-                          fontSize: 8,
+                          fontSize: Responsive.fontSize(context, 8),
                           fontWeight: FontWeight.bold,
                           color: Colors.white,
                         ),
@@ -77,15 +80,15 @@ class CourseCircleItem extends StatelessWidget {
                     top: 0,
                     right: 0,
                     child: Container(
-                      padding: const EdgeInsets.all(4),
+                      padding: Responsive.padding(context, all: 4),
                       decoration: const BoxDecoration(
                         color: AppColors.success,
                         shape: BoxShape.circle,
                       ),
-                      child: const Icon(
+                      child: Icon(
                         Icons.check,
                         color: Colors.white,
-                        size: 12,
+                        size: Responsive.iconSize(context, 12),
                       ),
                     ),
                   ),
@@ -97,16 +100,16 @@ class CourseCircleItem extends StatelessWidget {
                     right: 0,
                     child: Center(
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                        padding: Responsive.padding(context, horizontal: 8, vertical: 2),
                         decoration: BoxDecoration(
                           color: AppColors.success,
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(Responsive.radius(context, 8)),
                         ),
                         child: Text(
                           'مجاني',
                           style: TextStyle(
                             fontFamily: cairoFontFamily,
-                            fontSize: 9,
+                            fontSize: Responsive.fontSize(context, 9),
                             fontWeight: FontWeight.bold,
                             color: Colors.white,
                           ),
@@ -116,13 +119,13 @@ class CourseCircleItem extends StatelessWidget {
                   ),
               ],
             ),
-            const SizedBox(height: 8),
+            SizedBox(height: Responsive.spacing(context, 6)),
             // Course Name
             Text(
               course.nameAr,
               style: TextStyle(
                 fontFamily: cairoFontFamily,
-                fontSize: 12,
+                fontSize: Responsive.fontSize(context, 12),
                 fontWeight: FontWeight.w600,
                 color: AppColors.textPrimary,
               ),
@@ -133,18 +136,19 @@ class CourseCircleItem extends StatelessWidget {
             // Price (if not free)
             if (!_isFree)
               Padding(
-                padding: const EdgeInsets.only(top: 4),
+                padding: Responsive.padding(context, top: 2),
                 child: Text(
                   '${course.price} جم',
                   style: TextStyle(
                     fontFamily: cairoFontFamily,
-                    fontSize: 11,
+                    fontSize: Responsive.fontSize(context, 11),
                     fontWeight: FontWeight.bold,
                     color: AppColors.primary,
                   ),
                 ),
               ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -157,7 +161,7 @@ class CourseCircleItem extends StatelessWidget {
            course.price == '0.00';
   }
 
-  Widget _buildThumbnail() {
+  Widget _buildThumbnail(BuildContext context) {
     final thumbnailUrl = course.effectiveThumbnail;
     if (thumbnailUrl != null && thumbnailUrl.isNotEmpty) {
       return CachedNetworkImage(
@@ -165,14 +169,14 @@ class CourseCircleItem extends StatelessWidget {
         width: double.infinity,
         height: double.infinity,
         fit: BoxFit.cover,
-        placeholder: (context, url) => _buildPlaceholder(),
-        errorWidget: (context, url, error) => _buildPlaceholder(),
+        placeholder: (context, url) => _buildPlaceholder(context),
+        errorWidget: (context, url, error) => _buildPlaceholder(context),
       );
     }
-    return _buildPlaceholder();
+    return _buildPlaceholder(context);
   }
 
-  Widget _buildPlaceholder() {
+  Widget _buildPlaceholder(BuildContext context) {
     final gradientColors = [
       [const Color(0xFFFFD54F), const Color(0xFFFFB300)],
       [const Color(0xFF81D4FA), const Color(0xFF29B6F6)],
@@ -196,7 +200,7 @@ class CourseCircleItem extends StatelessWidget {
       child: Center(
         child: Icon(
           Icons.school_outlined,
-          size: 32,
+          size: Responsive.iconSize(context, 32),
           color: Colors.white.withOpacity(0.7),
         ),
       ),

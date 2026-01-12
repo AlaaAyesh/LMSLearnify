@@ -6,6 +6,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import '../../../../core/di/injection_container.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/utils/responsive.dart';
 import '../../../../core/widgets/bunny_video_player.dart';
 import '../../../home/domain/entities/chapter.dart';
 import '../../../home/domain/entities/course.dart';
@@ -237,14 +238,14 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.error_outline, size: 64, color: Colors.red),
-            SizedBox(height: 16),
+            Icon(Icons.error_outline, size: Responsive.iconSize(context, 64), color: Colors.red),
+            SizedBox(height: Responsive.spacing(context, 16)),
             Text(
               message,
-              style: TextStyle(color: Colors.white, fontFamily: cairoFontFamily, fontSize: 16),
+              style: TextStyle(color: Colors.white, fontFamily: cairoFontFamily, fontSize: Responsive.fontSize(context, 16)),
               textAlign: TextAlign.center,
             ),
-            SizedBox(height: 24),
+            SizedBox(height: Responsive.spacing(context, 24)),
             ElevatedButton(
               onPressed: () {
                 if (widget.lessonId > 0) {
@@ -290,7 +291,7 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
                         shape: BoxShape.circle,
                       ),
                       child: IconButton(
-                        icon: const Icon(Icons.arrow_back, color: Colors.white, size: 20),
+                        icon: Icon(Icons.arrow_back, color: Colors.white, size: Responsive.iconSize(context, 20)),
                         onPressed: () => Navigator.pop(context),
                       ),
                     ),
@@ -324,7 +325,7 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
                           shape: BoxShape.circle,
                         ),
                         child: IconButton(
-                          icon: const Icon(Icons.arrow_back, color: Colors.white, size: 20),
+                          icon: Icon(Icons.arrow_back, color: Colors.white, size: Responsive.iconSize(context, 20)),
                           onPressed: () => Navigator.pop(context),
                         ),
                       ),
@@ -352,7 +353,7 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
                         if (lesson.description != null && lesson.description!.isNotEmpty)
                           _buildDescriptionSection(lesson),
                         
-                        SizedBox(height: 24),
+                        SizedBox(height: Responsive.spacing(context, 24)),
                       ],
                     ),
                   ),
@@ -367,7 +368,7 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
 
   Widget _buildLessonInfoCard(Lesson lesson) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: Responsive.padding(context, all: 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -376,32 +377,32 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
             lesson.nameAr,
             style: TextStyle(
               fontFamily: cairoFontFamily,
-              fontSize: 18,
+              fontSize: Responsive.fontSize(context, 18),
               fontWeight: FontWeight.bold,
               color: AppColors.textPrimary,
             ),
           ),
-          SizedBox(height: 8),
+          SizedBox(height: Responsive.spacing(context, 8)),
           // Lesson Meta Info
           Row(
             children: [
               if (lesson.videoDuration != null) ...[
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: Responsive.padding(context, horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
                     color: AppColors.primary.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(4),
+                    borderRadius: BorderRadius.circular(Responsive.radius(context, 4)),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(Icons.access_time, size: 14, color: AppColors.primary),
-                      SizedBox(width: 4),
+                      Icon(Icons.access_time, size: Responsive.iconSize(context, 14), color: AppColors.primary),
+                      SizedBox(width: Responsive.width(context, 4)),
                       Text(
                         lesson.videoDuration!,
                         style: TextStyle(
                           fontFamily: cairoFontFamily,
-                          fontSize: 12,
+                          fontSize: Responsive.fontSize(context, 12),
                           color: AppColors.primary,
                           fontWeight: FontWeight.w600,
                         ),
@@ -409,25 +410,25 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
                     ],
                   ),
                 ),
-                SizedBox(width: 8),
+                SizedBox(width: Responsive.width(context, 8)),
               ],
               if (lesson.viewed) ...[
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: Responsive.padding(context, horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
                     color: AppColors.success.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(4),
+                    borderRadius: BorderRadius.circular(Responsive.radius(context, 4)),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.check_circle, size: 14, color: AppColors.success),
-                      SizedBox(width: 4),
+                      Icon(Icons.check_circle, size: Responsive.iconSize(context, 14), color: AppColors.success),
+                      SizedBox(width: Responsive.width(context, 4)),
                       Text(
                         'تمت المشاهدة',
                         style: TextStyle(
                           fontFamily: cairoFontFamily,
-                          fontSize: 12,
+                          fontSize: Responsive.fontSize(context, 12),
                           color: AppColors.success,
                           fontWeight: FontWeight.w600,
                         ),
@@ -445,11 +446,11 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
 
   Widget _buildCourseChapterInfo() {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
-      padding: const EdgeInsets.all(12),
+      margin: Responsive.margin(context, horizontal: 16),
+      padding: Responsive.padding(context, all: 12),
       decoration: BoxDecoration(
         color: Colors.grey[50],
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(Responsive.radius(context, 12)),
         border: Border.all(color: Colors.grey[200]!),
       ),
       child: Column(
@@ -460,14 +461,14 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
             Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.all(8),
+                  padding: Responsive.padding(context, all: 8),
                   decoration: BoxDecoration(
                     color: AppColors.primary.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(Responsive.radius(context, 8)),
                   ),
-                  child: const Icon(Icons.school, size: 20, color: AppColors.primary),
+                  child: Icon(Icons.school, size: Responsive.iconSize(context, 20), color: AppColors.primary),
                 ),
-                SizedBox(width: 12),
+                SizedBox(width: Responsive.width(context, 12)),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -476,7 +477,7 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
                         'الدورة',
                         style: TextStyle(
                           fontFamily: cairoFontFamily,
-                          fontSize: 11,
+                          fontSize: Responsive.fontSize(context, 11),
                           color: AppColors.textSecondary,
                         ),
                       ),
@@ -484,7 +485,7 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
                         widget.course!.nameAr,
                         style: TextStyle(
                           fontFamily: cairoFontFamily,
-                          fontSize: 14,
+                          fontSize: Responsive.fontSize(context, 14),
                           fontWeight: FontWeight.w600,
                           color: AppColors.textPrimary,
                         ),
@@ -501,21 +502,21 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
           if (widget.chapter != null) ...[
             if (widget.course != null) ...[
               Padding(
-                padding: EdgeInsets.symmetric(vertical: 8),
-                child: Divider(height: 1),
+                padding: Responsive.padding(context, vertical: 8),
+                child: Divider(height: Responsive.height(context, 1)),
               ),
             ],
             Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.all(8),
+                  padding: Responsive.padding(context, all: 8),
                   decoration: BoxDecoration(
                     color: AppColors.warning.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(Responsive.radius(context, 8)),
                   ),
-                  child: const Icon(Icons.folder_outlined, size: 20, color: AppColors.warning),
+                  child: Icon(Icons.folder_outlined, size: Responsive.iconSize(context, 20), color: AppColors.warning),
                 ),
-                SizedBox(width: 12),
+                SizedBox(width: Responsive.width(context, 12)),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -524,7 +525,7 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
                         'الفصل',
                         style: TextStyle(
                           fontFamily: cairoFontFamily,
-                          fontSize: 11,
+                          fontSize: Responsive.fontSize(context, 11),
                           color: AppColors.textSecondary,
                         ),
                       ),
@@ -532,7 +533,7 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
                         widget.chapter!.nameAr,
                         style: TextStyle(
                           fontFamily: cairoFontFamily,
-                          fontSize: 14,
+                          fontSize: Responsive.fontSize(context, 14),
                           fontWeight: FontWeight.w600,
                           color: AppColors.textPrimary,
                         ),
@@ -544,16 +545,16 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
                 ),
                 // Lessons count badge
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: Responsive.padding(context, horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
                     color: AppColors.primary,
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(Responsive.radius(context, 12)),
                   ),
                   child: Text(
                     '${widget.chapter!.lessons.length} دروس',
                     style: TextStyle(
                       fontFamily: cairoFontFamily,
-                      fontSize: 11,
+                      fontSize: Responsive.fontSize(context, 11),
                       color: Colors.white,
                       fontWeight: FontWeight.w600,
                     ),
@@ -575,17 +576,17 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
         InkWell(
           onTap: () => setState(() => _showLessonsList = !_showLessonsList),
           child: Padding(
-            padding: const EdgeInsets.all(16),
+            padding: Responsive.padding(context, all: 16),
             child: Row(
               children: [
-                const Icon(Icons.playlist_play, color: AppColors.primary, size: 24),
-                SizedBox(width: 8),
+                Icon(Icons.playlist_play, color: AppColors.primary, size: Responsive.iconSize(context, 24)),
+                SizedBox(width: Responsive.width(context, 8)),
                 Expanded(
                   child: Text(
                     'دروس الفصل',
                     style: TextStyle(
                       fontFamily: cairoFontFamily,
-                      fontSize: 16,
+                      fontSize: Responsive.fontSize(context, 16),
                       fontWeight: FontWeight.bold,
                       color: AppColors.textPrimary,
                     ),
@@ -594,6 +595,7 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
                 Icon(
                   _showLessonsList ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
                   color: AppColors.textSecondary,
+                  size: Responsive.iconSize(context, 24),
                 ),
               ],
             ),
@@ -615,16 +617,16 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
     final currentIndex = lessons.indexWhere((l) => l.id == currentLesson.id);
 
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
+      margin: Responsive.margin(context, horizontal: 16),
       decoration: BoxDecoration(
         color: Colors.grey[50],
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(Responsive.radius(context, 12)),
       ),
       child: ListView.separated(
         shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
         itemCount: lessons.length,
-        separatorBuilder: (_, __) => Divider(height: 1, color: Colors.grey[200]),
+        separatorBuilder: (_, __) => Divider(height: Responsive.height(context, 1), color: Colors.grey[200]),
         itemBuilder: (context, index) {
           final lesson = lessons[index];
           final isCurrentLesson = lesson.id == currentLesson.id;
@@ -645,8 +647,8 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
                     );
                   },
             leading: Container(
-              width: 32,
-              height: 32,
+              width: Responsive.width(context, 32),
+              height: Responsive.height(context, 32),
               decoration: BoxDecoration(
                 color: isCurrentLesson
                     ? AppColors.primary
@@ -657,14 +659,14 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
               ),
               child: Center(
                 child: isCurrentLesson
-                    ? const Icon(Icons.play_arrow, color: Colors.white, size: 18)
+                    ? Icon(Icons.play_arrow, color: Colors.white, size: Responsive.iconSize(context, 18))
                     : lesson.viewed
-                        ? const Icon(Icons.check, color: AppColors.success, size: 16)
+                        ? Icon(Icons.check, color: AppColors.success, size: Responsive.iconSize(context, 16))
                         : Text(
                             '${index + 1}',
                             style: TextStyle(
                               fontFamily: cairoFontFamily,
-                              fontSize: 12,
+                              fontSize: Responsive.fontSize(context, 12),
                               fontWeight: FontWeight.w600,
                               color: Colors.grey[600],
                             ),
@@ -675,7 +677,7 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
               lesson.nameAr,
               style: TextStyle(
                 fontFamily: cairoFontFamily,
-                fontSize: 14,
+                fontSize: Responsive.fontSize(context, 14),
                 fontWeight: isCurrentLesson ? FontWeight.bold : FontWeight.w500,
                 color: isCurrentLesson ? AppColors.primary : AppColors.textPrimary,
               ),
@@ -687,29 +689,29 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
                     lesson.duration!,
                     style: TextStyle(
                       fontFamily: cairoFontFamily,
-                      fontSize: 12,
+                      fontSize: Responsive.fontSize(context, 12),
                       color: AppColors.textSecondary,
                     ),
                   )
                 : null,
             trailing: isCurrentLesson
                 ? Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    padding: Responsive.padding(context, horizontal: 8, vertical: 2),
                     decoration: BoxDecoration(
                       color: AppColors.primary.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(4),
+                      borderRadius: BorderRadius.circular(Responsive.radius(context, 4)),
                     ),
                     child: Text(
                       'الآن',
                       style: TextStyle(
                         fontFamily: cairoFontFamily,
-                        fontSize: 11,
+                        fontSize: Responsive.fontSize(context, 11),
                         color: AppColors.primary,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                   )
-                : const Icon(Icons.chevron_left, color: AppColors.textSecondary, size: 20),
+                : Icon(Icons.chevron_left, color: AppColors.textSecondary, size: Responsive.iconSize(context, 20)),
           );
         },
       ),
@@ -718,37 +720,37 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
 
   Widget _buildDescriptionSection(Lesson lesson) {
     return Padding(
-      padding: const EdgeInsets.all(16),
+      padding: Responsive.padding(context, all: 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(Icons.info_outline, color: AppColors.primary, size: 20),
-              SizedBox(width: 8),
+              Icon(Icons.info_outline, color: AppColors.primary, size: Responsive.iconSize(context, 20)),
+              SizedBox(width: Responsive.width(context, 8)),
               Text(
                 'وصف الدرس',
                 style: TextStyle(
                   fontFamily: cairoFontFamily,
-                  fontSize: 16,
+                  fontSize: Responsive.fontSize(context, 16),
                   fontWeight: FontWeight.bold,
                   color: AppColors.textPrimary,
                 ),
               ),
             ],
           ),
-          SizedBox(height: 8),
+          SizedBox(height: Responsive.spacing(context, 8)),
           Container(
-            padding: const EdgeInsets.all(12),
+            padding: Responsive.padding(context, all: 12),
             decoration: BoxDecoration(
               color: Colors.grey[50],
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(Responsive.radius(context, 8)),
             ),
             child: Text(
               lesson.description!,
               style: TextStyle(
                 fontFamily: cairoFontFamily,
-                fontSize: 14,
+                fontSize: Responsive.fontSize(context, 14),
                 color: AppColors.textSecondary,
                 height: 1.6,
               ),
@@ -781,21 +783,21 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.video_library_outlined, size: 80, color: Colors.grey[400]),
-            SizedBox(height: 16),
+            Icon(Icons.video_library_outlined, size: Responsive.iconSize(context, 80), color: Colors.grey[400]),
+            SizedBox(height: Responsive.spacing(context, 16)),
             Text(
               'الفيديو غير متاح حالياً',
               style: TextStyle(
                 fontFamily: cairoFontFamily,
-                fontSize: 18,
+                fontSize: Responsive.fontSize(context, 18),
                 color: AppColors.textSecondary,
               ),
             ),
             if (lesson.videoStatus != null) ...[
-              SizedBox(height: 8),
+              SizedBox(height: Responsive.spacing(context, 8)),
               Text(
                 'الحالة: ${lesson.videoStatus}',
-                style: TextStyle(fontFamily: cairoFontFamily, fontSize: 14, color: Colors.grey[500]),
+                style: TextStyle(fontFamily: cairoFontFamily, fontSize: Responsive.fontSize(context, 14), color: Colors.grey[500]),
               ),
             ],
           ],

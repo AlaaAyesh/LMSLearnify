@@ -132,16 +132,30 @@ class PaymentProcessing extends SubscriptionState {}
 
 /// Payment initiated successfully (pending confirmation)
 class PaymentInitiated extends SubscriptionState {
-  final PurchaseModel purchase;
+  final PurchaseModel? purchase;
   final String message;
 
   const PaymentInitiated({
-    required this.purchase,
+    this.purchase,
     this.message = 'تم بدء عملية الدفع بنجاح',
   });
 
   @override
   List<Object?> get props => [purchase, message];
+}
+
+/// Payment checkout URL ready (for redirecting to payment gateway)
+class PaymentCheckoutReady extends SubscriptionState {
+  final String checkoutUrl;
+  final String message;
+
+  const PaymentCheckoutReady({
+    required this.checkoutUrl,
+    this.message = 'تم بدء عملية الدفع',
+  });
+
+  @override
+  List<Object?> get props => [checkoutUrl, message];
 }
 
 /// Payment completed successfully

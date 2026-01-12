@@ -4,21 +4,24 @@ import 'package:learnify_lms/features/subscriptions/presentation/pages/widgets/a
 import 'package:learnify_lms/features/subscriptions/presentation/pages/widgets/benefit_item.dart';
 import 'package:learnify_lms/features/subscriptions/presentation/pages/widgets/payment_button.dart';
 import 'package:learnify_lms/features/subscriptions/presentation/pages/widgets/payment_methods_row.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:learnify_lms/features/subscriptions/presentation/pages/widgets/promo_code_text_field.dart';
 import 'package:learnify_lms/features/subscriptions/presentation/pages/widgets/subscription_plan_card.dart';
 import '../../../../core/di/injection_container.dart';
 import '../../../../core/services/currency_service.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/utils/responsive.dart';
 import '../../../../core/widgets/custom_app_bar.dart';
 import '../../../../core/widgets/custom_background.dart';
 import '../../../../core/widgets/support_section.dart';
 import '../../../authentication/data/datasources/auth_local_datasource.dart';
 import '../../domain/entities/subscription_plan.dart';
+import '../../domain/entities/subscription.dart';
 import '../bloc/subscription_bloc.dart';
 import '../bloc/subscription_event.dart';
 import '../bloc/subscription_state.dart';
-import 'payment_page.dart';
+import '../../data/models/payment_model.dart';
 
 class SubscriptionsPage extends StatelessWidget {
   /// When true, shows the back button in the app bar.
@@ -132,19 +135,19 @@ class _SubscriptionsPageContentState extends State<_SubscriptionsPageContent> {
       child: SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+              padding: Responsive.padding(context, horizontal: 32, vertical: 16),
               child: Column(
                 children: [
               _buildPlansList(context, state),
-                  SizedBox(height: 24),
+                  SizedBox(height: Responsive.spacing(context, 24)),
                   _buildBenefitsList(),
-                  SizedBox(height: 24),
-                  _buildPromoCodeSection(),
-                  SizedBox(height: 24),
-              _buildPaymentSection(state),
-                  SizedBox(height: 16),
+                  SizedBox(height: Responsive.spacing(context, 24)),
+                  _buildPromoCodeSection(context),
+                  SizedBox(height: Responsive.spacing(context, 24)),
+              _buildPaymentSection(context, state),
+                  SizedBox(height: Responsive.spacing(context, 16)),
                   const SupportSection(),
-                  SizedBox(height: 24),
+                  SizedBox(height: Responsive.spacing(context, 24)),
                 ],
               ),
             ),
@@ -167,7 +170,8 @@ class _SubscriptionsPageContentState extends State<_SubscriptionsPageContent> {
           final isRecommended = subscription.duration == maxDuration;
 
           return Padding(
-            padding: EdgeInsets.only(
+            padding: Responsive.padding(
+              context,
               bottom: index < state.subscriptions.length - 1 ? 12 : 0,
             ),
           child: SubscriptionPlanCard(
@@ -220,23 +224,25 @@ class _SubscriptionsPageContentState extends State<_SubscriptionsPageContent> {
     );
   }
 
-  Widget _buildPromoCodeSection() {
+  Widget _buildPromoCodeSection(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           'هل لديك كوبون خصم؟',
-          style: AppTextStyles.bodyLarge,
+          style: AppTextStyles.bodyLarge.copyWith(
+            fontSize: Responsive.fontSize(context, AppTextStyles.bodyLarge.fontSize ?? 16),
+          ),
           textAlign: TextAlign.right,
         ),
-        SizedBox(height: 8),
+        SizedBox(height: Responsive.spacing(context, 8)),
         Row(
           textDirection: TextDirection.rtl,
           children: [
             Expanded(
               child: PromoCodeTextField(controller: _promoController),
             ),
-            SizedBox(width: 10),
+            SizedBox(width: Responsive.width(context, 10)),
             ApplyButton(onPressed: _applyPromoCode),
           ],
         ),
@@ -244,12 +250,12 @@ class _SubscriptionsPageContentState extends State<_SubscriptionsPageContent> {
     );
   }
 
-  Widget _buildPaymentSection(SubscriptionsLoaded state) {
+  Widget _buildPaymentSection(BuildContext context, SubscriptionsLoaded state) {
     final selectedSubscription = state.selectedSubscription;
     final currencySymbol = CurrencyService.getCurrencySymbol();
     
     return Padding(
-      padding: const EdgeInsets.all(16),
+      padding: Responsive.padding(context, all: 16),
       child: Column(
         children: [
           if (selectedSubscription != null) ...[
@@ -257,12 +263,13 @@ class _SubscriptionsPageContentState extends State<_SubscriptionsPageContent> {
               'المجموع: ${selectedSubscription.price} $currencySymbol',
               style: AppTextStyles.bodyLarge.copyWith(
                 fontWeight: FontWeight.bold,
+                fontSize: Responsive.fontSize(context, AppTextStyles.bodyLarge.fontSize ?? 16),
               ),
             ),
-            SizedBox(height: 8),
+            SizedBox(height: Responsive.spacing(context, 8)),
           ],
           PaymentButton(onPressed: () => _processPayment(state)),
-          SizedBox(height: 16),
+          SizedBox(height: Responsive.spacing(context, 16)),
           const PaymentMethodsRow(),
         ],
       ),
@@ -319,15 +326,161 @@ class _SubscriptionsPageContentState extends State<_SubscriptionsPageContent> {
       return;
     }
 
-    // User is authenticated - navigate to payment page
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => PaymentPage(
-          subscription: selectedSubscription,
-          promoCode: state.appliedPromoCode,
+    // User is authenticated - show compact payment sheet
+    _showPaymentBottomSheet(selectedSubscription, state.appliedPromoCode);
+  }
+
+  void _showPaymentBottomSheet(
+    Subscription selectedSubscription,
+    String? promoCode,
+  ) {
+    final bloc = context.read<SubscriptionBloc>();
+    final amount = selectedSubscription.price;
+    final currencySymbol = CurrencyService.getCurrencySymbol();
+    final currencyCode = CurrencyService.getCurrencyCode();
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(Responsive.radius(context, 24)),
         ),
       ),
+      builder: (ctx) {
+        return BlocProvider.value(
+          value: bloc,
+          child: BlocListener<SubscriptionBloc, SubscriptionState>(
+            listener: (context, state) async {
+              if (state is PaymentProcessing) {
+                // nothing extra, button shows loader outside
+              } else if (state is PaymentCheckoutReady) {
+                final uri = Uri.parse(state.checkoutUrl);
+                if (await canLaunchUrl(uri)) {
+                  await launchUrl(
+                    uri,
+                    mode: LaunchMode.externalApplication,
+                  );
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('لا يمكن فتح رابط الدفع'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
+                if (Navigator.of(context).canPop()) {
+                  Navigator.of(context).pop();
+                }
+              } else if (state is PaymentFailed) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(state.message),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+              } else if (state is PaymentCompleted || state is PaymentInitiated) {
+                if (Navigator.of(context).canPop()) {
+                  Navigator.of(context).pop();
+                }
+              }
+            },
+            child: Padding(
+              padding: EdgeInsets.only(
+                left: Responsive.width(ctx, 20),
+                right: Responsive.width(ctx, 20),
+                bottom: MediaQuery.of(ctx).viewInsets.bottom + Responsive.height(ctx, 20),
+                top: Responsive.height(ctx, 16),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: Responsive.width(ctx, 50),
+                      height: Responsive.height(ctx, 5),
+                      decoration: BoxDecoration(
+                        color: Colors.grey[300],
+                        borderRadius: BorderRadius.circular(Responsive.radius(ctx, 12)),
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: Responsive.spacing(ctx, 16)),
+                  Text(
+                    'اختر طريقة الدفع',
+                    style: TextStyle(
+                      fontFamily: cairoFontFamily,
+                      fontSize: Responsive.fontSize(ctx, 16),
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                  SizedBox(height: Responsive.spacing(ctx, 12)),
+                  _PaymentOptionTile(
+                    title: 'بطاقة ائتمانية',
+                    subtitle: 'ادفع عبر بوابة Kashier',
+                    icon: Icons.credit_card,
+                    onTap: () {
+                      bloc.add(
+                        ProcessPaymentEvent(
+                          service: PaymentService.kashier,
+                          currency: currencyCode,
+                          subscriptionId: selectedSubscription.id,
+                          phone: '',
+                          couponCode: promoCode,
+                        ),
+                      );
+                    },
+                  ),
+                  SizedBox(height: Responsive.spacing(ctx, 12)),
+                  _PaymentOptionTile(
+                    title: 'محفظة / طرق أخرى',
+                    subtitle: 'سيتم توجيهك لبوابة الدفع',
+                    icon: Icons.account_balance_wallet,
+                    onTap: () {
+                      bloc.add(
+                        ProcessPaymentEvent(
+                          service: PaymentService.kashier,
+                          currency: currencyCode,
+                          subscriptionId: selectedSubscription.id,
+                          phone: '',
+                          couponCode: promoCode,
+                        ),
+                      );
+                    },
+                  ),
+                  SizedBox(height: Responsive.spacing(ctx, 16)),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'الإجمالي',
+                        style: TextStyle(
+                          fontFamily: cairoFontFamily,
+                          fontSize: Responsive.fontSize(ctx, 14),
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                      Text(
+                        '$amount $currencySymbol',
+                        style: TextStyle(
+                          fontFamily: cairoFontFamily,
+                          fontSize: Responsive.fontSize(ctx, 18),
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.primary,
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: Responsive.spacing(ctx, 20)),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -338,39 +491,39 @@ class _SubscriptionsPageContentState extends State<_SubscriptionsPageContent> {
         children: [
           Icon(
             Icons.subscriptions_outlined,
-            size: 80,
+            size: Responsive.iconSize(context, 80),
             color: Colors.grey[400],
           ),
-          SizedBox(height: 16),
+          SizedBox(height: Responsive.spacing(context, 16)),
           Text(
             'لا توجد باقات متاحة حالياً',
             style: TextStyle(
-              fontSize: 18,
+              fontSize: Responsive.fontSize(context, 18),
               color: Colors.grey[600],
               fontWeight: FontWeight.w500,
             ),
           ),
-          SizedBox(height: 8),
+          SizedBox(height: Responsive.spacing(context, 8)),
           Text(
             'يرجى المحاولة لاحقاً',
             style: TextStyle(
-              fontSize: 14,
+              fontSize: Responsive.fontSize(context, 14),
               color: Colors.grey[500],
             ),
           ),
-          SizedBox(height: 24),
+          SizedBox(height: Responsive.spacing(context, 24)),
           ElevatedButton.icon(
             onPressed: () {
               context.read<SubscriptionBloc>().add(const LoadSubscriptionsEvent());
             },
-            icon: const Icon(Icons.refresh),
+            icon: Icon(Icons.refresh, size: Responsive.iconSize(context, 20)),
             label: const Text('تحديث'),
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFFFFC107),
               foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              padding: Responsive.padding(context, horizontal: 24, vertical: 12),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(Responsive.radius(context, 12)),
               ),
             ),
           ),
@@ -386,43 +539,43 @@ class _SubscriptionsPageContentState extends State<_SubscriptionsPageContent> {
         children: [
           Icon(
             Icons.error_outline,
-            size: 80,
+            size: Responsive.iconSize(context, 80),
             color: Colors.red[400],
           ),
-          SizedBox(height: 16),
+          SizedBox(height: Responsive.spacing(context, 16)),
           Text(
             'حدث خطأ',
             style: TextStyle(
-              fontSize: 18,
+              fontSize: Responsive.fontSize(context, 18),
               color: Colors.grey[600],
               fontWeight: FontWeight.w500,
             ),
           ),
-          SizedBox(height: 8),
+          SizedBox(height: Responsive.spacing(context, 8)),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 32),
+            padding: Responsive.padding(context, horizontal: 32),
             child: Text(
               message,
               textAlign: TextAlign.center,
               style: TextStyle(
-                fontSize: 14,
+                fontSize: Responsive.fontSize(context, 14),
                 color: Colors.grey[500],
               ),
             ),
           ),
-          SizedBox(height: 24),
+          SizedBox(height: Responsive.spacing(context, 24)),
           ElevatedButton.icon(
             onPressed: () {
               context.read<SubscriptionBloc>().add(const LoadSubscriptionsEvent());
             },
-            icon: const Icon(Icons.refresh),
+            icon: Icon(Icons.refresh, size: Responsive.iconSize(context, 20)),
             label: const Text('إعادة المحاولة'),
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFFFFC107),
               foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              padding: Responsive.padding(context, horizontal: 24, vertical: 12),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(Responsive.radius(context, 12)),
               ),
             ),
           ),
@@ -438,6 +591,91 @@ class _SubscriptionsPageContentState extends State<_SubscriptionsPageContent> {
             ApplyPromoCodeEvent(promoCode: promoCode),
           );
     }
+  }
+}
+
+class _PaymentOptionTile extends StatelessWidget {
+  final String title;
+  final String subtitle;
+  final IconData icon;
+  final VoidCallback onTap;
+
+  const _PaymentOptionTile({
+    required this.title,
+    required this.subtitle,
+    required this.icon,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(Responsive.radius(context, 12)),
+      child: Container(
+        padding: Responsive.padding(context, vertical: 14, horizontal: 12),
+        decoration: BoxDecoration(
+          color: Colors.grey[50],
+          borderRadius: BorderRadius.circular(Responsive.radius(context, 12)),
+          border: Border.all(color: Colors.grey[200]!),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.04),
+              blurRadius: Responsive.width(context, 8),
+              offset: Offset(0, Responsive.height(context, 3)),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: Responsive.width(context, 40),
+              height: Responsive.width(context, 40),
+              decoration: BoxDecoration(
+                color: AppColors.primary.withOpacity(0.12),
+                borderRadius: BorderRadius.circular(Responsive.radius(context, 10)),
+              ),
+              child: Icon(
+                icon,
+                color: AppColors.primary,
+                size: Responsive.iconSize(context, 24),
+              ),
+            ),
+            SizedBox(width: Responsive.width(context, 12)),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontFamily: cairoFontFamily,
+                      fontSize: Responsive.fontSize(context, 14),
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                  SizedBox(height: Responsive.spacing(context, 4)),
+                  Text(
+                    subtitle,
+                    style: TextStyle(
+                      fontFamily: cairoFontFamily,
+                      fontSize: Responsive.fontSize(context, 12),
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(
+              Icons.arrow_forward_ios,
+              size: Responsive.iconSize(context, 16),
+              color: AppColors.textSecondary,
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 

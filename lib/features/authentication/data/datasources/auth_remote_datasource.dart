@@ -43,6 +43,7 @@ abstract class AuthRemoteDataSource {
     String? phone,
     int? specialtyId,
     String? gender,
+    String? religion,
     String? birthday,
   });
 }
@@ -362,6 +363,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     String? phone,
     int? specialtyId,
     String? gender,
+    String? religion,
     String? birthday,
   }) async {
     try {
@@ -376,6 +378,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       if (phone != null) formFields['phone'] = phone;
       if (specialtyId != null) formFields['specialty_id'] = specialtyId;
       if (gender != null) formFields['gender'] = gender;
+      if (religion != null) formFields['religion'] = religion;
       if (birthday != null) formFields['birthday'] = birthday;
 
       final response = await dioClient.post(

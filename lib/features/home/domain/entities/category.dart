@@ -7,6 +7,7 @@ class Category extends Equatable {
   final String? description;
   final int? specialtyId;
   final String? imageUrl;
+  final int? coursesCount;
 
   const Category({
     required this.id,
@@ -15,12 +16,13 @@ class Category extends Equatable {
     this.description,
     this.specialtyId,
     this.imageUrl,
+    this.coursesCount,
   });
 
   String getName(String locale) => locale == 'ar' ? nameAr : nameEn;
 
   @override
-  List<Object?> get props => [id, nameAr, nameEn, description, specialtyId, imageUrl];
+  List<Object?> get props => [id, nameAr, nameEn, description, specialtyId, imageUrl, coursesCount];
 }
 
 

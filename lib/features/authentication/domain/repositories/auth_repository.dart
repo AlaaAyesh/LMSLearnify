@@ -17,6 +17,7 @@ abstract class AuthRepository {
     required String phone,
     required int specialtyId,
     required String gender,
+    String? religion,
     String? birthday,
   });
 
@@ -64,6 +65,7 @@ abstract class AuthRepository {
     String? phone,
     int? specialtyId,
     String? gender,
+    String? religion,
     String? birthday,
   });
 }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../features/about/presentation/pages/about_page.dart';
 import '../../features/authentication/presentation/pages/change_password_page.dart';
+import '../../features/onboarding/presentation/pages/content_preferences_page.dart';
 import '../../features/authentication/presentation/pages/email_verification_page.dart';
 import '../../features/authentication/presentation/pages/register/complete_profile_page.dart';
 import '../../features/authentication/presentation/pages/forgot_password/create_new_password_page.dart';
@@ -41,6 +42,7 @@ class AppRouter {
   static const String lesson = '/lesson';
   static const String about = '/about';
   static const String reelsFeed = '/reels-feed';
+  static const String contentPreferences = '/content-preferences';
 
   static Route<dynamic> generateRoute(RouteSettings settings) {
     switch (settings.name) {
@@ -143,6 +145,9 @@ class AppRouter {
             ),
           ),
         );
+
+      case contentPreferences:
+        return MaterialPageRoute(builder: (_) => const ContentPreferencesPage());
 
       default:
         return MaterialPageRoute(

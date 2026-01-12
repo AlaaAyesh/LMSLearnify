@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/utils/responsive.dart';
 
 class CustomTextField extends StatelessWidget {
   final String hintText;
@@ -46,62 +47,59 @@ class CustomTextField extends StatelessWidget {
         ),
         prefixIcon: prefixIcon != null
             ? Padding(
-          padding: const EdgeInsets.only(left: 16, right: 12),
+          padding: Responsive.padding(context, left: 16, right: 12),
           child: prefixIcon,
         )
             : null,
-        prefixIconConstraints: const BoxConstraints(
-          minWidth: 24,
-          minHeight: 24,
+        prefixIconConstraints: BoxConstraints(
+          minWidth: Responsive.width(context, 24),
+          minHeight: Responsive.width(context, 24),
         ),
         suffixIcon: suffixIcon != null
             ? Padding(
-          padding: const EdgeInsets.only(right: 16, left: 12),
+          padding: Responsive.padding(context, right: 16, left: 12),
           child: suffixIcon,
         )
             : null,
-        suffixIconConstraints: const BoxConstraints(
-          minWidth: 24,
-          minHeight: 24,
+        suffixIconConstraints: BoxConstraints(
+          minWidth: Responsive.width(context, 24),
+          minHeight: Responsive.width(context, 24),
         ),
         filled: false, // إلغاء التعبئة
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 20,
-          vertical: 18,
-        ),
+        contentPadding: Responsive.padding(context, horizontal: 20, vertical: 18),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(30),
+          borderRadius: BorderRadius.circular(Responsive.radius(context, 30)),
           borderSide: BorderSide(
             color: Colors.grey.shade300, // رمادي فاتح
-            width: 1,
+            width: Responsive.width(context, 1),
           ),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(30),
+          borderRadius: BorderRadius.circular(Responsive.radius(context, 30)),
           borderSide: BorderSide(
             color: Colors.grey.shade300, // رمادي فاتح
-            width: 1,
+            width: Responsive.width(context, 1),
           ),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(30),
+          borderRadius: BorderRadius.circular(Responsive.radius(context, 30)),
           borderSide: BorderSide(
             color: Colors.grey.shade400, // رمادي أغمق قليلاً عند التركيز
-            width: 1.5,
+            width: Responsive.width(context, 1.5),
           ),
         ),
         errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(30),
-          borderSide: const BorderSide(
+          borderRadius: BorderRadius.circular(Responsive.radius(context, 30)),
+          borderSide: BorderSide(
             color: AppColors.error,
-            width: 1,
+            width: Responsive.width(context, 1),
           ),
         ),
         focusedErrorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(30),
-          borderSide: const BorderSide(
+          borderRadius: BorderRadius.circular(Responsive.radius(context, 30)),
+          borderSide: BorderSide(
             color: AppColors.error,
-            width: 1.5,
+            width: Responsive.width(context, 1.5),
           ),
         ),
       ),

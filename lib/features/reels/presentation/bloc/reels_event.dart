@@ -10,11 +10,12 @@ abstract class ReelsEvent extends Equatable {
 /// Load initial reels feed
 class LoadReelsFeedEvent extends ReelsEvent {
   final int perPage;
+  final int? categoryId;
 
-  const LoadReelsFeedEvent({this.perPage = 10});
+  const LoadReelsFeedEvent({this.perPage = 10, this.categoryId});
 
   @override
-  List<Object?> get props => [perPage];
+  List<Object?> get props => [perPage, categoryId];
 }
 
 /// Load more reels (pagination)
@@ -45,6 +46,11 @@ class MarkReelViewedEvent extends ReelsEvent {
 
   @override
   List<Object?> get props => [reelId];
+}
+
+/// Load reel categories
+class LoadReelCategoriesEvent extends ReelsEvent {
+  const LoadReelCategoriesEvent();
 }
 
 
