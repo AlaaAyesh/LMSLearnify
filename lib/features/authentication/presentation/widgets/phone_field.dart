@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import '../../../../core/utils/responsive.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/validators.dart';
+import 'custom_text_field.dart';
 
 class PhoneField extends StatelessWidget {
   final TextEditingController controller;
@@ -19,99 +20,44 @@ class PhoneField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.inputBackground,
-        borderRadius: BorderRadius.circular(Responsive.radius(context, 12)),
-        border: Border.all(color: AppColors.inputBorder, width: Responsive.width(context, 1)),
+    return CustomTextField(
+      hintText: 'رقم التليفون',
+      controller: controller,
+      keyboardType: TextInputType.phone,
+      textInputAction: TextInputAction.next,
+      suffixIcon: InkWell(
+        onTap: () => _showCountryPicker(context),
+        borderRadius: BorderRadius.circular(12),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              _getFlag(countryCode) ?? '',
+              style: TextStyle(fontSize: Responsive.fontSize(context, 20)),
+            ),
+            SizedBox(width: Responsive.width(context, 4)),
+            Text(
+              countryCode ?? 'اختر دولتك',
+              style: TextStyle(
+                fontFamily: cairoFontFamily,
+                fontSize: Responsive.fontSize(context, 14),
+                fontWeight: FontWeight.w600,
+                color: countryCode != null
+                    ? AppColors.textPrimary
+                    : AppColors.textSecondary,
+              ),
+            ),
+            SizedBox(width: Responsive.width(context, 4)),
+            Icon(
+              Icons.keyboard_arrow_down,
+              size: Responsive.iconSize(context, 18),
+              color: AppColors.textSecondary,
+            ),
+          ],
+        ),
       ),
-      child: Row(
-        textDirection: TextDirection.ltr,
-        children: [
-          // Country Code Selector
-          InkWell(
-            onTap: () => _showCountryPicker(context),
-            borderRadius: BorderRadius.horizontal(
-              left: Radius.circular(Responsive.radius(context, 12)),
-            ),
-            child: Container(
-              padding: Responsive.padding(context, horizontal: 12, vertical: 16),
-              decoration: BoxDecoration(
-                border: Border(
-                  right: BorderSide(
-                    color: AppColors.inputBorder,
-                    width: Responsive.width(context, 1),
-                  ),
-                ),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    _getFlag(countryCode) ?? '🌍',
-                    style: TextStyle(fontSize: Responsive.fontSize(context, 20)),
-                  ),
-                  SizedBox(width: Responsive.width(context, 4)),
-                  Text(
-                    countryCode ?? '+20',
-                    style: TextStyle(
-                      fontFamily: cairoFontFamily,
-                      fontSize: Responsive.fontSize(context, 14),
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.textPrimary,
-                    ),
-                  ),
-                  SizedBox(width: Responsive.width(context, 4)),
-                  Icon(
-                    Icons.keyboard_arrow_down,
-                    size: Responsive.iconSize(context, 18),
-                    color: AppColors.textSecondary,
-                  ),
-                ],
-              ),
-            ),
-          ),
-          // Phone Number Input
-          Expanded(
-            child: Directionality(
-              textDirection: TextDirection.ltr,
-              child: TextFormField(
-                controller: controller,
-                keyboardType: TextInputType.phone,
-                textAlign: TextAlign.left,
-                style: TextStyle(
-                  fontFamily: cairoFontFamily,
-                  fontSize: Responsive.fontSize(context, 16),
-                  color: AppColors.textPrimary,
-                ),
-                inputFormatters: [
-                  FilteringTextInputFormatter.digitsOnly,
-                ],
-                decoration: InputDecoration(
-                  hintText: 'رقم الهاتف',
-                  hintStyle: TextStyle(
-                    color: AppColors.textHint,
-                    fontFamily: cairoFontFamily,
-                    fontSize: Responsive.fontSize(context, 14),
-                  ),
-                  border: InputBorder.none,
-                  contentPadding: Responsive.padding(context, horizontal: 16, vertical: 16),
-                ),
-                validator: Validators.phone,
-              ),
-            ),
-          ),
-          // Phone Icon
-          Padding(
-            padding: Responsive.padding(context, right: 12),
-            child: Icon(
-              Icons.phone_outlined,
-              color: AppColors.primary,
-              size: Responsive.iconSize(context, 22),
-            ),
-          ),
-        ],
-      ),
+      prefixIcon: const Icon(Icons.phone_outlined, color: AppColors.primary),
+      validator: Validators.phone,
     );
   }
 
@@ -136,11 +82,14 @@ class PhoneField extends StatelessWidget {
 
   String? _getFlag(String? code) {
     if (code == null) return null;
-    final country = _countries.firstWhere(
-      (c) => c['code'] == code,
-      orElse: () => {'flag': '🇪🇬'},
-    );
-    return country['flag'];
+    try {
+      final country = _countries.firstWhere(
+            (c) => c['code'] == code,
+      );
+      return country['flag'];
+    } catch (e) {
+      return null;
+    }
   }
 
   static const List<Map<String, String>> _countries = [
@@ -242,7 +191,7 @@ class _CountryPickerSheet extends StatelessWidget {
             itemBuilder: (context, index) {
               final country = _countries[index];
               final isSelected = country['code'] == selectedCode;
-              
+
               return ListTile(
                 onTap: () => onSelected(country['code']!),
                 leading: Text(
@@ -268,10 +217,10 @@ class _CountryPickerSheet extends StatelessWidget {
                 ),
                 trailing: isSelected
                     ? Icon(
-                        Icons.check_circle,
-                        color: AppColors.primary,
-                        size: Responsive.iconSize(context, 24),
-                      )
+                  Icons.check_circle,
+                  color: AppColors.primary,
+                  size: Responsive.iconSize(context, 24),
+                )
                     : null,
                 selected: isSelected,
                 selectedTileColor: AppColors.primary.withOpacity(0.1),
@@ -284,6 +233,3 @@ class _CountryPickerSheet extends StatelessWidget {
     );
   }
 }
-
-
-

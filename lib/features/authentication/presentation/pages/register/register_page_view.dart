@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:learnify_lms/core/theme/app_text_styles.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:learnify_lms/features/authentication/presentation/pages/register/widgets/religion_field.dart';
 import '../../../../../core/utils/responsive.dart';
 import 'package:learnify_lms/features/authentication/presentation/pages/register/widgets/have_account_row.dart';
 import 'package:learnify_lms/features/authentication/presentation/widgets/name_field.dart';
@@ -34,7 +35,6 @@ class RegisterPageViewState extends State<RegisterPageView> {
   final phoneController = TextEditingController();
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
-  final confirmPasswordController = TextEditingController();
 
   // Birthday controllers
   final dayController = TextEditingController();
@@ -42,8 +42,7 @@ class RegisterPageViewState extends State<RegisterPageView> {
   final yearController = TextEditingController();
 
   bool obscurePassword = true;
-  bool obscureConfirmPassword = true;
-  String? countryCode = '+20'; // Default to Egypt
+  String? countryCode; // Default to Egypt
   String selectedRole = 'student';
   String selectedGender = 'male';
   String? selectedReligion;
@@ -68,7 +67,6 @@ class RegisterPageViewState extends State<RegisterPageView> {
     phoneController.dispose();
     emailController.dispose();
     passwordController.dispose();
-    confirmPasswordController.dispose();
     dayController.dispose();
     monthController.dispose();
     yearController.dispose();
@@ -127,17 +125,6 @@ class RegisterPageViewState extends State<RegisterPageView> {
 
   void onRegisterPressed() {
     if (formKey.currentState!.validate()) {
-      // Check password match
-      if (passwordController.text != confirmPasswordController.text) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('كلمة المرور غير متطابقة'),
-            backgroundColor: AppColors.error,
-          ),
-        );
-        return;
-      }
-
       // Check age validity
       if (calculatedAge == null) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -167,7 +154,7 @@ class RegisterPageViewState extends State<RegisterPageView> {
               name: nameController.text.trim(),
               email: emailController.text.trim(),
               password: passwordController.text,
-              passwordConfirmation: confirmPasswordController.text,
+              passwordConfirmation: passwordController.text, // Same as password
               role: selectedRole,
               phone: countryCode != null
                   ? '$countryCode${phoneController.text.trim()}'
@@ -199,9 +186,18 @@ class RegisterPageViewState extends State<RegisterPageView> {
                     children: [
                       SizedBox(height: Responsive.spacing(context, 50)),
                       const RegisterHeader(),
-                      SizedBox(height: Responsive.spacing(context, 45)),
+                      SizedBox(height: Responsive.spacing(context, 22)),
                       NameField(controller: nameController),
                       SizedBox(height: Responsive.spacing(context, 16)),
+                      BirthdayField(
+                        dayController: dayController,
+                        monthController: monthController,
+                        yearController: yearController,
+                      ),
+                      if (calculatedAge != null) ...[
+                        SizedBox(height: Responsive.spacing(context, 8)),
+                        _buildAgeSpecialtyInfo(context),
+                      ],SizedBox(height: Responsive.spacing(context, 16)),
                       PhoneField(
                         controller: phoneController,
                         countryCode: countryCode,
@@ -210,35 +206,27 @@ class RegisterPageViewState extends State<RegisterPageView> {
                       ),
                       SizedBox(height: Responsive.spacing(context, 16)),
                       EmailField(controller: emailController),
+
                       SizedBox(height: Responsive.spacing(context, 16)),
-                      // Birthday Field
-                      BirthdayField(
-                        dayController: dayController,
-                        monthController: monthController,
-                        yearController: yearController,
+
+                      ReligionField(
+                        selectedValue: selectedReligion,
+                        onChanged: (value) {
+                          setState(() {
+                            selectedReligion = value;
+                          });
+                        },
+                        validator: (value) {
+                          if (value == null) return 'من فضلك اختر الدين';
+                          return null;
+                        },
                       ),
-                      // Show calculated age and specialty
-                      if (calculatedAge != null) ...[
-                        SizedBox(height: Responsive.spacing(context, 8)),
-                        _buildAgeSpecialtyInfo(context),
-                      ],
-                      SizedBox(height: Responsive.spacing(context, 16)),
-                      // Religion Dropdown
-                      _buildReligionSelector(context),
                       SizedBox(height: Responsive.spacing(context, 16)),
                       PasswordField(
                         controller: passwordController,
                         obscure: obscurePassword,
                         onToggleVisibility: () =>
                             setState(() => obscurePassword = !obscurePassword),
-                      ),
-                      SizedBox(height: Responsive.spacing(context, 16)),
-                      PasswordField(
-                        controller: confirmPasswordController,
-                        obscure: obscureConfirmPassword,
-                        hintText: 'تأكيد كلمة المرور',
-                        onToggleVisibility: () => setState(
-                            () => obscureConfirmPassword = !obscureConfirmPassword),
                       ),
                       SizedBox(height: Responsive.spacing(context, 28)),
                       BlocBuilder<AuthBloc, AuthState>(
@@ -252,9 +240,9 @@ class RegisterPageViewState extends State<RegisterPageView> {
                           );
                         },
                       ),
-                      SizedBox(height: Responsive.spacing(context, 16)),
+                      SizedBox(height: Responsive.spacing(context, 12)),
                       const HaveAccountRow(),
-                      SizedBox(height: Responsive.spacing(context, 20)),
+                      SizedBox(height: Responsive.spacing(context, 16)),
                       const CustomDividerWithText(text: "أو التسجيل بواسطة"),
                       SizedBox(height: Responsive.spacing(context, 20)),
                       const SocialLoginButtons(),
@@ -319,7 +307,8 @@ class RegisterPageViewState extends State<RegisterPageView> {
                   )
                 else if (!isValidAge)
                   Text(
-                    AgeSpecialtyHelper.getAgeValidationMessage(calculatedAge!) ??
+                    AgeSpecialtyHelper.getAgeValidationMessage(
+                            calculatedAge!) ??
                         'العمر غير صالح',
                     style: TextStyle(
                       fontFamily: cairoFontFamily,
@@ -331,97 +320,6 @@ class RegisterPageViewState extends State<RegisterPageView> {
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildGenderSelector(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        border: Border.all(color: AppColors.inputBorder),
-        borderRadius: BorderRadius.circular(Responsive.radius(context, 12)),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: RadioListTile<String>(
-              title: Text('ذكر', style: TextStyle(fontSize: Responsive.fontSize(context, 14))),
-              value: 'male',
-              groupValue: selectedGender,
-              onChanged: (value) {
-                setState(() => selectedGender = value!);
-              },
-              activeColor: AppColors.primary,
-              contentPadding: EdgeInsets.zero,
-            ),
-          ),
-          Expanded(
-            child: RadioListTile<String>(
-              title: Text('أنثى', style: TextStyle(fontSize: Responsive.fontSize(context, 14))),
-              value: 'female',
-              groupValue: selectedGender,
-              onChanged: (value) {
-                setState(() => selectedGender = value!);
-              },
-              activeColor: AppColors.primary,
-              contentPadding: EdgeInsets.zero,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildReligionSelector(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        border: Border.all(color: AppColors.inputBorder),
-        borderRadius: BorderRadius.circular(Responsive.radius(context, 12)),
-      ),
-      padding: Responsive.padding(context, horizontal: 16),
-      child: DropdownButtonFormField<String>(
-        value: selectedReligion,
-        decoration: InputDecoration(
-          labelText: 'الدين',
-          labelStyle: TextStyle(
-            fontFamily: cairoFontFamily,
-            fontSize: Responsive.fontSize(context, 14),
-            color: AppColors.textSecondary,
-          ),
-          border: InputBorder.none,
-          contentPadding: EdgeInsets.zero,
-        ),
-        style: TextStyle(
-          fontFamily: cairoFontFamily,
-          fontSize: Responsive.fontSize(context, 16),
-          color: AppColors.textPrimary,
-        ),
-        hint: Text(
-          'اختر الدين',
-          style: TextStyle(
-            fontFamily: cairoFontFamily,
-            fontSize: Responsive.fontSize(context, 16),
-            color: AppColors.textHint,
-          ),
-        ),
-        items: [
-          DropdownMenuItem<String>(
-            value: 'muslim',
-            child: Text('مسلم', style: TextStyle(fontSize: Responsive.fontSize(context, 16))),
-          ),
-          DropdownMenuItem<String>(
-            value: 'christian',
-            child: Text('مسيحي', style: TextStyle(fontSize: Responsive.fontSize(context, 16))),
-          ),
-        ],
-        onChanged: (value) {
-          setState(() => selectedReligion = value);
-        },
-        icon: Icon(
-          Icons.arrow_drop_down,
-          color: AppColors.textSecondary,
-          size: Responsive.iconSize(context, 24),
-        ),
       ),
     );
   }
@@ -440,6 +338,3 @@ class RegisterPageViewState extends State<RegisterPageView> {
     }
   }
 }
-
-
-

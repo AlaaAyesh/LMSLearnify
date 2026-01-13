@@ -16,9 +16,18 @@ class Assets {
   static const String assetsImagesMastercard = 'assets/images/mastercard.png';
   static const String assetsImagesPaint = 'assets/images/paint.png';
   static const String assetsImagesPrograming = 'assets/images/programing.png';
+  static const String assetsImagesScratch = 'assets/images/scratch.png';
   static const String assetsImagesVcash = 'assets/images/vcash.png';
   static const String assetsImagesVisa = 'assets/images/visa.png';
   static const String assetsImagesWhatsapp = 'assets/images/whatsapp.png';
+  static const String cairoCairoBlack = 'assets/fonts/Cairo/Cairo-Black.ttf';
+  static const String cairoCairoBold = 'assets/fonts/Cairo/Cairo-Bold.ttf';
+  static const String cairoCairoExtraBold = 'assets/fonts/Cairo/Cairo-ExtraBold.ttf';
+  static const String cairoCairoExtraLight = 'assets/fonts/Cairo/Cairo-ExtraLight.ttf';
+  static const String cairoCairoLight = 'assets/fonts/Cairo/Cairo-Light.ttf';
+  static const String cairoCairoMedium = 'assets/fonts/Cairo/Cairo-Medium.ttf';
+  static const String cairoCairoRegular = 'assets/fonts/Cairo/Cairo-Regular.ttf';
+  static const String cairoCairoSemiBold = 'assets/fonts/Cairo/Cairo-SemiBold.ttf';
   static const String iconsApple = 'assets/icons/apple.svg';
   static const String iconsCode1 = 'assets/icons/code1.svg';
   static const String iconsGoogle = 'assets/icons/google.svg';
@@ -39,5 +48,3 @@ class Assets {
   static const String imagesWhatsapp = 'assets/images/whatsapp.png';
 
 }
-
-

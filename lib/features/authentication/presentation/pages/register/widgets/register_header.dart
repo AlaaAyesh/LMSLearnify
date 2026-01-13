@@ -10,7 +10,7 @@ class RegisterHeader extends StatelessWidget {
   const RegisterHeader({
     super.key,
     this.title = 'مستقبل ابنك يبدأ',
-    this.highlight = 'هنا',
+    this.highlight = 'هنا!',
   });
 
   @override
@@ -22,12 +22,12 @@ class RegisterHeader extends StatelessWidget {
           textAlign: TextAlign.center,
           style: TextStyle(
             fontFamily: cairoFontFamily,
-            fontSize: Responsive.fontSize(context, 28),
-            fontWeight: FontWeight.bold,
+            fontSize: Responsive.fontSize(context, 30),
+            fontWeight: FontWeight.w900,
             color: AppColors.textPrimary,
+            height: 1.5,
           ),
         ),
-        SizedBox(height: Responsive.spacing(context, 4)),
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -35,19 +35,23 @@ class RegisterHeader extends StatelessWidget {
               highlight,
               style: TextStyle(
                 fontFamily: cairoFontFamily,
-                fontSize: Responsive.fontSize(context, 28),
-                fontWeight: FontWeight.bold,
+                fontSize: Responsive.fontSize(context, 30),
+                fontWeight: FontWeight.w900,
                 color: AppColors.primary,
+                height: 1.0,
               ),
             ),
             SizedBox(width: Responsive.width(context, 6)),
-            Text('👋', style: TextStyle(fontSize: Responsive.fontSize(context, 28))),
+            Text(
+              '👋',
+              style: TextStyle(
+                fontSize: Responsive.fontSize(context, 28),
+                height: 1.0,
+              ),
+            ),
           ],
         ),
       ],
     );
   }
 }
-
-
-
