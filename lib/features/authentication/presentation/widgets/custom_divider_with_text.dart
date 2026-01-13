@@ -15,7 +15,7 @@ class CustomDividerWithText extends StatelessWidget {
     required this.text,
     this.textStyle,
     this.dividerColor = AppColors.greyLight,
-    this.thickness = 1,
+    this.thickness = 2,
     this.spacing = 16,
   });
 
@@ -36,8 +36,9 @@ class CustomDividerWithText extends StatelessWidget {
             style: textStyle ??
                 TextStyle(
                   fontFamily: cairoFontFamily,
-                  color: AppColors.textSecondary,
-                  fontSize: Responsive.fontSize(context, 13),
+                  color: AppColors.grey,
+                  fontWeight: FontWeight.w700,
+                  fontSize: Responsive.fontSize(context, 12),
                 ),
           ),
         ),

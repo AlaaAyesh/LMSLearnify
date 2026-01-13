@@ -31,7 +31,7 @@ class SocialButton extends StatelessWidget {
         child: Center(
           child: SvgPicture.asset(
             asset,
-            height: Responsive.height(context, 20),
+            height: Responsive.height(context, 18),
           ),
         ),
       ),

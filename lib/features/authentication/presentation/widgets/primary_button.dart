@@ -5,7 +5,7 @@ import '../../../../core/utils/responsive.dart';
 
 class PrimaryButton extends StatelessWidget {
   final String text;
-  final VoidCallback? onPressed; // ✅ nullable
+  final VoidCallback? onPressed;
   final bool isLoading;
   final double? width;
   final double height;
@@ -13,7 +13,7 @@ class PrimaryButton extends StatelessWidget {
   const PrimaryButton({
     super.key,
     required this.text,
-    this.onPressed, // ✅ nullable
+    this.onPressed,
     this.isLoading = false,
     this.width,
     this.height = 56,
@@ -21,19 +21,34 @@ class PrimaryButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
+    return Container(
       width: width ?? double.infinity,
       height: Responsive.height(context, height),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(Responsive.radius(context, 22)),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.grey.withOpacity(0.5),
+            blurRadius: 15,
+            spreadRadius: 0,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
       child: ElevatedButton(
-        onPressed: isLoading ? null : onPressed, // ✅ correct
+        onPressed: isLoading ? null : onPressed,
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.primary,
           foregroundColor: AppColors.white,
           elevation: 0,
+          shadowColor: Colors.transparent,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(Responsive.radius(context, 22)),
           ),
-          padding: Responsive.padding(context, horizontal: 24, vertical: 16),
+          padding: EdgeInsets.symmetric(
+            horizontal: Responsive.spacing(context, 16),
+            vertical: Responsive.spacing(context, 0),
+          ),
         ),
         child: isLoading
             ? SizedBox(
@@ -48,12 +63,11 @@ class PrimaryButton extends StatelessWidget {
             : Text(
           text,
           style: AppTextStyles.button.copyWith(
-            fontSize: Responsive.fontSize(context, AppTextStyles.button.fontSize ?? 16),
+              fontSize: Responsive.fontSize(context, 24),
+              fontWeight: FontWeight.w900
           ),
         ),
       ),
     );
   }
 }
-
-

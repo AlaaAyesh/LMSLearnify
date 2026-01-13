@@ -12,10 +12,11 @@ class Header extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Text(
-          'أهلاً بك يا بطل ',
+          'أهلًا بك يا بطل',
           style: AppTextStyles.displayMedium.copyWith(
             color: AppColors.textPrimary,
-            fontSize: Responsive.fontSize(context, AppTextStyles.displayMedium.fontSize ?? 28),
+            fontWeight: FontWeight.w900,
+            fontSize: Responsive.fontSize(context, 30),
           ),
         ),
         Text('👋', style: TextStyle(fontSize: Responsive.fontSize(context, 28))),

@@ -12,7 +12,7 @@ class CreateAccountButton extends StatelessWidget {
       height: Responsive.height(context, 56),
       decoration: BoxDecoration(
         color: AppColors.greyLight.withOpacity(0.5),
-        borderRadius: BorderRadius.circular(Responsive.radius(context, 16)),
+        borderRadius: BorderRadius.circular(Responsive.radius(context, 24)),
       ),
       child: Material(
         color: Colors.transparent,
@@ -29,11 +29,12 @@ class CreateAccountButton extends StatelessWidget {
                   'إنشاء حساب جديد',
                   style: TextStyle(
                     fontFamily: cairoFontFamily,
-                    fontSize: Responsive.fontSize(context, 16),
+                    fontSize: Responsive.fontSize(context, 20),
                     fontWeight: FontWeight.w700,
                     color: AppColors.textPrimary,
                   ),
-                ),                SizedBox(width: Responsive.width(context, 12)),
+                ),
+                SizedBox(width: Responsive.width(context, 22)),
 
                 Icon(
                   Icons.arrow_forward,

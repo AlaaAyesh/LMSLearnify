@@ -10,7 +10,8 @@ class LoginTitle extends StatelessWidget {
     return Text(
       'تسجيل الدخول',
       style: AppTextStyles.headlineMedium.copyWith(
-        fontSize: Responsive.fontSize(context, AppTextStyles.headlineMedium.fontSize ?? 20),
+        fontWeight: FontWeight.w900,
+        fontSize: Responsive.fontSize(context, 18),
       ),
       textAlign: TextAlign.right,
     );

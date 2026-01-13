@@ -90,7 +90,7 @@ class LoginPageViewState extends State<LoginPageView> {
                           });
                         },
                       ),
-                      SizedBox(height: Responsive.spacing(context, 42)),
+                      SizedBox(height: Responsive.spacing(context, 40)),
                       BlocBuilder<AuthBloc, AuthState>(
                         builder: (context, state) {
                           final isLoading = state is AuthLoading;
@@ -102,14 +102,13 @@ class LoginPageViewState extends State<LoginPageView> {
                           );
                         },
                       ),
-                      SizedBox(height: Responsive.spacing(context, 16)),
                       OptionsRow(
                         rememberMe: _rememberMe,
                         onRememberChanged: (v) =>
                             setState(() => _rememberMe = v),
                       ),
                       SizedBox(height: Responsive.spacing(context, 24)),
-                      const CustomDividerWithText(text: "أو التسجيل بواسطة"),
+                      const CustomDividerWithText(text: "أو الدخول بواسطة"),
                       SizedBox(height: Responsive.spacing(context, 24)),
                       const SocialLoginButtons(),
                       SizedBox(height: Responsive.spacing(context, 40)),
@@ -157,7 +156,7 @@ class LoginPageViewState extends State<LoginPageView> {
       // Check if we came from subscriptions page (or another page that needs return)
       final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
       final returnTo = args?['returnTo'] as String?;
-      
+
       if (returnTo == 'subscriptions') {
         // Return true to indicate successful login
         Navigator.of(context).pop(true);
