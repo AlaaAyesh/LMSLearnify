@@ -6,6 +6,7 @@ import 'package:learnify_lms/features/authentication/presentation/pages/forgot_p
 import 'package:learnify_lms/features/authentication/presentation/pages/forgot_password/widgets/forgot_password_title.dart';
 import 'package:learnify_lms/features/authentication/presentation/pages/login/widgets/login_background.dart';
 import 'package:learnify_lms/features/authentication/presentation/widgets/primary_button.dart';
+import 'package:learnify_lms/core/utils/responsive.dart';
 
 import '../../../../../core/theme/app_colors.dart';
 import '../../bloc/auth_bloc.dart';
@@ -48,48 +49,57 @@ class ForgotPasswordPageViewState
       backgroundColor: AppColors.white,
       appBar: const ForgotPasswordAppBar(),
       body: Stack(
-          children: [
+        children: [
           const LoginBackground(),
-      BlocListener<AuthBloc, AuthState>(
-        listener: authListener,
-        child: SafeArea(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 34),
-            child: Form(
-              key: formKey,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  SizedBox(height: 120),
-                  const ForgotPasswordTitle(),
-                  SizedBox(height: 16),
-                  const ForgotPasswordSubtitle(),
-                  SizedBox(height: 40),
-                  ForgotPasswordEmailField(
-                    controller: emailController,
-                  ),
-                  SizedBox(height: 130),
-                  BlocBuilder<AuthBloc, AuthState>(
-                    builder: (context, state) {
-                      final isLoading = state is AuthLoading;
+          BlocListener<AuthBloc, AuthState>(
+            listener: authListener,
+            child: SafeArea(
+              child: SingleChildScrollView(
+                padding: Responsive.padding(
+                  context,
+                  horizontal: 24,
+                  vertical: 20,
+                ),
+                child: Form(
+                  key: formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      SizedBox(height: Responsive.height(context, 80)),
 
-                      return PrimaryButton(
-                        text: 'التالي',
-                        isLoading: isLoading,
-                        onPressed: isLoading ? null : onSubmit,
-                      );
-                    },
-                  ),
+                      const ForgotPasswordTitle(),
 
-                ],
+                      SizedBox(height: Responsive.spacing(context, 40)),
+
+                      const ForgotPasswordSubtitle(),
+
+                      SizedBox(height: Responsive.spacing(context, 8)),
+
+                      ForgotPasswordEmailField(
+                        controller: emailController,
+                      ),
+
+                      SizedBox(height: Responsive.spacing(context, 200)),
+
+                      BlocBuilder<AuthBloc, AuthState>(
+                        builder: (context, state) {
+                          final isLoading = state is AuthLoading;
+
+                          return PrimaryButton(
+                            text: 'التالي',
+                            isLoading: isLoading,
+                            onPressed: isLoading ? null : onSubmit,
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                ),
               ),
             ),
           ),
-        ),
+        ],
       ),
-
-    ],
-    ),
     );
   }
 
@@ -103,12 +113,11 @@ class ForgotPasswordPageViewState
       );
     } else if (state is ForgotPasswordSuccess) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+        const SnackBar(
           content: Text('تم إرسال رمز التحقق إلى بريدك الإلكتروني'),
           backgroundColor: AppColors.success,
         ),
       );
-      // Navigate to OTP verification page
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(
           builder: (_) => OtpVerificationPage(email: state.email),
@@ -117,5 +126,3 @@ class ForgotPasswordPageViewState
     }
   }
 }
-
-

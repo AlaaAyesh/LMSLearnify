@@ -13,7 +13,7 @@ class NameField extends StatelessWidget {
     return CustomTextField(
       hintText: 'اسم الطفل الثلاثي',
       controller: controller,
-      keyboardType: TextInputType.name,
+      keyboardType: TextInputType.text,
       textInputAction: TextInputAction.next,
       prefixIcon: const Icon(Icons.person_outline, color: AppColors.primary),
       validator: Validators.required,

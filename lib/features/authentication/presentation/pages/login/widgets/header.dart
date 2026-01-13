@@ -15,8 +15,9 @@ class Header extends StatelessWidget {
           'أهلًا بك يا بطل',
           style: AppTextStyles.displayMedium.copyWith(
             color: AppColors.textPrimary,
-            fontWeight: FontWeight.w900,
+            fontFamily: 'Cairo',
             fontSize: Responsive.fontSize(context, 30),
+            fontWeight: FontWeight.w700,
           ),
         ),
         Text('👋', style: TextStyle(fontSize: Responsive.fontSize(context, 28))),

@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../features/about/presentation/pages/about_page.dart';
-import '../../features/authentication/presentation/pages/change_password_page.dart';
 import '../../features/onboarding/presentation/pages/content_preferences_page.dart';
 import '../../features/authentication/presentation/pages/email_verification_page.dart';
 import '../../features/authentication/presentation/pages/register/complete_profile_page.dart';
-import '../../features/authentication/presentation/pages/forgot_password/create_new_password_page.dart';
 import '../../features/authentication/presentation/pages/forgot_password/forgot_password_page.dart';
 import '../../features/authentication/presentation/pages/forgot_password/otp_verification_page.dart';
 import '../../features/authentication/presentation/pages/login/login_page.dart';
@@ -58,15 +56,15 @@ class AppRouter {
       case forgotPassword:
         return MaterialPageRoute(builder: (_) => const ForgotPasswordPage());
 
-      case createNewPassword:
-        final args = settings.arguments as Map<String, dynamic>?;
-        return MaterialPageRoute(
-          builder: (_) => CreateNewPasswordPage(
-            resetToken: args?['resetToken'] ?? '',
-            email: args?['email'],
-            otp: args?['otp'],
-          ),
-        );
+      // case createNewPassword:
+      //   final args = settings.arguments as Map<String, dynamic>?;
+      //   return MaterialPageRoute(
+      //     builder: (_) => CreateNewPasswordPage(
+      //       resetToken: args?['resetToken'] ?? '',
+      //       email: args?['email'],
+      //       otp: args?['otp'],
+      //     ),
+      //   );
 
       case otpVerification:
         final args = settings.arguments as Map<String, dynamic>;
@@ -84,8 +82,8 @@ class AppRouter {
           ),
         );
 
-      case changePassword:
-        return MaterialPageRoute(builder: (_) => const ChangePasswordPage());
+      // case changePassword:
+      //   return MaterialPageRoute(builder: (_) => const ChangePasswordPage());
 
       case completeProfile:
         final args = settings.arguments as Map<String, dynamic>?;

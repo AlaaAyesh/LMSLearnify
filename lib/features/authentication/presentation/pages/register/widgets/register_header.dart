@@ -21,12 +21,13 @@ class RegisterHeader extends StatelessWidget {
           title,
           textAlign: TextAlign.center,
           style: TextStyle(
-            fontFamily: cairoFontFamily,
+            fontFamily: 'Cairo',
             fontSize: Responsive.fontSize(context, 30),
-            fontWeight: FontWeight.w900,
+            fontWeight: FontWeight.w700,
             color: AppColors.textPrimary,
             height: 1.5,
           ),
+
         ),
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -34,9 +35,9 @@ class RegisterHeader extends StatelessWidget {
             Text(
               highlight,
               style: TextStyle(
-                fontFamily: cairoFontFamily,
+                fontFamily: 'Cairo',
                 fontSize: Responsive.fontSize(context, 30),
-                fontWeight: FontWeight.w900,
+                fontWeight: FontWeight.w700,
                 color: AppColors.primary,
                 height: 1.0,
               ),

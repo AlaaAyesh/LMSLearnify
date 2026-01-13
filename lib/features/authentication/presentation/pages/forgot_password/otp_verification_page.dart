@@ -5,9 +5,11 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../../core/di/injection_container.dart';
 import '../../../../../core/theme/app_colors.dart';
 import '../../../../../core/theme/app_text_styles.dart';
+import '../../../../../core/utils/responsive.dart';
 import '../../bloc/auth_bloc.dart';
 import '../../bloc/auth_event.dart';
 import '../../bloc/auth_state.dart';
+import '../../widgets/PasswordField.dart';
 import '../../widgets/primary_button.dart';
 import '../login/widgets/login_background.dart';
 
@@ -39,7 +41,7 @@ class _OtpVerificationPageContentState
     extends State<_OtpVerificationPageContent> {
   final _formKey = GlobalKey<FormState>();
   final List<TextEditingController> _otpControllers =
-      List.generate(6, (_) => TextEditingController());
+  List.generate(6, (_) => TextEditingController());
   final List<FocusNode> _focusNodes = List.generate(6, (_) => FocusNode());
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
@@ -128,13 +130,13 @@ class _OtpVerificationPageContentState
 
     if (_formKey.currentState!.validate()) {
       context.read<AuthBloc>().add(
-            ResetPasswordEvent(
-              email: widget.email,
-              otp: _otp,
-              password: _passwordController.text,
-              passwordConfirmation: _confirmPasswordController.text,
-            ),
-          );
+        ResetPasswordEvent(
+          email: widget.email,
+          otp: _otp,
+          password: _passwordController.text,
+          passwordConfirmation: _confirmPasswordController.text,
+        ),
+      );
     }
   }
 
@@ -153,7 +155,11 @@ class _OtpVerificationPageContentState
         backgroundColor: AppColors.white,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
+          icon: Icon(
+            Icons.arrow_back,
+            color: AppColors.textPrimary,
+            size: Responsive.iconSize(context, 24),
+          ),
           onPressed: () => Navigator.of(context).pop(),
         ),
       ),
@@ -178,7 +184,7 @@ class _OtpVerificationPageContentState
                 );
                 Navigator.of(context).pushNamedAndRemoveUntil(
                   '/login',
-                  (route) => false,
+                      (route) => false,
                 );
               } else if (state is ForgotPasswordSuccess) {
                 ScaffoldMessenger.of(context).showSnackBar(
@@ -191,29 +197,36 @@ class _OtpVerificationPageContentState
             },
             child: SafeArea(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.all(24),
+                padding: Responsive.padding(context, all: 24),
                 child: Form(
                   key: _formKey,
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      SizedBox(height: 20),
+                      SizedBox(height: Responsive.spacing(context, 20)),
+
                       // Title
                       Text(
                         'التحقق من البريد',
-                        style: AppTextStyles.displayMedium,
+                        style: AppTextStyles.displayMedium.copyWith(
+                          fontSize: Responsive.fontSize(context, 28),
+                        ),
                         textAlign: TextAlign.center,
                       ),
-                      SizedBox(height: 12),
+
+                      SizedBox(height: Responsive.spacing(context, 12)),
+
                       // Subtitle
                       Text(
                         'أدخل رمز التحقق المرسل إلى\n${widget.email}',
                         style: AppTextStyles.bodyMedium.copyWith(
                           color: AppColors.textSecondary,
+                          fontSize: Responsive.fontSize(context, 14),
                         ),
                         textAlign: TextAlign.center,
                       ),
-                      SizedBox(height: 32),
+
+                      SizedBox(height: Responsive.spacing(context, 32)),
 
                       // OTP Input Fields
                       Directionality(
@@ -222,16 +235,16 @@ class _OtpVerificationPageContentState
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: List.generate(6, (index) {
                             return SizedBox(
-                              width: 48,
-                              height: 56,
+                              width: Responsive.width(context, 48),
+                              height: Responsive.height(context, 56),
                               child: TextFormField(
                                 controller: _otpControllers[index],
                                 focusNode: _focusNodes[index],
                                 keyboardType: TextInputType.number,
                                 textAlign: TextAlign.center,
                                 maxLength: 1,
-                                style: const TextStyle(
-                                  fontSize: 24,
+                                style: TextStyle(
+                                  fontSize: Responsive.fontSize(context, 24),
                                   fontWeight: FontWeight.bold,
                                   color: AppColors.textPrimary,
                                 ),
@@ -242,24 +255,30 @@ class _OtpVerificationPageContentState
                                   contentPadding: EdgeInsets.zero,
                                   isDense: true,
                                   enabledBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                    borderSide: const BorderSide(
+                                    borderRadius: BorderRadius.circular(
+                                      Responsive.radius(context, 12),
+                                    ),
+                                    borderSide: BorderSide(
                                       color: AppColors.greyLight,
-                                      width: 1,
+                                      width: Responsive.width(context, 1),
                                     ),
                                   ),
                                   focusedBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                    borderSide: const BorderSide(
+                                    borderRadius: BorderRadius.circular(
+                                      Responsive.radius(context, 12),
+                                    ),
+                                    borderSide: BorderSide(
                                       color: AppColors.primary,
-                                      width: 2,
+                                      width: Responsive.width(context, 2),
                                     ),
                                   ),
                                   border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                    borderSide: const BorderSide(
+                                    borderRadius: BorderRadius.circular(
+                                      Responsive.radius(context, 12),
+                                    ),
+                                    borderSide: BorderSide(
                                       color: AppColors.greyLight,
-                                      width: 1,
+                                      width: Responsive.width(context, 1),
                                     ),
                                   ),
                                 ),
@@ -273,139 +292,91 @@ class _OtpVerificationPageContentState
                           }),
                         ),
                       ),
-                      SizedBox(height: 16),
+
+                      SizedBox(height: Responsive.spacing(context, 16)),
 
                       // Resend Timer
                       Center(
                         child: _canResend
                             ? TextButton(
-                                onPressed: _resendOtp,
-                                child: Text(
-                                  'إعادة إرسال الرمز',
-                                  style: TextStyle(
-                                    color: AppColors.primary,
-                                    fontFamily: cairoFontFamily,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              )
+                          onPressed: _resendOtp,
+                          child: Text(
+                            'إعادة إرسال الرمز',
+                            style: TextStyle(
+                              color: AppColors.primary,
+                              fontFamily: 'Cairo',
+                              fontWeight: FontWeight.w600,
+                              fontSize: Responsive.fontSize(context, 14),
+                            ),
+                          ),
+                        )
                             : Text(
-                                'إعادة الإرسال بعد $_resendSeconds ثانية',
-                                style: AppTextStyles.labelMedium.copyWith(
-                                  color: AppColors.textSecondary,
-                                ),
-                              ),
+                          'إعادة الإرسال بعد $_resendSeconds ثانية',
+                          style: AppTextStyles.labelMedium.copyWith(
+                            color: AppColors.textSecondary,
+                            fontSize: Responsive.fontSize(context, 12),
+                          ),
+                        ),
                       ),
-                      SizedBox(height: 32),
+
+                      SizedBox(height: Responsive.spacing(context, 32)),
 
                       // Divider
                       Row(
                         children: [
-                          Expanded(child: Divider()),
+                          Expanded(
+                            child: Divider(
+                              color: AppColors.greyLight,
+                              thickness: Responsive.width(context, 1),
+                            ),
+                          ),
                           Padding(
-                            padding: EdgeInsets.symmetric(horizontal: 16),
+                            padding: Responsive.padding(context, horizontal: 16),
                             child: Text(
                               'كلمة المرور الجديدة',
                               style: TextStyle(
                                 color: AppColors.textSecondary,
-                                fontFamily: cairoFontFamily,
-                                fontSize: 14,
+                                fontFamily: 'Cairo',
+                                fontSize: Responsive.fontSize(context, 14),
                               ),
                             ),
                           ),
-                          Expanded(child: Divider()),
+                          Expanded(
+                            child: Divider(
+                              color: AppColors.greyLight,
+                              thickness: Responsive.width(context, 1),
+                            ),
+                          ),
                         ],
                       ),
-                      SizedBox(height: 24),
+
+                      SizedBox(height: Responsive.spacing(context, 24)),
 
                       // New Password Field
-                      TextFormField(
+                      PasswordField(
                         controller: _passwordController,
-                        obscureText: _obscurePassword,
-                        textInputAction: TextInputAction.next,
-                        decoration: InputDecoration(
-                          hintText: 'كلمة المرور الجديدة',
-                          hintStyle: TextStyle(
-                            fontFamily: cairoFontFamily,
-                            color: AppColors.textSecondary,
-                          ),
-                          filled: true,
-                          fillColor: AppColors.inputBackground,
-                          prefixIcon: const Icon(
-                            Icons.lock_outline,
-                            color: AppColors.primary,
-                          ),
-                          suffixIcon: IconButton(
-                            icon: Icon(
-                              _obscurePassword
-                                  ? Icons.visibility_outlined
-                                  : Icons.visibility_off_outlined,
-                              color: AppColors.textSecondary,
-                            ),
-                            onPressed: () {
-                              setState(() => _obscurePassword = !_obscurePassword);
-                            },
-                          ),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide.none,
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: const BorderSide(
-                              color: AppColors.primary,
-                              width: 2,
-                            ),
-                          ),
-                        ),
+                        obscure: _obscurePassword,
+                        onToggleVisibility: () {
+                          setState(() => _obscurePassword = !_obscurePassword);
+                        },
+                        hintText: 'كلمة المرور الجديدة',
                         validator: _validatePassword,
                       ),
-                      SizedBox(height: 16),
+
+                      SizedBox(height: Responsive.spacing(context, 16)),
 
                       // Confirm Password Field
-                      TextFormField(
+                      PasswordField(
                         controller: _confirmPasswordController,
-                        obscureText: _obscureConfirmPassword,
-                        textInputAction: TextInputAction.done,
-                        decoration: InputDecoration(
-                          hintText: 'تأكيد كلمة المرور',
-                          hintStyle: TextStyle(
-                            fontFamily: cairoFontFamily,
-                            color: AppColors.textSecondary,
-                          ),
-                          filled: true,
-                          fillColor: AppColors.inputBackground,
-                          prefixIcon: const Icon(
-                            Icons.lock_outline,
-                            color: AppColors.primary,
-                          ),
-                          suffixIcon: IconButton(
-                            icon: Icon(
-                              _obscureConfirmPassword
-                                  ? Icons.visibility_outlined
-                                  : Icons.visibility_off_outlined,
-                              color: AppColors.textSecondary,
-                            ),
-                            onPressed: () {
-                              setState(() => _obscureConfirmPassword =
-                                  !_obscureConfirmPassword);
-                            },
-                          ),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide.none,
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: const BorderSide(
-                              color: AppColors.primary,
-                              width: 2,
-                            ),
-                          ),
-                        ),
+                        obscure: _obscureConfirmPassword,
+                        onToggleVisibility: () {
+                          setState(() => _obscureConfirmPassword = !_obscureConfirmPassword);
+                        },
+                        hintText: 'تأكيد كلمة المرور',
                         validator: _validateConfirmPassword,
                       ),
-                      SizedBox(height: 32),
+
+                      SizedBox(height: Responsive.spacing(context, 32)),
 
                       // Reset Password Button
                       BlocBuilder<AuthBloc, AuthState>(
@@ -429,6 +400,3 @@ class _OtpVerificationPageContentState
     );
   }
 }
-
-
-

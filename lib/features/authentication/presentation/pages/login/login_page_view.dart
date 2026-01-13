@@ -121,7 +121,7 @@ class LoginPageViewState extends State<LoginPageView> {
                         icon: Icon(
                           Icons.visibility_outlined,
                           color: AppColors.textSecondary,
-                          size: Responsive.iconSize(context, 20),
+                          size: Responsive.iconSize(context, 18),
                         ),
                         label: Text(
                           'تصفح كضيف',
@@ -129,7 +129,7 @@ class LoginPageViewState extends State<LoginPageView> {
                             fontFamily: cairoFontFamily,
                             color: AppColors.textSecondary,
                             fontSize: Responsive.fontSize(context, 16),
-                            fontWeight: FontWeight.w600,
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
                       ),
