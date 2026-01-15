@@ -33,11 +33,11 @@ class SectionHeader extends StatelessWidget {
             TextButton(
               onPressed: onSeeAll,
               child: Text(
-                'عرض الكل',
+                'اضغط للمزيد',
                 style: TextStyle(
                   fontFamily: 'Cairo',
-                  fontSize: Responsive.fontSize(context, 14),
-                  fontWeight: FontWeight.w600,
+                  fontSize: Responsive.fontSize(context, 12),
+                  fontWeight: FontWeight.w700,
                   color: AppColors.primary,
                 ),
               ),

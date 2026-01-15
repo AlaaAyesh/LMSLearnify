@@ -17,52 +17,55 @@ class CategoryItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: SizedBox(
-        height: Responsive.height(context, 120),
-        width: Responsive.width(context, 80),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            // Image takes remaining space
-            Expanded(
-              child: category.imageUrl != null &&
-                  category.imageUrl!.isNotEmpty
-                  ? CachedNetworkImage(
-                imageUrl: category.imageUrl!,
-                fit: BoxFit.contain,
-                errorWidget: (context, url, error) =>
-                    Image.asset(
-                      'assets/images/programing.png',
-                      fit: BoxFit.contain,
-                    ),
-              )
-                  : Image.asset(
-                'assets/images/programing.png',
-                fit: BoxFit.contain,
-              ),
-            ),
-
-            SizedBox(height: Responsive.spacing(context, 4)),
-
-            // Category Name (fixed height, no overflow)
-            SizedBox(
-              height: Responsive.height(context, 28),
-              child: Text(
-                category.nameAr,
-                textAlign: TextAlign.center,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontFamily: 'Cairo',
-                  fontSize: Responsive.fontSize(context, 12),
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.textPrimary,
+    return Padding(
+      padding: Responsive.padding(context, horizontal: 8),
+      child: GestureDetector(
+        onTap: onTap,
+        child: SizedBox(
+          // height: Responsive.height(context, 160),
+          // width: Responsive.width(context, 80),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              // Image takes remaining space
+              Expanded(
+                child: category.imageUrl != null &&
+                    category.imageUrl!.isNotEmpty
+                    ? CachedNetworkImage(
+                  imageUrl: category.imageUrl!,
+                  fit: BoxFit.contain,
+                  errorWidget: (context, url, error) =>
+                      Image.asset(
+                        'assets/images/programing.png',
+                        fit: BoxFit.contain,
+                      ),
+                )
+                    : Image.asset(
+                  'assets/images/programing.png',
+                  fit: BoxFit.contain,
                 ),
               ),
-            ),
-          ],
+
+              SizedBox(height: Responsive.spacing(context, 4)),
+
+              // Category Name (fixed height, no overflow)
+              SizedBox(
+                height: Responsive.height(context, 28),
+                child: Text(
+                  category.nameAr,
+                  textAlign: TextAlign.center,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontFamily: 'Cairo',
+                    fontSize: Responsive.fontSize(context, 12),
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:learnify_lms/core/theme/app_text_styles.dart';
-
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/custom_app_bar.dart';
@@ -46,7 +45,7 @@ class CategoriesPage extends StatelessWidget {
             size: 80,
             color: Colors.grey[400],
           ),
-          SizedBox(height: 16),
+          const SizedBox(height: 16),
           Text(
             'لا توجد تصنيفات',
             style: TextStyle(
@@ -66,15 +65,18 @@ class CategoriesPage extends StatelessWidget {
       padding: const EdgeInsets.all(24),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
-        childAspectRatio: 0.85,
+        childAspectRatio: 0.75,
         crossAxisSpacing: 20,
         mainAxisSpacing: 24,
       ),
       itemCount: categories.length,
       itemBuilder: (context, index) {
         final category = categories[index];
+        final courses = coursesByCategory[category] ?? [];
+
         return _CategoryGridItem(
           category: category,
+          coursesCount: courses.length,
           onTap: () => _onCategoryTap(context, category),
         );
       },
@@ -82,10 +84,8 @@ class CategoriesPage extends StatelessWidget {
   }
 
   void _onCategoryTap(BuildContext context, Category category) {
-    // Get courses for this category
     final courses = coursesByCategory[category] ?? [];
-    
-    // Navigate to single category page using nested navigator
+
     context.pushWithNav(SingleCategoryPage(
       category: category,
       courses: courses,
@@ -95,10 +95,12 @@ class CategoriesPage extends StatelessWidget {
 
 class _CategoryGridItem extends StatelessWidget {
   final Category category;
+  final int coursesCount;
   final VoidCallback? onTap;
 
   const _CategoryGridItem({
     required this.category,
+    required this.coursesCount,
     this.onTap,
   });
 
@@ -107,69 +109,43 @@ class _CategoryGridItem extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Column(
-        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Container(
-            width: 120,
-            height: 120,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              shape: BoxShape.circle,
-              border: Border.all(
-                color: AppColors.primary.withOpacity(0.2),
-                width: 2,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            child: ClipOval(
-              child: category.imageUrl != null && category.imageUrl!.isNotEmpty
-                  ? CachedNetworkImage(
-                      imageUrl: category.imageUrl!,
-                      fit: BoxFit.cover,
-                      placeholder: (context, url) => Container(
-                        color: AppColors.primary.withOpacity(0.1),
-                        child: const Icon(
-                          Icons.category,
-                          color: AppColors.primary,
-                          size: 40,
-                        ),
-                      ),
-                      errorWidget: (context, url, error) => Container(
-                        color: AppColors.primary.withOpacity(0.1),
-                        child: const Icon(
-                          Icons.category,
-                          color: AppColors.primary,
-                          size: 40,
-                        ),
-                      ),
-                    )
-                  : Container(
-                      color: AppColors.primary.withOpacity(0.1),
-                      child: const Icon(
-                        Icons.category,
-                        color: AppColors.primary,
-                        size: 40,
-                      ),
-                    ),
+          // Category Image
+          SizedBox(
+            width: 130,
+            height: 130,
+            child: category.imageUrl != null &&
+                category.imageUrl!.isNotEmpty
+                ? CachedNetworkImage(
+              imageUrl: category.imageUrl!,
+              fit: BoxFit.contain,
+              errorWidget: (context, url, error) =>
+                  Image.asset(
+                    'assets/images/programing.png',
+                    fit: BoxFit.contain,
+                  ),
+            )
+                : Image.asset(
+              'assets/images/programing.png',
+              fit: BoxFit.contain,
             ),
           ),
-          SizedBox(height: 12),
-          Text(
-            category.nameAr,
-            textAlign: TextAlign.center,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-              fontFamily: 'Cairo',
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              color: AppColors.textPrimary,
+          const SizedBox(height: 8),
+          // Category Name
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: Text(
+              category.nameAr,
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                fontFamily: 'Cairo',
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: Color(0xFF2C3E50),
+              ),
             ),
           ),
         ],
@@ -177,7 +153,3 @@ class _CategoryGridItem extends StatelessWidget {
     );
   }
 }
-
-
-
-

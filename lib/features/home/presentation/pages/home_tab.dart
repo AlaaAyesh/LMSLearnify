@@ -99,7 +99,7 @@ class _HomeTabContent extends StatelessWidget {
             child: BlocBuilder<HomeBloc, HomeState>(
               builder: (context, state) {
                 if (state is HomeLoading) {
-                  return Center(
+                  return const Center(
                     child: CircularProgressIndicator(
                       color: AppColors.primary,
                     ),
@@ -114,7 +114,7 @@ class _HomeTabContent extends StatelessWidget {
                   return _buildContent(context, state.homeData);
                 }
 
-                return Center(
+                return const Center(
                   child: CircularProgressIndicator(
                     color: AppColors.primary,
                   ),
@@ -144,7 +144,7 @@ class _HomeTabContent extends StatelessWidget {
             if (!isLoadingBanners && siteBanners.isNotEmpty) ...[
               SiteBannerCarousel(
                 banners: siteBanners,
-                autoScrollDuration: const Duration(seconds: 3),
+                autoScrollDuration: const Duration(seconds: 20),
               ),
               SizedBox(height: Responsive.spacing(context, 24)),
             ],
@@ -167,9 +167,8 @@ class _HomeTabContent extends StatelessWidget {
                 title: 'التصنيفات',
                 onSeeAll: () => _navigateToCategoriesPage(context, homeData),
               ),
-              SizedBox(height: Responsive.spacing(context, 12)),
               SizedBox(
-                height: Responsive.height(context, 120),
+                height: Responsive.height(context, 125),
                 child: ListView.builder(
                   scrollDirection: Axis.horizontal,
                   padding: Responsive.padding(context, horizontal: 16),
@@ -310,7 +309,7 @@ class _HomeTabContent extends StatelessWidget {
   void _onCourseTap(BuildContext context, Course course) {
     if (course.soon) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+        const SnackBar(
           content: Text('هذه الدورة قادمة قريباً'),
           backgroundColor: AppColors.warning,
         ),
@@ -373,7 +372,7 @@ class _HomeTabContent extends StatelessWidget {
                 context.read<HomeBloc>().add(LoadHomeDataEvent());
               },
               icon: Icon(Icons.refresh, size: Responsive.iconSize(context, 20)),
-              label: Text(
+              label: const Text(
                 'إعادة المحاولة',
                 style: TextStyle(fontFamily: 'Cairo'),
               ),

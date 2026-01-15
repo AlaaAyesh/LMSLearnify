@@ -44,7 +44,7 @@ class _SiteBannerCarouselState extends State<SiteBannerCarousel> {
 
   void _startAutoScroll() {
     if (widget.banners.length <= 1) return;
-    
+
     _autoScrollTimer?.cancel();
     _autoScrollTimer = Timer.periodic(widget.autoScrollDuration, (_) {
       if (_pageController.hasClients) {
@@ -75,7 +75,7 @@ class _SiteBannerCarouselState extends State<SiteBannerCarousel> {
   Future<void> _handleBannerTap(banner_entity.Banner banner) async {
     // Record click
     await _recordBannerClickUseCase(banner.id);
-    
+
     // Open URL
     final uri = Uri.parse(banner.bannerUrl);
     if (await canLaunchUrl(uri)) {
@@ -86,7 +86,7 @@ class _SiteBannerCarouselState extends State<SiteBannerCarousel> {
   @override
   Widget build(BuildContext context) {
     final activeBanners = widget.banners.where((b) => b.isActive).toList();
-    
+
     if (activeBanners.isEmpty) {
       return const SizedBox.shrink();
     }
@@ -94,7 +94,7 @@ class _SiteBannerCarouselState extends State<SiteBannerCarousel> {
     return Column(
       children: [
         SizedBox(
-          height: Responsive.height(context, 180),
+          height: Responsive.height(context, 210),
           child: GestureDetector(
             onPanDown: (_) => _stopAutoScroll(),
             onPanEnd: (_) => _onUserInteraction(),
@@ -115,111 +115,142 @@ class _SiteBannerCarouselState extends State<SiteBannerCarousel> {
   }
 
   Widget _buildBannerCard(BuildContext context, banner_entity.Banner banner, int totalBanners) {
-    // Use mobile image if available, otherwise use website image
-    final imageUrl = banner.mobileImageUrl.isNotEmpty
-        ? banner.mobileImageUrl
-        : banner.websiteImageUrl;
-
     return GestureDetector(
       onTap: () => _handleBannerTap(banner),
       child: Container(
-        margin: Responsive.margin(context, horizontal: 16),
+        margin: Responsive.margin(context, horizontal: 16,vertical: 10),
         decoration: BoxDecoration(
-          color: const Color(0xFFFFB74D), // Light orange/peach solid color
-          borderRadius: BorderRadius.circular(Responsive.radius(context, 20)),
-          boxShadow: [
+          gradient: const LinearGradient(
+            colors: [
+              Color(0xFFFFC966),
+              Color(0xFFFDCA65),
+            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(Responsive.radius(context, 22)),
+          boxShadow: const [
             BoxShadow(
-              color: Colors.black.withOpacity(0.1),
-              blurRadius: Responsive.width(context, 10),
-              offset: Offset(0, Responsive.height(context, 4)),
+              color: Color(0x38171a1f),
+              blurRadius: 13.75,
+              offset: Offset(2, 3),
+            ),
+            BoxShadow(
+              color: Color(0x14171a1f),
+              blurRadius: 1,
+              offset: Offset(0, 0),
             ),
           ],
         ),
         child: Padding(
-          padding: Responsive.padding(context, all: 20),
+          padding: Responsive.padding(context, horizontal: 20, vertical: 10),
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Headline: "افتح إمكاناتك الكاملة" or banner title
-              Flexible(
+              // Title at the start
+              Padding(
+                padding: Responsive.padding(context, top: 18),
                 child: Text(
-                  banner.title.isNotEmpty ? banner.title : 'افتح إمكاناتك الكاملة',
+                  banner.title.isNotEmpty ? banner.title : 'Learnify',
                   style: TextStyle(
                     fontFamily: 'Cairo',
-                    fontSize: Responsive.fontSize(context, 22),
+                    fontSize: Responsive.fontSize(context, 24),
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
-                    height: 1.3,
+                    height: 1.2,
                   ),
-                  textAlign: TextAlign.center,
-                  maxLines: 2,
+                  maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
-              
-              SizedBox(height: Responsive.spacing(context, 12)),
-              
-              // Body text: Description or default text
-              Flexible(
-                child: Text(
-                  banner.buttonDescription.isNotEmpty 
-                      ? banner.buttonDescription 
-                      : 'استكشف آلاف الدورات التدريبية والمدربين الخبراء لتعزيز مهاراتك.',
-                  style: TextStyle(
-                    fontFamily: 'Cairo',
-                    fontSize: Responsive.fontSize(context, 13),
+
+              // Subtitle under title
+              if (banner.buttonDescription.isNotEmpty)
+                Padding(
+                  padding: Responsive.padding(context, top: 4),
+                  child: Text(
+                    banner.buttonDescription,
+                    style: TextStyle(
+                      fontFamily: 'Cairo',
+                      fontSize: Responsive.fontSize(context, 13),
+                      color: Colors.white.withOpacity(0.9),
+                      height: 1.2,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+
+              // Spacer
+              const Spacer(),
+
+              // Button at the end (left aligned)
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Container(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: Responsive.width(context, 22),
+                    vertical: Responsive.height(context, 12),
+                  ),
+                  decoration: BoxDecoration(
                     color: Colors.white,
-                    height: 1.4,
+                    borderRadius: BorderRadius.circular(Responsive.radius(context, 18)),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.08),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
                   ),
-                  textAlign: TextAlign.center,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              
-              SizedBox(height: Responsive.spacing(context, 16)),
-              
-              // "Start Now" Button - centered
-              Container(
-                padding: Responsive.padding(context, horizontal: 28, vertical: 12),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(Responsive.radius(context, 30)),
-                ),
-                child: Text(
-                  'ابدأ الآن',
-                  style: TextStyle(
-                    fontFamily: 'Cairo',
-                    fontSize: Responsive.fontSize(context, 15),
-                    fontWeight: FontWeight.bold,
-                    color: const Color(0xFFFFB74D), // Light orange matching card background
+                  child: Text(
+                    'ابدأ الآن',
+                    style: TextStyle(
+                      fontFamily: 'Cairo',
+                      fontSize: Responsive.fontSize(context, 14),
+                      fontWeight: FontWeight.w600,
+                      color: const Color(0xFFFFAA33),
+                    ),
                   ),
                 ),
               ),
-              
-              // Pagination dots inside the card at the bottom
-              if (totalBanners > 1) ...[
-                SizedBox(height: Responsive.spacing(context, 12)),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: List.generate(
-                    totalBanners,
-                    (index) => Container(
-                      width: Responsive.width(context, 8),
-                      height: Responsive.height(context, 8),
-                      margin: Responsive.margin(context, horizontal: 4),
+
+              // Circles at the bottom center
+              if (totalBanners > 1)
+                Padding(
+                  padding: Responsive.padding(context, top: 6),
+                  child: Center(
+                    child: Container(
+                      height: Responsive.height(context, 18),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: Responsive.width(context, 4),
+                      ),
                       decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: index == _currentIndex
-                            ? const Color(0xFFFF9800) // Darker orange for active (leftmost)
-                            : const Color(0xFFFFB74D).withOpacity(0.6), // Lighter orange for inactive
+                        color: Colors.white.withOpacity(0.9),
+                        borderRadius: BorderRadius.circular(Responsive.radius(context, 18)),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: List.generate(
+                          totalBanners,
+                              (index) => Container(
+                            width: Responsive.width(context, 8),
+                            height: Responsive.height(context, 8),
+                            margin: EdgeInsets.symmetric(horizontal: Responsive.width(context, 3)),
+                            decoration: BoxDecoration(
+                              color: index == _currentIndex
+                                  ? const Color(0xFFFBA051)
+                                  : const Color(0xFFFBA051).withOpacity(0.4),
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                        ),
                       ),
                     ),
                   ),
                 ),
-              ],
             ],
           ),
         ),
