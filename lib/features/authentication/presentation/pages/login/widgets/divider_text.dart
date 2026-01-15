@@ -16,7 +16,7 @@ class DividerText extends StatelessWidget {
           child: Text(
             'أو الدخول بواسطة',
             style: TextStyle(
-              fontFamily: cairoFontFamily,
+              fontFamily: 'Cairo',
               fontSize: Responsive.fontSize(context, 13),
               color: AppColors.textSecondary,
             ),

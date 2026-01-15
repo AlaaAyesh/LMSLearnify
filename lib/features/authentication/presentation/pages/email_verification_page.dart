@@ -278,7 +278,7 @@ class _EmailVerificationPageContentState
                                 'إعادة إرسال الرمز',
                                 style: TextStyle(
                                   color: AppColors.primary,
-                                  fontFamily: cairoFontFamily,
+                                  fontFamily: 'Cairo',
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),
@@ -320,7 +320,7 @@ class _EmailVerificationPageContentState
                             child: Text(
                               'يجب التحقق من بريدك الإلكتروني للمتابعة',
                               style: TextStyle(
-                                fontFamily: cairoFontFamily,
+                                fontFamily: 'Cairo',
                                 fontSize: 12,
                                 color: AppColors.info,
                               ),
@@ -340,7 +340,7 @@ class _EmailVerificationPageContentState
                         'استخدام بريد إلكتروني آخر',
                         style: TextStyle(
                           color: AppColors.textSecondary,
-                          fontFamily: cairoFontFamily,
+                          fontFamily: 'Cairo',
                           fontSize: 14,
                         ),
                       ),

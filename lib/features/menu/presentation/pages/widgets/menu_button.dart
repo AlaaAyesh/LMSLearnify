@@ -45,7 +45,7 @@ class MenuButton extends StatelessWidget {
                 child: Text(
                   text,
                   style: TextStyle(
-                    fontFamily: cairoFontFamily,
+                    fontFamily: 'Cairo',
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
@@ -81,7 +81,7 @@ class MenuButton extends StatelessWidget {
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 12,
-                    fontFamily: cairoFontFamily,
+                    fontFamily: 'Cairo',
                     fontWeight: FontWeight.bold,
                   ),
                 ),

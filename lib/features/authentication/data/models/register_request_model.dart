@@ -38,6 +38,7 @@ class RegisterRequestModel {
       'gender': gender,
     };
 
+    // Religion is required by the API, always include it if provided
     if (religion != null && religion!.isNotEmpty) {
       map['religion'] = religion;
     }

@@ -34,7 +34,7 @@ class SupportSection extends StatelessWidget {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('لم يتم العثور على تطبيق واتساب', style: TextStyle(fontFamily: cairoFontFamily)),
+            content: Text('لم يتم العثور على تطبيق واتساب', style: TextStyle(fontFamily: 'Cairo')),
             backgroundColor: Colors.red,
           ),
         );
@@ -49,7 +49,7 @@ class SupportSection extends StatelessWidget {
         Text(
           'لديك مشاكل أو استفسارات ؟',
           style: TextStyle(
-            fontFamily: cairoFontFamily,
+            fontFamily: 'Cairo',
             fontSize: 16,
             color: AppColors.textPrimary,
           ),
@@ -64,7 +64,7 @@ class SupportSection extends StatelessWidget {
               Text(
                 'تواصل معنا من هنا',
                 style: TextStyle(
-                  fontFamily: cairoFontFamily,
+                  fontFamily: 'Cairo',
                   fontSize: 14,
                   color: AppColors.textPrimary,
                 ),

@@ -147,7 +147,7 @@ class _SiteBannerCarouselState extends State<SiteBannerCarousel> {
                 child: Text(
                   banner.title.isNotEmpty ? banner.title : 'افتح إمكاناتك الكاملة',
                   style: TextStyle(
-                    fontFamily: cairoFontFamily,
+                    fontFamily: 'Cairo',
                     fontSize: Responsive.fontSize(context, 22),
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
@@ -168,7 +168,7 @@ class _SiteBannerCarouselState extends State<SiteBannerCarousel> {
                       ? banner.buttonDescription 
                       : 'استكشف آلاف الدورات التدريبية والمدربين الخبراء لتعزيز مهاراتك.',
                   style: TextStyle(
-                    fontFamily: cairoFontFamily,
+                    fontFamily: 'Cairo',
                     fontSize: Responsive.fontSize(context, 13),
                     color: Colors.white,
                     height: 1.4,
@@ -191,7 +191,7 @@ class _SiteBannerCarouselState extends State<SiteBannerCarousel> {
                 child: Text(
                   'ابدأ الآن',
                   style: TextStyle(
-                    fontFamily: cairoFontFamily,
+                    fontFamily: 'Cairo',
                     fontSize: Responsive.fontSize(context, 15),
                     fontWeight: FontWeight.bold,
                     color: const Color(0xFFFFB74D), // Light orange matching card background

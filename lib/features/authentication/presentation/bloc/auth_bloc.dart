@@ -36,7 +36,6 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<VerifyEmailOtpEvent>(_onVerifyEmailOtp);
     on<CheckEmailVerificationEvent>(_onCheckEmailVerification);
     on<ChangePasswordEvent>(_onChangePassword);
-    on<GuestLoginEvent>(_onGuestLogin);
     on<GoogleSignInEvent>(_onGoogleSignIn);
     on<GoogleCallbackEvent>(_onGoogleCallback);
     on<MobileOAuthLoginEvent>(_onMobileOAuthLogin);
@@ -76,6 +75,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       phone: event.phone,
       specialtyId: event.specialtyId,
       gender: event.gender,
+      religion: event.religion,
       birthday: event.birthday,
     );
 
@@ -257,20 +257,6 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     );
   }
 
-  // Guest login handler
-  Future<void> _onGuestLogin(
-    GuestLoginEvent event,
-    Emitter<AuthState> emit,
-  ) async {
-    emit(AuthLoading());
-
-    final result = await authRepository.loginAsGuest();
-
-    result.fold(
-      (failure) => emit(AuthError(failure.message)),
-      (user) => emit(AuthAuthenticated(user)),
-    );
-  }
 
   // Google OAuth handlers
   Future<void> _onGoogleSignIn(

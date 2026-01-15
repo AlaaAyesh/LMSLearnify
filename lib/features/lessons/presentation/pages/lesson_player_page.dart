@@ -242,7 +242,7 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
             SizedBox(height: Responsive.spacing(context, 16)),
             Text(
               message,
-              style: TextStyle(color: Colors.white, fontFamily: cairoFontFamily, fontSize: Responsive.fontSize(context, 16)),
+              style: TextStyle(color: Colors.white, fontFamily: 'Cairo', fontSize: Responsive.fontSize(context, 16)),
               textAlign: TextAlign.center,
             ),
             SizedBox(height: Responsive.spacing(context, 24)),
@@ -253,7 +253,7 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
                 }
               },
               style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
-              child: Text('إعادة المحاولة', style: TextStyle(fontFamily: cairoFontFamily)),
+              child: Text('إعادة المحاولة', style: TextStyle(fontFamily: 'Cairo')),
             ),
           ],
         ),
@@ -376,7 +376,7 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
           Text(
             lesson.nameAr,
             style: TextStyle(
-              fontFamily: cairoFontFamily,
+              fontFamily: 'Cairo',
               fontSize: Responsive.fontSize(context, 18),
               fontWeight: FontWeight.bold,
               color: AppColors.textPrimary,
@@ -401,7 +401,7 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
                       Text(
                         lesson.videoDuration!,
                         style: TextStyle(
-                          fontFamily: cairoFontFamily,
+                          fontFamily: 'Cairo',
                           fontSize: Responsive.fontSize(context, 12),
                           color: AppColors.primary,
                           fontWeight: FontWeight.w600,
@@ -427,7 +427,7 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
                       Text(
                         'تمت المشاهدة',
                         style: TextStyle(
-                          fontFamily: cairoFontFamily,
+                          fontFamily: 'Cairo',
                           fontSize: Responsive.fontSize(context, 12),
                           color: AppColors.success,
                           fontWeight: FontWeight.w600,
@@ -476,7 +476,7 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
                       Text(
                         'الدورة',
                         style: TextStyle(
-                          fontFamily: cairoFontFamily,
+                          fontFamily: 'Cairo',
                           fontSize: Responsive.fontSize(context, 11),
                           color: AppColors.textSecondary,
                         ),
@@ -484,7 +484,7 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
                       Text(
                         widget.course!.nameAr,
                         style: TextStyle(
-                          fontFamily: cairoFontFamily,
+                          fontFamily: 'Cairo',
                           fontSize: Responsive.fontSize(context, 14),
                           fontWeight: FontWeight.w600,
                           color: AppColors.textPrimary,
@@ -524,7 +524,7 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
                       Text(
                         'الفصل',
                         style: TextStyle(
-                          fontFamily: cairoFontFamily,
+                          fontFamily: 'Cairo',
                           fontSize: Responsive.fontSize(context, 11),
                           color: AppColors.textSecondary,
                         ),
@@ -532,7 +532,7 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
                       Text(
                         widget.chapter!.nameAr,
                         style: TextStyle(
-                          fontFamily: cairoFontFamily,
+                          fontFamily: 'Cairo',
                           fontSize: Responsive.fontSize(context, 14),
                           fontWeight: FontWeight.w600,
                           color: AppColors.textPrimary,
@@ -553,7 +553,7 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
                   child: Text(
                     '${widget.chapter!.lessons.length} دروس',
                     style: TextStyle(
-                      fontFamily: cairoFontFamily,
+                      fontFamily: 'Cairo',
                       fontSize: Responsive.fontSize(context, 11),
                       color: Colors.white,
                       fontWeight: FontWeight.w600,
@@ -585,7 +585,7 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
                   child: Text(
                     'دروس الفصل',
                     style: TextStyle(
-                      fontFamily: cairoFontFamily,
+                      fontFamily: 'Cairo',
                       fontSize: Responsive.fontSize(context, 16),
                       fontWeight: FontWeight.bold,
                       color: AppColors.textPrimary,
@@ -665,7 +665,7 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
                         : Text(
                             '${index + 1}',
                             style: TextStyle(
-                              fontFamily: cairoFontFamily,
+                              fontFamily: 'Cairo',
                               fontSize: Responsive.fontSize(context, 12),
                               fontWeight: FontWeight.w600,
                               color: Colors.grey[600],
@@ -676,7 +676,7 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
             title: Text(
               lesson.nameAr,
               style: TextStyle(
-                fontFamily: cairoFontFamily,
+                fontFamily: 'Cairo',
                 fontSize: Responsive.fontSize(context, 14),
                 fontWeight: isCurrentLesson ? FontWeight.bold : FontWeight.w500,
                 color: isCurrentLesson ? AppColors.primary : AppColors.textPrimary,
@@ -688,7 +688,7 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
                 ? Text(
                     lesson.duration!,
                     style: TextStyle(
-                      fontFamily: cairoFontFamily,
+                      fontFamily: 'Cairo',
                       fontSize: Responsive.fontSize(context, 12),
                       color: AppColors.textSecondary,
                     ),
@@ -704,7 +704,7 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
                     child: Text(
                       'الآن',
                       style: TextStyle(
-                        fontFamily: cairoFontFamily,
+                        fontFamily: 'Cairo',
                         fontSize: Responsive.fontSize(context, 11),
                         color: AppColors.primary,
                         fontWeight: FontWeight.bold,
@@ -731,7 +731,7 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
               Text(
                 'وصف الدرس',
                 style: TextStyle(
-                  fontFamily: cairoFontFamily,
+                  fontFamily: 'Cairo',
                   fontSize: Responsive.fontSize(context, 16),
                   fontWeight: FontWeight.bold,
                   color: AppColors.textPrimary,
@@ -749,7 +749,7 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
             child: Text(
               lesson.description!,
               style: TextStyle(
-                fontFamily: cairoFontFamily,
+                fontFamily: 'Cairo',
                 fontSize: Responsive.fontSize(context, 14),
                 color: AppColors.textSecondary,
                 height: 1.6,
@@ -774,7 +774,7 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
           lesson.nameAr,
           style: TextStyle(
             color: AppColors.primary,
-            fontFamily: cairoFontFamily,
+            fontFamily: 'Cairo',
             fontSize: 16,
           ),
         ),
@@ -788,7 +788,7 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
             Text(
               'الفيديو غير متاح حالياً',
               style: TextStyle(
-                fontFamily: cairoFontFamily,
+                fontFamily: 'Cairo',
                 fontSize: Responsive.fontSize(context, 18),
                 color: AppColors.textSecondary,
               ),
@@ -797,7 +797,7 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
               SizedBox(height: Responsive.spacing(context, 8)),
               Text(
                 'الحالة: ${lesson.videoStatus}',
-                style: TextStyle(fontFamily: cairoFontFamily, fontSize: Responsive.fontSize(context, 14), color: Colors.grey[500]),
+                style: TextStyle(fontFamily: 'Cairo', fontSize: Responsive.fontSize(context, 14), color: Colors.grey[500]),
               ),
             ],
           ],

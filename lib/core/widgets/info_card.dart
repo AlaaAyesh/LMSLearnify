@@ -48,7 +48,7 @@ class InfoCard extends StatelessWidget {
         textAlign: textAlign,
         textDirection: TextDirection.rtl,
         style: TextStyle(
-          fontFamily: cairoFontFamily,
+          fontFamily: 'Cairo',
           fontSize: Responsive.fontSize(context, fontSize),
           height: 1.6,
           color: textColor,

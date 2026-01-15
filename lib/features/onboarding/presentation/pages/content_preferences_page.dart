@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/responsive.dart';
+import '../../../../core/constants/app_constants.dart';
+import '../../../../core/di/injection_container.dart';
+import '../../../../core/storage/hive_service.dart';
 import 'package:learnify_lms/features/authentication/presentation/pages/login/widgets/login_background.dart';
 
 import '../../../authentication/presentation/widgets/primary_button.dart';
@@ -13,18 +16,29 @@ class ContentPreferencesPage extends StatefulWidget {
 }
 
 class _ContentPreferencesPageState extends State<ContentPreferencesPage> {
-  bool _coursesAndSkills = false;
-  bool _valuesAndEthics = false;
-  bool _islamicStories = false;
+  // Option 1 and 2 enabled by default, Option 3 disabled by default
+  bool _coursesAndSkills = true; // Option 1: enabled by default
+  bool _valuesAndEthics = true; // Option 2: enabled by default
+  bool _islamicStories = false; // Option 3: disabled by default (optional)
 
   bool _isSaving = false;
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Stack(
-        children: [
-          const LoginBackground(),
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) return;
+        final shouldPop = await _onWillPop();
+        if (shouldPop && mounted) {
+          // Exit app or navigate back based on user choice
+          Navigator.of(context).pop();
+        }
+      },
+      child: Scaffold(
+        body: Stack(
+          children: [
+            const LoginBackground(),
           SafeArea(
             child: SingleChildScrollView(
               padding: Responsive.padding(context, horizontal: 22),
@@ -134,7 +148,8 @@ class _ContentPreferencesPageState extends State<ContentPreferencesPage> {
                   PrimaryButton(
                     text: 'حفظ',
                     isLoading: _isSaving,
-                    onPressed: _isSaving ? null : _savePreferences,
+                    // Enable button only when option 1 and 2 are selected
+                    onPressed: (_isSaving || !_canSave()) ? null : _savePreferences,
                   ),
 
                   SizedBox(height: Responsive.spacing(context, 40)),
@@ -143,6 +158,7 @@ class _ContentPreferencesPageState extends State<ContentPreferencesPage> {
             ),
           ),
         ],
+      ),
       ),
     );
   }
@@ -196,14 +212,100 @@ class _ContentPreferencesPageState extends State<ContentPreferencesPage> {
     );
   }
 
+  /// Check if options 1 and 2 are selected (required for saving)
+  bool _canSave() {
+    return _coursesAndSkills && _valuesAndEthics;
+  }
+
   Future<void> _savePreferences() async {
+    // Validate that required options are selected
+    if (!_canSave()) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('يجب اختيار كورسات ومهارات وقيم وإخلاق إنسانية عامة'),
+          backgroundColor: AppColors.error,
+        ),
+      );
+      return;
+    }
+
     setState(() => _isSaving = true);
 
-    // مثال مؤقت لتجنب error من sl<HiveService>()
-    await Future.delayed(const Duration(seconds: 1));
+    try {
+      final hiveService = sl<HiveService>();
+      
+      // Save preferences to local storage
+      await hiveService.saveData('content_preferences', {
+        'coursesAndSkills': _coursesAndSkills,
+        'valuesAndEthics': _valuesAndEthics,
+        'islamicStories': _islamicStories,
+      });
 
-    setState(() => _isSaving = false);
-    // بعد الحفظ انتقل للصفحة الرئيسية
-    if (mounted) Navigator.of(context).pushReplacementNamed('/home');
+      // Mark onboarding as completed
+      await hiveService.saveData(
+        AppConstants.keyContentPreferencesCompleted,
+        true,
+      );
+
+      // TODO: Add API call to save preferences to backend
+      // await _savePreferencesToBackend();
+
+      if (!mounted) return;
+
+      setState(() => _isSaving = false);
+
+      // Navigate to home and remove all previous routes
+      if (mounted) {
+        Navigator.of(context).pushNamedAndRemoveUntil(
+          '/home',
+          (_) => false,
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      
+      setState(() => _isSaving = false);
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('حدث خطأ أثناء حفظ التفضيلات. يرجى المحاولة مرة أخرى.'),
+          backgroundColor: AppColors.error,
+        ),
+      );
+    }
+  }
+
+  /// Prevent back navigation - onboarding is mandatory
+  Future<bool> _onWillPop() async {
+    // Show dialog to confirm if user tries to go back
+    final shouldPop = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(
+          'تأكيد',
+          style: TextStyle(fontFamily: 'Cairo'),
+        ),
+        content: Text(
+          'يجب إكمال اختيار التفضيلات للمتابعة. هل تريد الخروج من التطبيق؟',
+          style: TextStyle(fontFamily: 'Cairo'),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text('إلغاء', style: TextStyle(fontFamily: 'Cairo')),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text('خروج', style: TextStyle(fontFamily: 'Cairo')),
+          ),
+        ],
+      ),
+    );
+    
+    if (shouldPop == true) {
+      // Exit app if user confirms
+      return true;
+    }
+    return false;
   }
 }

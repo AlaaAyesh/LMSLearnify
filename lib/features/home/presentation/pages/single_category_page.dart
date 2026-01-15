@@ -48,7 +48,7 @@ class SingleCategoryPage extends StatelessWidget {
           Text(
             'لا توجد دورات في هذا التصنيف',
             style: TextStyle(
-              fontFamily: cairoFontFamily,
+              fontFamily: 'Cairo',
               fontSize: 18,
               color: Colors.grey[600],
               fontWeight: FontWeight.w500,
@@ -146,7 +146,7 @@ class _CourseGridItem extends StatelessWidget {
                             child: Text(
                               'قريباً',
                               style: TextStyle(
-                                fontFamily: cairoFontFamily,
+                                fontFamily: 'Cairo',
                                 fontSize: 12,
                                 fontWeight: FontWeight.bold,
                                 color: Colors.white,
@@ -168,7 +168,7 @@ class _CourseGridItem extends StatelessWidget {
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
-                  fontFamily: cairoFontFamily,
+                  fontFamily: 'Cairo',
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
                   color: isComingSoon 

@@ -84,7 +84,7 @@ class _GoogleOAuthWebViewPageState extends State<GoogleOAuthWebViewPage> {
         SnackBar(
           content: Text(
             errorMessage,
-            style: TextStyle(fontFamily: cairoFontFamily),
+            style: TextStyle(fontFamily: 'Cairo'),
           ),
           backgroundColor: Colors.red,
         ),
@@ -108,7 +108,7 @@ class _GoogleOAuthWebViewPageState extends State<GoogleOAuthWebViewPage> {
         SnackBar(
           content: Text(
             'فشل في الحصول على رمز المصادقة',
-            style: TextStyle(fontFamily: cairoFontFamily),
+            style: TextStyle(fontFamily: 'Cairo'),
           ),
           backgroundColor: Colors.red,
         ),
@@ -130,7 +130,7 @@ class _GoogleOAuthWebViewPageState extends State<GoogleOAuthWebViewPage> {
             SnackBar(
               content: Text(
                 state.message,
-                style: TextStyle(fontFamily: cairoFontFamily),
+                style: TextStyle(fontFamily: 'Cairo'),
               ),
               backgroundColor: Colors.red,
             ),
@@ -149,7 +149,7 @@ class _GoogleOAuthWebViewPageState extends State<GoogleOAuthWebViewPage> {
           title: Text(
             'تسجيل الدخول بـ Google',
             style: TextStyle(
-              fontFamily: cairoFontFamily,
+              fontFamily: 'Cairo',
               color: AppColors.textPrimary,
               fontSize: 18,
               fontWeight: FontWeight.w600,

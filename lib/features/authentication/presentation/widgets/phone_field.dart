@@ -39,7 +39,7 @@ class PhoneField extends StatelessWidget {
             Text(
               countryCode ?? 'اختر دولتك',
               style: TextStyle(
-                fontFamily: cairoFontFamily,
+                fontFamily: 'Cairo',
                 fontSize: Responsive.fontSize(context, 14),
                 fontWeight: FontWeight.w600,
                 color: countryCode != null
@@ -164,7 +164,7 @@ class _CountryPickerSheet extends StatelessWidget {
                 child: Text(
                   'اختر الدولة',
                   style: TextStyle(
-                    fontFamily: cairoFontFamily,
+                    fontFamily: 'Cairo',
                     fontSize: Responsive.fontSize(context, 18),
                     fontWeight: FontWeight.bold,
                     color: AppColors.textPrimary,
@@ -201,7 +201,7 @@ class _CountryPickerSheet extends StatelessWidget {
                 title: Text(
                   country['name']!,
                   style: TextStyle(
-                    fontFamily: cairoFontFamily,
+                    fontFamily: 'Cairo',
                     fontSize: Responsive.fontSize(context, 16),
                     fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                     color: isSelected ? AppColors.primary : AppColors.textPrimary,
@@ -210,7 +210,7 @@ class _CountryPickerSheet extends StatelessWidget {
                 subtitle: Text(
                   country['code']!,
                   style: TextStyle(
-                    fontFamily: cairoFontFamily,
+                    fontFamily: 'Cairo',
                     fontSize: Responsive.fontSize(context, 14),
                     color: isSelected ? AppColors.primary : AppColors.textSecondary,
                   ),

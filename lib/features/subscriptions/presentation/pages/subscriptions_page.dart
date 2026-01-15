@@ -288,12 +288,11 @@ class _SubscriptionsPageContentState extends State<_SubscriptionsPageContent> {
       return;
     }
 
-    // Check if user is authenticated (not guest)
+    // Check if user is authenticated
     final authLocalDataSource = sl<AuthLocalDataSource>();
     final token = await authLocalDataSource.getAccessToken();
-    final isGuest = await authLocalDataSource.isGuestMode();
     
-    final isAuthenticated = token != null && token.isNotEmpty && !isGuest;
+    final isAuthenticated = token != null && token.isNotEmpty;
     
     if (!isAuthenticated) {
       // Save selected plan index before redirecting to login
@@ -411,7 +410,7 @@ class _SubscriptionsPageContentState extends State<_SubscriptionsPageContent> {
                   Text(
                     'اختر طريقة الدفع',
                     style: TextStyle(
-                      fontFamily: cairoFontFamily,
+                      fontFamily: 'Cairo',
                       fontSize: Responsive.fontSize(ctx, 16),
                       fontWeight: FontWeight.w700,
                       color: AppColors.textPrimary,
@@ -458,7 +457,7 @@ class _SubscriptionsPageContentState extends State<_SubscriptionsPageContent> {
                       Text(
                         'الإجمالي',
                         style: TextStyle(
-                          fontFamily: cairoFontFamily,
+                          fontFamily: 'Cairo',
                           fontSize: Responsive.fontSize(ctx, 14),
                           color: AppColors.textSecondary,
                         ),
@@ -466,7 +465,7 @@ class _SubscriptionsPageContentState extends State<_SubscriptionsPageContent> {
                       Text(
                         '$amount $currencySymbol',
                         style: TextStyle(
-                          fontFamily: cairoFontFamily,
+                          fontFamily: 'Cairo',
                           fontSize: Responsive.fontSize(ctx, 18),
                           fontWeight: FontWeight.bold,
                           color: AppColors.primary,
@@ -649,7 +648,7 @@ class _PaymentOptionTile extends StatelessWidget {
                   Text(
                     title,
                     style: TextStyle(
-                      fontFamily: cairoFontFamily,
+                      fontFamily: 'Cairo',
                       fontSize: Responsive.fontSize(context, 14),
                       fontWeight: FontWeight.w700,
                       color: AppColors.textPrimary,
@@ -659,7 +658,7 @@ class _PaymentOptionTile extends StatelessWidget {
                   Text(
                     subtitle,
                     style: TextStyle(
-                      fontFamily: cairoFontFamily,
+                      fontFamily: 'Cairo',
                       fontSize: Responsive.fontSize(context, 12),
                       color: AppColors.textSecondary,
                     ),

@@ -28,7 +28,7 @@ class CreateAccountButton extends StatelessWidget {
                 Text(
                   'إنشاء حساب جديد',
                   style: TextStyle(
-                    fontFamily: cairoFontFamily,
+                    fontFamily: 'Cairo',
                     fontSize: Responsive.fontSize(context, 20),
                     fontWeight: FontWeight.w700,
                     color: AppColors.textPrimary,

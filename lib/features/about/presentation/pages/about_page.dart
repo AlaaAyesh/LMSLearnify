@@ -38,7 +38,7 @@ class AboutPage extends StatelessWidget {
                         child: Text(
                           'Learnify',
                           style: TextStyle(
-                            fontFamily: cairoFontFamily,
+                            fontFamily: 'Cairo',
                             fontSize: 32,
                             fontWeight: FontWeight.bold,
                             color: AppColors.primary,

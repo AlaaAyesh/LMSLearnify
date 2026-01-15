@@ -1,26 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'app_colors.dart';
-
-/// Cached Cairo font family - initialized once at startup
-/// This avoids repeated GoogleFonts.cairo() calls which are expensive
-String? _cachedCairoFontFamily;
-
-/// Global Cairo font family - use this instead of hardcoded 'Cairo'
-String get cairoFontFamily {
-  _cachedCairoFontFamily ??= GoogleFonts.cairo().fontFamily!;
-  return _cachedCairoFontFamily!;
-}
 
 class AppTextStyles {
   AppTextStyles._(); // Private constructor
-  
-  // Get Cairo font family name from Google Fonts (cached)
-  static String get _cairoFamily => cairoFontFamily;
 
   // Display Styles
   static TextStyle get displayLarge => TextStyle(
-    fontFamily: _cairoFamily,
+    fontFamily: 'Cairo',
     fontSize: 32,
     fontWeight: FontWeight.bold,
     color: AppColors.textPrimary,
@@ -28,7 +14,7 @@ class AppTextStyles {
   );
 
   static TextStyle get displayMedium => TextStyle(
-    fontFamily: _cairoFamily,
+    fontFamily: 'Cairo',
     fontSize: 28,
     fontWeight: FontWeight.bold,
     color: AppColors.textPrimary,
@@ -37,7 +23,7 @@ class AppTextStyles {
 
   // Headline Styles
   static TextStyle get headlineLarge => TextStyle(
-    fontFamily: _cairoFamily,
+    fontFamily: 'Cairo',
     fontSize: 24,
     fontWeight: FontWeight.bold,
     color: AppColors.textPrimary,
@@ -45,7 +31,7 @@ class AppTextStyles {
   );
 
   static TextStyle get headlineMedium => TextStyle(
-    fontFamily: _cairoFamily,
+    fontFamily: 'Cairo',
     fontSize: 20,
     fontWeight: FontWeight.w600,
     color: AppColors.textPrimary,
@@ -54,7 +40,7 @@ class AppTextStyles {
 
   // Body Styles
   static TextStyle get bodyLarge => TextStyle(
-    fontFamily: _cairoFamily,
+    fontFamily: 'Cairo',
     fontSize: 16,
     fontWeight: FontWeight.normal,
     color: AppColors.textPrimary,
@@ -62,7 +48,7 @@ class AppTextStyles {
   );
 
   static TextStyle get bodyMedium => TextStyle(
-    fontFamily: _cairoFamily,
+    fontFamily: 'Cairo',
     fontSize: 14,
     fontWeight: FontWeight.normal,
     color: AppColors.textSecondary,
@@ -71,14 +57,14 @@ class AppTextStyles {
 
   // Label Styles
   static TextStyle get labelLarge => TextStyle(
-    fontFamily: _cairoFamily,
+    fontFamily: 'Cairo',
     fontSize: 14,
     fontWeight: FontWeight.w600,
     color: AppColors.textPrimary,
   );
 
   static TextStyle get labelMedium => TextStyle(
-    fontFamily: _cairoFamily,
+    fontFamily: 'Cairo',
     fontSize: 12,
     fontWeight: FontWeight.w500,
     color: AppColors.textSecondary,
@@ -86,7 +72,7 @@ class AppTextStyles {
 
   // Button Styles
   static TextStyle get button => TextStyle(
-    fontFamily: _cairoFamily,
+    fontFamily: 'Cairo',
     fontSize: 16,
     fontWeight: FontWeight.bold,
     color: AppColors.white,

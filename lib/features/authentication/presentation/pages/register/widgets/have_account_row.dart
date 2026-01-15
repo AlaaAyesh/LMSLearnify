@@ -14,7 +14,7 @@ class HaveAccountRow extends StatelessWidget {
         Text(
           'هل لديك حساب؟ ',
           style: TextStyle(
-            fontFamily: cairoFontFamily,
+            fontFamily: 'Cairo',
             color: AppColors.textSecondary,
             fontWeight: FontWeight.w600,
             fontSize: Responsive.fontSize(context, 14),
@@ -30,7 +30,7 @@ class HaveAccountRow extends StatelessWidget {
           child: Text(
             ' اضغط من هنا',
             style: TextStyle(
-              fontFamily: cairoFontFamily,
+              fontFamily: 'Cairo',
               color: AppColors.primary,
               fontWeight: FontWeight.w600,
               decoration: TextDecoration.underline,

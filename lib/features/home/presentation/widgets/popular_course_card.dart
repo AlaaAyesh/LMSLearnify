@@ -83,7 +83,7 @@ class PopularCourseCard extends StatelessWidget {
                       child: Text(
                         'قريباً',
                         style: TextStyle(
-                          fontFamily: cairoFontFamily,
+                          fontFamily: 'Cairo',
                           fontSize: Responsive.fontSize(context, 10),
                           fontWeight: FontWeight.bold,
                           color: Colors.white,
@@ -104,7 +104,7 @@ class PopularCourseCard extends StatelessWidget {
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
-                      fontFamily: cairoFontFamily,
+                      fontFamily: 'Cairo',
                       fontSize: Responsive.fontSize(context, 14),
                       fontWeight: FontWeight.bold,
                       color: AppColors.textPrimary,

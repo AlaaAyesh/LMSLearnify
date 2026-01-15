@@ -23,7 +23,7 @@ class PaymentButton extends StatelessWidget {
         child: Text(
           'الدفع',
           style: TextStyle(
-            fontFamily: cairoFontFamily,
+            fontFamily: 'Cairo',
             fontSize: Responsive.fontSize(context, 18),
             color: Colors.white,
             fontWeight: FontWeight.bold,

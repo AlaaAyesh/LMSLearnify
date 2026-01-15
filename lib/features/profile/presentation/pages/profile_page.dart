@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/di/injection_container.dart';
-import '../../../../core/services/guest_service.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../authentication/data/datasources/auth_local_datasource.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/custom_app_bar.dart';
 import '../../../../core/widgets/custom_background.dart';
@@ -17,39 +17,87 @@ import '../../../authentication/presentation/widgets/name_field.dart';
 import '../../../authentication/presentation/widgets/phone_field.dart';
 import '../../../authentication/presentation/widgets/primary_button.dart';
 
-class ProfilePage extends StatelessWidget {
+class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
 
   @override
+  State<ProfilePage> createState() => _ProfilePageState();
+}
+
+class _ProfilePageState extends State<ProfilePage> {
+  @override
+  void initState() {
+    super.initState();
+    // Use the AuthBloc from app level, don't create a new one
+    // This prevents _dependents.isEmpty errors when logging out and logging in again
+    // Check auth status when page is opened
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        context.read<AuthBloc>().add(CheckAuthStatusEvent());
+      }
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final guestService = sl<GuestService>();
-
-    // Check if user is guest
-    if (guestService.isGuestMode()) {
-      return _GuestProfilePage();
-    }
-
-    // Return normal profile page with BlocProvider
-    return BlocProvider(
-      create: (_) => sl<AuthBloc>()..add(CheckAuthStatusEvent()),
-      child: const _AuthenticatedProfilePage(),
-    );
+    return const _ProfilePageContent();
   }
 }
 
-// 🆕 Guest Profile Page
-class _GuestProfilePage extends StatelessWidget {
+// Profile page content that handles both authenticated and unauthenticated states
+class _ProfilePageContent extends StatefulWidget {
+  const _ProfilePageContent();
+
+  @override
+  State<_ProfilePageContent> createState() => _ProfilePageContentState();
+}
+
+class _ProfilePageContentState extends State<_ProfilePageContent> {
+  bool _isCheckingAuth = true;
+  bool _isAuthenticated = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkAuthentication();
+  }
+
+  Future<void> _checkAuthentication() async {
+    final authLocalDataSource = sl<AuthLocalDataSource>();
+    final token = await authLocalDataSource.getAccessToken();
+    setState(() {
+      _isAuthenticated = token != null && token.isNotEmpty;
+      _isCheckingAuth = false;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_isCheckingAuth) {
+      return Scaffold(
+        backgroundColor: AppColors.white,
+        appBar: const CustomAppBar(title: 'الحساب'),
+        body: Center(
+          child: CircularProgressIndicator(color: AppColors.primary),
+        ),
+      );
+    }
+
+    if (!_isAuthenticated) {
+      return _UnauthenticatedProfilePage();
+    }
+
+    return const _AuthenticatedProfilePage();
+  }
+}
+
+// Unauthenticated Profile Page
+class _UnauthenticatedProfilePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.white,
-      appBar: AppBar(
-        title: const Text('الحساب'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, size: 20),
-          onPressed: () => Navigator.pop(context),
-        ),
-      ),
+      appBar: const CustomAppBar(title: 'الحساب'),
       body: Center(
         child: Padding(
           padding: const EdgeInsets.all(32),
@@ -73,7 +121,7 @@ class _GuestProfilePage extends StatelessWidget {
 
               // Title
               Text(
-                'أنت تتصفح كضيف',
+                'تسجيل الدخول مطلوب',
                 style: AppTextStyles.displayMedium,
                 textAlign: TextAlign.center,
               ),
@@ -92,8 +140,17 @@ class _GuestProfilePage extends StatelessWidget {
                 width: double.infinity,
                 height: 56,
                 child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.of(context, rootNavigator: true).pushReplacementNamed('/login');
+                  onPressed: () async {
+                    final result = await Navigator.pushNamed(
+                      context,
+                      '/login',
+                      arguments: {'returnTo': 'profile'},
+                    );
+                    if (result == true && context.mounted) {
+                      // Refresh authentication status
+                      Navigator.of(context).pop();
+                      Navigator.of(context).pushNamed('/profile');
+                    }
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primary,
@@ -104,7 +161,7 @@ class _GuestProfilePage extends StatelessWidget {
                   child: Text(
                     'تسجيل الدخول',
                     style: TextStyle(
-                      fontFamily: cairoFontFamily,
+                      fontFamily: 'Cairo',
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
                     ),
@@ -118,8 +175,17 @@ class _GuestProfilePage extends StatelessWidget {
                 width: double.infinity,
                 height: 56,
                 child: OutlinedButton(
-                  onPressed: () {
-                    Navigator.of(context, rootNavigator: true).pushNamed('/register');
+                  onPressed: () async {
+                    final result = await Navigator.pushNamed(
+                      context,
+                      '/register',
+                      arguments: {'returnTo': 'profile'},
+                    );
+                    if (result == true && context.mounted) {
+                      // Refresh authentication status
+                      Navigator.of(context).pop();
+                      Navigator.of(context).pushNamed('/profile');
+                    }
                   },
                   style: OutlinedButton.styleFrom(
                     side: const BorderSide(color: AppColors.primary),
@@ -130,7 +196,7 @@ class _GuestProfilePage extends StatelessWidget {
                   child: Text(
                     'إنشاء حساب جديد',
                     style: TextStyle(
-                      fontFamily: cairoFontFamily,
+                      fontFamily: 'Cairo',
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
                       color: AppColors.primary,
@@ -146,7 +212,7 @@ class _GuestProfilePage extends StatelessWidget {
   }
 }
 
-// Existing authenticated profile page
+// Authenticated profile page
 class _AuthenticatedProfilePage extends StatefulWidget {
   const _AuthenticatedProfilePage();
 
@@ -409,7 +475,7 @@ class _AuthenticatedProfilePageState extends State<_AuthenticatedProfilePage> {
           Text(
             user.isSubscribed ? 'مشترك' : 'غير مشترك',
             style: TextStyle(
-              fontFamily: cairoFontFamily,
+              fontFamily: 'Cairo',
               fontSize: 14,
               fontWeight: FontWeight.w600,
               color: user.isSubscribed ? AppColors.success : AppColors.warning,

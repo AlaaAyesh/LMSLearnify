@@ -29,7 +29,7 @@ class MenuOutlineButton extends StatelessWidget {
               text,
               style: TextStyle(
                 color: Colors.black,
-                fontFamily: cairoFontFamily,
+                fontFamily: 'Cairo',
                 fontSize: 22,
                 fontWeight: FontWeight.bold,
               ),

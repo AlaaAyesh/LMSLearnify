@@ -17,7 +17,7 @@ class StrikethroughPrice extends StatelessWidget {
         Text(
           price,
           style: TextStyle(
-            fontFamily: cairoFontFamily,
+            fontFamily: 'Cairo',
             fontSize: Responsive.fontSize(context, 22),
             fontWeight: FontWeight.bold,
             color: Colors.black,

@@ -50,7 +50,7 @@ class CategoriesPage extends StatelessWidget {
           Text(
             'لا توجد تصنيفات',
             style: TextStyle(
-              fontFamily: cairoFontFamily,
+              fontFamily: 'Cairo',
               fontSize: 18,
               color: Colors.grey[600],
               fontWeight: FontWeight.w500,
@@ -166,7 +166,7 @@ class _CategoryGridItem extends StatelessWidget {
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
             style: TextStyle(
-              fontFamily: cairoFontFamily,
+              fontFamily: 'Cairo',
               fontSize: 14,
               fontWeight: FontWeight.w600,
               color: AppColors.textPrimary,

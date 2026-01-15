@@ -32,7 +32,7 @@ class PaymentSuccessDialog extends StatelessWidget {
           Text(
             'تم الاشتراك بنجاح!',
             style: TextStyle(
-              fontFamily: cairoFontFamily,
+              fontFamily: 'Cairo',
               fontSize: 20,
               fontWeight: FontWeight.bold,
             ),
@@ -42,7 +42,7 @@ class PaymentSuccessDialog extends StatelessWidget {
           Text(
             'يمكنك الآن الوصول لجميع الكورسات',
             style: TextStyle(
-              fontFamily: cairoFontFamily,
+              fontFamily: 'Cairo',
               color: AppColors.textSecondary,
             ),
             textAlign: TextAlign.center,
@@ -54,7 +54,7 @@ class PaymentSuccessDialog extends StatelessWidget {
               onPressed: onContinue,
               child: Text(
                 'ابدأ التعلم',
-                style: TextStyle(fontFamily: cairoFontFamily),
+                style: TextStyle(fontFamily: 'Cairo'),
               ),
             ),
           ),

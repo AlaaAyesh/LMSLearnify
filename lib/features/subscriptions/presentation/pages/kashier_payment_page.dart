@@ -162,7 +162,7 @@ class _KashierPaymentPageContentState extends State<_KashierPaymentPageContent> 
         Text(
           'Choose how you would like to pay',
           style: TextStyle(
-            fontFamily: cairoFontFamily,
+            fontFamily: 'Cairo',
             fontSize: Responsive.fontSize(context, 16),
             fontWeight: FontWeight.w600,
             color: AppColors.textPrimary,
@@ -230,7 +230,7 @@ class _KashierPaymentPageContentState extends State<_KashierPaymentPageContent> 
             Text(
               label,
               style: TextStyle(
-                fontFamily: cairoFontFamily,
+                fontFamily: 'Cairo',
                 fontSize: Responsive.fontSize(context, 14),
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                 color: isSelected ? AppColors.primary : Colors.grey[600],
@@ -255,7 +255,7 @@ class _KashierPaymentPageContentState extends State<_KashierPaymentPageContent> 
       child: Text(
         'Click to fill test card',
         style: TextStyle(
-          fontFamily: cairoFontFamily,
+          fontFamily: 'Cairo',
           fontSize: Responsive.fontSize(context, 14),
           color: Colors.white,
         ),
@@ -270,7 +270,7 @@ class _KashierPaymentPageContentState extends State<_KashierPaymentPageContent> 
         Text(
           'Card information',
           style: TextStyle(
-            fontFamily: cairoFontFamily,
+            fontFamily: 'Cairo',
             fontSize: Responsive.fontSize(context, 16),
             fontWeight: FontWeight.bold,
             color: AppColors.textPrimary,
@@ -437,7 +437,7 @@ class _KashierPaymentPageContentState extends State<_KashierPaymentPageContent> 
             : Text(
                 'Pay ${widget.subscription.price} $_currencySymbol',
                 style: TextStyle(
-                  fontFamily: cairoFontFamily,
+                  fontFamily: 'Cairo',
                   fontSize: Responsive.fontSize(context, 18),
                   fontWeight: FontWeight.bold,
                   color: Colors.white,
@@ -456,7 +456,7 @@ class _KashierPaymentPageContentState extends State<_KashierPaymentPageContent> 
         Text(
           'جميع المعاملات مشفرة وآمنة',
           style: TextStyle(
-            fontFamily: cairoFontFamily,
+            fontFamily: 'Cairo',
             fontSize: Responsive.fontSize(context, 12),
             color: Colors.grey[500],
           ),

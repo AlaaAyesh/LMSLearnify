@@ -351,7 +351,7 @@ class _HomeTabContent extends StatelessWidget {
             Text(
               'حدث خطأ',
               style: TextStyle(
-                fontFamily: cairoFontFamily,
+                fontFamily: 'Cairo',
                 fontSize: Responsive.fontSize(context, 18),
                 fontWeight: FontWeight.w500,
                 color: AppColors.textPrimary,
@@ -362,7 +362,7 @@ class _HomeTabContent extends StatelessWidget {
               message,
               textAlign: TextAlign.center,
               style: TextStyle(
-                fontFamily: cairoFontFamily,
+                fontFamily: 'Cairo',
                 fontSize: Responsive.fontSize(context, 14),
                 color: AppColors.textSecondary,
               ),
@@ -375,7 +375,7 @@ class _HomeTabContent extends StatelessWidget {
               icon: Icon(Icons.refresh, size: Responsive.iconSize(context, 20)),
               label: Text(
                 'إعادة المحاولة',
-                style: TextStyle(fontFamily: cairoFontFamily),
+                style: TextStyle(fontFamily: 'Cairo'),
               ),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,

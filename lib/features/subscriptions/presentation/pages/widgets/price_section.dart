@@ -36,7 +36,7 @@ class PriceSection extends StatelessWidget {
             child: Text(
               ' ج.م$discountedPrice',
               style: TextStyle(
-                fontFamily: cairoFontFamily,
+                fontFamily: 'Cairo',
                 fontSize: Responsive.fontSize(context, 18),
                 fontWeight: FontWeight.bold,
                 color: Colors.black,

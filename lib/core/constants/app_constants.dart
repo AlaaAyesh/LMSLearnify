@@ -23,7 +23,6 @@ class AppConstants {
   static const String keyUserData = 'user_data';
   static const String keyIsFirstTime = 'is_first_time';
   static const String keyLanguage = 'language';
-  static const String keyIsGuestMode = 'is_guest_mode'; // 🆕 Guest Mode
   static const String keyContentPreferencesCompleted = 'content_preferences_completed';
 }
 

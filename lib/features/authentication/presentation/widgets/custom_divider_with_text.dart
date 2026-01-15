@@ -35,7 +35,7 @@ class CustomDividerWithText extends StatelessWidget {
             text,
             style: textStyle ??
                 TextStyle(
-                  fontFamily: cairoFontFamily,
+                  fontFamily: 'Cairo',
                   color: AppColors.grey,
                   fontWeight: FontWeight.w700,
                   fontSize: Responsive.fontSize(context, 12),

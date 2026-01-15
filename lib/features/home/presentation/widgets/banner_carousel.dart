@@ -186,7 +186,7 @@ class _BannerCarouselState extends State<BannerCarousel> {
                 child: Text(
                   banner.title!,
                   style: TextStyle(
-                    fontFamily: cairoFontFamily,
+                    fontFamily: 'Cairo',
                     fontSize: Responsive.fontSize(context, 18),
                     fontWeight: FontWeight.bold,
                     color: Colors.white,

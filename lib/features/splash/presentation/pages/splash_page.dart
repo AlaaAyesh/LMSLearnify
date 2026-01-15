@@ -78,17 +78,11 @@ class _SplashPageState extends State<SplashPage>
       // Mark as not first time
       await hiveService.saveData(AppConstants.keyIsFirstTime, false);
       
-      // Go directly to Home (auth state doesn't matter for first time)
+      // Go directly to Home
       Navigator.of(context).pushReplacementNamed('/home');
     } else {
-      // Not first time: Check auth status and navigate accordingly
-      if (authState is AuthAuthenticated) {
-        // User is authenticated, go to home
-        Navigator.of(context).pushReplacementNamed('/home');
-      } else {
-        // User is not authenticated, but still go to home (guest mode or login from there)
-        Navigator.of(context).pushReplacementNamed('/home');
-      }
+      // Not first time: Always go to home (onboarding only shows after registration)
+      Navigator.of(context).pushReplacementNamed('/home');
     }
   }
 
@@ -131,7 +125,7 @@ class _SplashPageState extends State<SplashPage>
                         TextSpan(
                           text: 'مستقبل ابنك يبدأ\n',
                           style: TextStyle(
-                            fontFamily: cairoFontFamily,
+                            fontFamily: 'Cairo',
                             fontSize: 30,
                             fontWeight: FontWeight.bold,
                             color: Color(0xFF000000),
@@ -141,7 +135,7 @@ class _SplashPageState extends State<SplashPage>
                         TextSpan(
                           text: 'هنا 👋',
                           style: TextStyle(
-                            fontFamily: cairoFontFamily,
+                            fontFamily: 'Cairo',
                             fontSize: 30,
                             fontWeight: FontWeight.bold,
                             color: Color(0xFFFFFFFF),

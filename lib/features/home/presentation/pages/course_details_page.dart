@@ -196,7 +196,7 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> {
                   child: Text(
                     'قريباً',
                     style: TextStyle(
-                      fontFamily: cairoFontFamily,
+                      fontFamily: 'Cairo',
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
@@ -264,7 +264,7 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> {
           Text(
             course.about ?? 'مقدمة ممتعة وشاملة لتعلم، مع التركيز على الأساسيات بطريقة تفاعلية ومبتكرة.',
             style: TextStyle(
-              fontFamily: cairoFontFamily,
+              fontFamily: 'Cairo',
               fontSize: 14,
               color: Colors.white,
               height: 1.6,
@@ -314,7 +314,7 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> {
         Text(
           text,
           style: TextStyle(
-            fontFamily: cairoFontFamily,
+            fontFamily: 'Cairo',
             fontSize: 13,
             color: Colors.white,
             fontWeight: FontWeight.w600,
@@ -360,7 +360,7 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> {
           Text(
             'دروس الدورة',
             style: TextStyle(
-              fontFamily: cairoFontFamily,
+              fontFamily: 'Cairo',
               fontSize: 18,
               fontWeight: FontWeight.bold,
               color: AppColors.textPrimary,
@@ -383,7 +383,7 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> {
                     Text(
                       'الكورس مجاني سجل دخولك للمشاهدة',
                       style: TextStyle(
-                        fontFamily: cairoFontFamily,
+                        fontFamily: 'Cairo',
                         fontSize: 10,
                         color: Colors.white,
                         fontWeight: FontWeight.w500,
@@ -399,7 +399,7 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> {
                       child: Text(
                         'من هنا',
                         style: TextStyle(
-                          fontFamily: cairoFontFamily,
+                          fontFamily: 'Cairo',
                           fontSize: 10,
                           color: AppColors.primary,
                           fontWeight: FontWeight.bold,
@@ -439,7 +439,7 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> {
               Text(
                 'لا يوجد دروس متاحة حالياً',
                 style: TextStyle(
-                  fontFamily: cairoFontFamily,
+                  fontFamily: 'Cairo',
                   fontSize: 16,
                   color: Colors.grey[600],
                 ),
@@ -514,7 +514,7 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> {
                     Text(
                       '${course.priceBeforeDiscount} جم',
                       style: TextStyle(
-                        fontFamily: cairoFontFamily,
+                        fontFamily: 'Cairo',
                         fontSize: 12,
                         color: AppColors.textSecondary,
                         decoration: TextDecoration.lineThrough,
@@ -523,7 +523,7 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> {
                   Text(
                     _isFreeCourse ? 'مجاني' : '${course.price} جم',
                     style: TextStyle(
-                      fontFamily: cairoFontFamily,
+                      fontFamily: 'Cairo',
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
                       color: _isFreeCourse ? AppColors.success : AppColors.primary,
@@ -557,7 +557,7 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> {
                     : Text(
                         buttonText,
                         style: TextStyle(
-                          fontFamily: cairoFontFamily,
+                          fontFamily: 'Cairo',
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
                           color: Colors.white,
@@ -645,9 +645,8 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> {
   Future<void> _handleLockedLessonTap(BuildContext context) async {
     final authLocalDataSource = sl<AuthLocalDataSource>();
     final token = await authLocalDataSource.getAccessToken();
-    final isGuest = await authLocalDataSource.isGuestMode();
     
-    final isAuthenticated = token != null && token.isNotEmpty && !isGuest;
+    final isAuthenticated = token != null && token.isNotEmpty;
     
     if (_isFreeCourse) {
       // Free course - only require login
@@ -747,7 +746,7 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> {
         title: Text(
           'شراء الكورس',
           textAlign: TextAlign.center,
-          style: TextStyle(fontFamily: cairoFontFamily, fontWeight: FontWeight.bold),
+          style: TextStyle(fontFamily: 'Cairo', fontWeight: FontWeight.bold),
         ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
@@ -755,7 +754,7 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> {
             Text(
               '${course.nameAr}\nالسعر: ${course.price} جم',
               textAlign: TextAlign.center,
-              style: TextStyle(fontFamily: cairoFontFamily, fontSize: 14),
+              style: TextStyle(fontFamily: 'Cairo', fontSize: 14),
             ),
             SizedBox(height: 16),
             TextField(
@@ -776,7 +775,7 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: Text('إلغاء', style: TextStyle(fontFamily: cairoFontFamily)),
+            child: Text('إلغاء', style: TextStyle(fontFamily: 'Cairo')),
           ),
           ElevatedButton(
             onPressed: () {
@@ -797,7 +796,7 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> {
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primary,
             ),
-            child: Text('شراء', style: TextStyle(fontFamily: cairoFontFamily, color: Colors.white)),
+            child: Text('شراء', style: TextStyle(fontFamily: 'Cairo', color: Colors.white)),
           ),
         ],
       ),
@@ -840,7 +839,7 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> {
             Text(
               'تم الشراء بنجاح!',
               style: TextStyle(
-                fontFamily: cairoFontFamily,
+                fontFamily: 'Cairo',
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
               ),
@@ -850,7 +849,7 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> {
               message,
               textAlign: TextAlign.center,
               style: TextStyle(
-                fontFamily: cairoFontFamily,
+                fontFamily: 'Cairo',
                 fontSize: 14,
                 color: AppColors.textSecondary,
               ),
@@ -860,7 +859,7 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> {
               'يمكنك الآن مشاهدة جميع الدروس',
               textAlign: TextAlign.center,
               style: TextStyle(
-                fontFamily: cairoFontFamily,
+                fontFamily: 'Cairo',
                 fontSize: 12,
                 color: AppColors.success,
                 fontWeight: FontWeight.w600,
@@ -887,7 +886,7 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> {
               child: Text(
                 'ابدأ المشاهدة',
                 style: TextStyle(
-                  fontFamily: cairoFontFamily,
+                  fontFamily: 'Cairo',
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                   color: Colors.white,
@@ -1019,7 +1018,7 @@ class _LessonCard extends StatelessWidget {
                         child: Text(
                           isViewed ? 'تم المشاهدة' : 'متاح',
                           style: TextStyle(
-                            fontFamily: cairoFontFamily,
+                            fontFamily: 'Cairo',
                             fontSize: 10,
                             fontWeight: FontWeight.bold,
                             color: Colors.white,
@@ -1043,7 +1042,7 @@ class _LessonCard extends StatelessWidget {
                     Text(
                       lesson.nameAr,
                       style: TextStyle(
-                        fontFamily: cairoFontFamily,
+                        fontFamily: 'Cairo',
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
                         color: (hasAccess || isAvailable) ? AppColors.textPrimary : Colors.grey[500],
@@ -1057,7 +1056,7 @@ class _LessonCard extends StatelessWidget {
                       Text(
                         _formatDuration(lesson.videoDuration ?? lesson.duration!),
                         style: TextStyle(
-                          fontFamily: cairoFontFamily,
+                          fontFamily: 'Cairo',
                           fontSize: 11,
                           color: Colors.grey[500],
                         ),

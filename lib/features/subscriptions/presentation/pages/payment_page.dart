@@ -160,7 +160,7 @@ class _PaymentPageContentState extends State<_PaymentPageContent> {
           Text(
             'ملخص الطلب',
             style: TextStyle(
-              fontFamily: cairoFontFamily,
+              fontFamily: 'Cairo',
               fontSize: 18,
               fontWeight: FontWeight.bold,
               color: AppColors.textPrimary,
@@ -215,7 +215,7 @@ class _PaymentPageContentState extends State<_PaymentPageContent> {
         Text(
           label,
           style: TextStyle(
-            fontFamily: cairoFontFamily,
+            fontFamily: 'Cairo',
             fontSize: isBold ? 16 : 14,
             fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
             color: AppColors.textSecondary,
@@ -224,7 +224,7 @@ class _PaymentPageContentState extends State<_PaymentPageContent> {
         Text(
           value,
           style: TextStyle(
-            fontFamily: cairoFontFamily,
+            fontFamily: 'Cairo',
             fontSize: isBold ? 18 : 14,
             fontWeight: isBold ? FontWeight.bold : FontWeight.w600,
             color: valueColor ?? AppColors.textPrimary,
@@ -255,7 +255,7 @@ class _PaymentPageContentState extends State<_PaymentPageContent> {
           Text(
             'رقم الهاتف للدفع',
             style: TextStyle(
-              fontFamily: cairoFontFamily,
+              fontFamily: 'Cairo',
               fontSize: 16,
               fontWeight: FontWeight.bold,
               color: AppColors.textPrimary,
@@ -267,14 +267,14 @@ class _PaymentPageContentState extends State<_PaymentPageContent> {
             keyboardType: TextInputType.phone,
             textDirection: TextDirection.ltr,
             style: TextStyle(
-              fontFamily: cairoFontFamily,
+              fontFamily: 'Cairo',
               fontSize: 16,
             ),
             decoration: InputDecoration(
               hintText: '+201XXXXXXXXX',
               hintStyle: TextStyle(
                 color: Colors.grey[400],
-                fontFamily: cairoFontFamily,
+                fontFamily: 'Cairo',
               ),
               prefixIcon: const Icon(Icons.phone_android, color: AppColors.primary),
               filled: true,
@@ -303,7 +303,7 @@ class _PaymentPageContentState extends State<_PaymentPageContent> {
           Text(
             'سيتم استخدام هذا الرقم لإتمام عملية الدفع',
             style: TextStyle(
-              fontFamily: cairoFontFamily,
+              fontFamily: 'Cairo',
               fontSize: 12,
               color: Colors.grey[600],
             ),
@@ -333,7 +333,7 @@ class _PaymentPageContentState extends State<_PaymentPageContent> {
           Text(
             'طرق الدفع المتاحة',
             style: TextStyle(
-              fontFamily: cairoFontFamily,
+              fontFamily: 'Cairo',
               fontSize: 16,
               fontWeight: FontWeight.bold,
               color: AppColors.textPrimary,
@@ -370,7 +370,7 @@ class _PaymentPageContentState extends State<_PaymentPageContent> {
           : Text(
               'ادفع ${widget.subscription.price} $_currencySymbol',
               style: TextStyle(
-                fontFamily: cairoFontFamily,
+                fontFamily: 'Cairo',
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
                 color: Colors.white,
@@ -388,7 +388,7 @@ class _PaymentPageContentState extends State<_PaymentPageContent> {
         Text(
           'جميع المعاملات مشفرة وآمنة',
           style: TextStyle(
-            fontFamily: cairoFontFamily,
+            fontFamily: 'Cairo',
             fontSize: 12,
             color: Colors.grey[500],
           ),

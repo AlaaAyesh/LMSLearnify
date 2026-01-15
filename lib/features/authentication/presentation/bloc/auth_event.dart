@@ -144,8 +144,6 @@ class ChangePasswordEvent extends AuthEvent {
   List<Object?> get props => [currentPassword, newPassword, passwordConfirmation];
 }
 
-// Guest login event
-class GuestLoginEvent extends AuthEvent {}
 
 // Google OAuth events (WebView flow)
 class GoogleSignInEvent extends AuthEvent {}

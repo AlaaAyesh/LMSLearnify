@@ -11,7 +11,7 @@ class ForgotPasswordSubtitle extends StatelessWidget {
     return Text(
       'من فضلك إدخل البريد الإلكتروني المسجل مسبقاً لدينا',
       style: TextStyle(
-        fontFamily: cairoFontFamily,
+        fontFamily: 'Cairo',
         fontSize: Responsive.fontSize(context, 14),
         fontWeight: FontWeight.w700,
         color: AppColors.black,

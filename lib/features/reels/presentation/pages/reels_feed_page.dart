@@ -163,12 +163,11 @@ class _ReelsFeedPageState extends State<ReelsFeedPage> with RouteAware, WidgetsB
   Future<void> _checkSubscriptionStatus() async {
     final authLocalDataSource = sl<AuthLocalDataSource>();
     final token = await authLocalDataSource.getAccessToken();
-    final isGuest = await authLocalDataSource.isGuestMode();
     
-    // For now, consider subscribed if user has token and is not guest
+    // For now, consider subscribed if user has token
     // In production, you'd check actual subscription status from API
     setState(() {
-      _isSubscribed = token != null && token.isNotEmpty && !isGuest;
+      _isSubscribed = token != null && token.isNotEmpty;
     });
   }
 
@@ -188,9 +187,8 @@ class _ReelsFeedPageState extends State<ReelsFeedPage> with RouteAware, WidgetsB
     
     final authLocalDataSource = sl<AuthLocalDataSource>();
     final token = await authLocalDataSource.getAccessToken();
-    final isGuest = await authLocalDataSource.isGuestMode();
     
-    final isAuthenticated = token != null && token.isNotEmpty && !isGuest;
+    final isAuthenticated = token != null && token.isNotEmpty;
     
     if (!isAuthenticated) {
       // Not logged in - go to login first, then subscriptions
@@ -296,7 +294,7 @@ class _ReelsFeedPageState extends State<ReelsFeedPage> with RouteAware, WidgetsB
                       Text(
                         state.message,
                         style: TextStyle(
-                          fontFamily: cairoFontFamily,
+                          fontFamily: 'Cairo',
                           color: Colors.white70,
                           fontSize: Responsive.fontSize(context, 16),
                         ),
@@ -321,7 +319,7 @@ class _ReelsFeedPageState extends State<ReelsFeedPage> with RouteAware, WidgetsB
                         child: Text(
                           'إعادة المحاولة',
                           style: TextStyle(
-                            fontFamily: cairoFontFamily,
+                            fontFamily: 'Cairo',
                             fontSize: Responsive.fontSize(context, 14),
                             color: Colors.white,
                           ),
@@ -346,7 +344,7 @@ class _ReelsFeedPageState extends State<ReelsFeedPage> with RouteAware, WidgetsB
                       Text(
                         'لا توجد فيديوهات حالياً',
                         style: TextStyle(
-                          fontFamily: cairoFontFamily,
+                          fontFamily: 'Cairo',
                           color: Colors.white70,
                           fontSize: Responsive.fontSize(context, 16),
                         ),
@@ -552,7 +550,7 @@ class _ReelsFeedPageState extends State<ReelsFeedPage> with RouteAware, WidgetsB
       SnackBar(
         content: Text(
           'تم نسخ رابط الريل',
-          style: TextStyle(fontFamily: cairoFontFamily),
+          style: TextStyle(fontFamily: 'Cairo'),
         ),
         backgroundColor: AppColors.primary,
         duration: const Duration(seconds: 2),
@@ -566,7 +564,7 @@ class _ReelsFeedPageState extends State<ReelsFeedPage> with RouteAware, WidgetsB
         SnackBar(
           content: Text(
             'الذهاب إلى الكورس: ${reel.redirectLink}',
-            style: TextStyle(fontFamily: cairoFontFamily),
+            style: TextStyle(fontFamily: 'Cairo'),
           ),
           backgroundColor: AppColors.primary,
         ),

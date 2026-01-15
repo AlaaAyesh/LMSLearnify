@@ -95,7 +95,7 @@ class CourseCard extends StatelessWidget {
                       child: Text(
                         'قريباً',
                         style: TextStyle(
-                          fontFamily: cairoFontFamily,
+                          fontFamily: 'Cairo',
                           fontSize: Responsive.fontSize(context, 10),
                           fontWeight: FontWeight.bold,
                           color: Colors.white,
@@ -117,7 +117,7 @@ class CourseCard extends StatelessWidget {
                       child: Text(
                         'متاح',
                         style: TextStyle(
-                          fontFamily: cairoFontFamily,
+                          fontFamily: 'Cairo',
                           fontSize: Responsive.fontSize(context, 10),
                           fontWeight: FontWeight.bold,
                           color: Colors.white,
@@ -139,7 +139,7 @@ class CourseCard extends StatelessWidget {
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
-                      fontFamily: cairoFontFamily,
+                      fontFamily: 'Cairo',
                       fontSize: Responsive.fontSize(context, 14),
                       fontWeight: FontWeight.bold,
                       color: AppColors.textPrimary,
@@ -151,7 +151,7 @@ class CourseCard extends StatelessWidget {
                     Text(
                       course.specialty!.nameAr,
                       style: TextStyle(
-                        fontFamily: cairoFontFamily,
+                        fontFamily: 'Cairo',
                         fontSize: Responsive.fontSize(context, 12),
                         color: AppColors.textSecondary,
                       ),
@@ -164,7 +164,7 @@ class CourseCard extends StatelessWidget {
                         Text(
                           '${course.priceBeforeDiscount} ر.س',
                           style: TextStyle(
-                            fontFamily: cairoFontFamily,
+                            fontFamily: 'Cairo',
                             fontSize: Responsive.fontSize(context, 11),
                             color: AppColors.textSecondary,
                             decoration: TextDecoration.lineThrough,
@@ -177,7 +177,7 @@ class CourseCard extends StatelessWidget {
                             ? '${course.price} ر.س'
                             : 'مجاني',
                         style: TextStyle(
-                          fontFamily: cairoFontFamily,
+                          fontFamily: 'Cairo',
                           fontSize: Responsive.fontSize(context, 12),
                           fontWeight: FontWeight.bold,
                           color: course.price == null || course.price!.isEmpty || course.price == '0'

@@ -62,7 +62,7 @@ class ReelPaywallWidget extends StatelessWidget {
                     Text(
                       'اشترك لفتح باقي الفيديوهات',
                       style: TextStyle(
-                        fontFamily: cairoFontFamily,
+                        fontFamily: 'Cairo',
                         fontSize: Responsive.fontSize(context, 20),
                         fontWeight: FontWeight.bold,
                         color: Colors.white,
@@ -86,7 +86,7 @@ class ReelPaywallWidget extends StatelessWidget {
                         child: Text(
                           'اشترك من هنا',
                           style: TextStyle(
-                            fontFamily: cairoFontFamily,
+                            fontFamily: 'Cairo',
                             fontSize: Responsive.fontSize(context, 16),
                             fontWeight: FontWeight.bold,
                             color: AppColors.primary,

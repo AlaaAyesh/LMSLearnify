@@ -48,8 +48,6 @@ abstract class AuthRepository {
 
   Future<Either<Failure, bool>> isLoggedIn();
   
-  Future<Either<Failure, User>> loginAsGuest();
-  
   /// Get Google OAuth URL for authentication
   Future<Either<Failure, String>> getGoogleAuthUrl();
   

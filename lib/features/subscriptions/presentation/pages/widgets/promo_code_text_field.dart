@@ -17,7 +17,7 @@ class PromoCodeTextField extends StatelessWidget {
         decoration: InputDecoration(
           hintText: 'أدخل الكوبون هنا',
           hintStyle: TextStyle(
-            fontFamily: cairoFontFamily,
+            fontFamily: 'Cairo',
             fontSize: Responsive.fontSize(context, 14),
             color: AppColors.textSecondary,
           ),

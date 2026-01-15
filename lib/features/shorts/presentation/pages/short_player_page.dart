@@ -210,7 +210,7 @@ class _ShortVideoPlayer extends StatelessWidget {
               Text(
                 _formatCount(video.likesCount),
                 style: TextStyle(
-                  fontFamily: cairoFontFamily,
+                  fontFamily: 'Cairo',
                   fontSize: 13,
                   color: Colors.white,
                   fontWeight: FontWeight.bold,
@@ -245,7 +245,7 @@ class _ShortVideoPlayer extends StatelessWidget {
               Text(
                 'مشاركة',
                 style: TextStyle(
-                  fontFamily: cairoFontFamily,
+                  fontFamily: 'Cairo',
                   fontSize: 13,
                   color: Colors.white,
                   fontWeight: FontWeight.bold,
@@ -269,7 +269,7 @@ class _ShortVideoPlayer extends StatelessWidget {
             Text(
               video.channelName,
               style: TextStyle(
-                fontFamily: cairoFontFamily,
+                fontFamily: 'Cairo',
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
                 color: Colors.white,
@@ -298,7 +298,7 @@ class _ShortVideoPlayer extends StatelessWidget {
           child: Text(
             video.description,
             style: TextStyle(
-              fontFamily: cairoFontFamily,
+              fontFamily: 'Cairo',
               fontSize: 13,
               color: Colors.white.withOpacity(0.9),
               height: 1.4,
@@ -333,7 +333,7 @@ class _ShortVideoPlayer extends StatelessWidget {
       child: Text(
         'اشترك من هنا',
         style: TextStyle(
-          fontFamily: cairoFontFamily,
+          fontFamily: 'Cairo',
           fontSize: 16,
           fontWeight: FontWeight.bold,
           color: Colors.white,

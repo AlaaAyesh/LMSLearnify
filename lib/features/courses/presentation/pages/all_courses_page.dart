@@ -166,7 +166,7 @@ class _AllCoursesPageContent extends StatelessWidget {
           Text(
             'لا توجد كورسات متاحة',
             style: TextStyle(
-              fontFamily: cairoFontFamily,
+              fontFamily: 'Cairo',
               fontSize: Responsive.fontSize(context, 18),
               color: Colors.grey[600],
               fontWeight: FontWeight.w500,
@@ -176,7 +176,7 @@ class _AllCoursesPageContent extends StatelessWidget {
           Text(
             'سيتم إضافة كورسات جديدة قريباً',
             style: TextStyle(
-              fontFamily: cairoFontFamily,
+              fontFamily: 'Cairo',
               fontSize: Responsive.fontSize(context, 14),
               color: Colors.grey[500],
             ),
@@ -216,7 +216,7 @@ class _AllCoursesPageContent extends StatelessWidget {
           Text(
             'حدث خطأ',
             style: TextStyle(
-              fontFamily: cairoFontFamily,
+              fontFamily: 'Cairo',
               fontSize: Responsive.fontSize(context, 18),
               color: Colors.grey[600],
               fontWeight: FontWeight.w500,
@@ -229,7 +229,7 @@ class _AllCoursesPageContent extends StatelessWidget {
               message,
               textAlign: TextAlign.center,
               style: TextStyle(
-                fontFamily: cairoFontFamily,
+                fontFamily: 'Cairo',
                 fontSize: Responsive.fontSize(context, 14),
                 color: Colors.grey[500],
               ),

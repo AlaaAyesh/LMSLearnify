@@ -172,7 +172,7 @@ class MainNavigationPageState extends State<MainNavigationPage> {
             Text(
               label,
               style: TextStyle(
-                fontFamily: cairoFontFamily,
+                fontFamily: 'Cairo',
                 fontSize: 11,
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
                 color: isSelected ? AppColors.primary : AppColors.textSecondary,

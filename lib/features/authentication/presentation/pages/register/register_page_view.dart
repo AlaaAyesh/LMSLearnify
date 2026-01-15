@@ -149,6 +149,17 @@ class RegisterPageViewState extends State<RegisterPageView> {
         return;
       }
 
+      // Check religion is selected (required field)
+      if (selectedReligion == null || selectedReligion!.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('من فضلك اختر الدين'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+        return;
+      }
+
       context.read<AuthBloc>().add(
             RegisterEvent(
               name: nameController.text.trim(),
@@ -288,7 +299,7 @@ class RegisterPageViewState extends State<RegisterPageView> {
                 Text(
                   'العمر: $calculatedAge سنة',
                   style: TextStyle(
-                    fontFamily: cairoFontFamily,
+                    fontFamily: 'Cairo',
                     fontSize: Responsive.fontSize(context, 14),
                     fontWeight: FontWeight.w600,
                     color: isValidAge ? AppColors.success : AppColors.error,
@@ -298,7 +309,7 @@ class RegisterPageViewState extends State<RegisterPageView> {
                   Text(
                     'الفئة العمرية: $specialtyName',
                     style: TextStyle(
-                      fontFamily: cairoFontFamily,
+                      fontFamily: 'Cairo',
                       fontSize: Responsive.fontSize(context, 12),
                       color: isValidAge
                           ? AppColors.success.withOpacity(0.8)
@@ -311,7 +322,7 @@ class RegisterPageViewState extends State<RegisterPageView> {
                             calculatedAge!) ??
                         'العمر غير صالح',
                     style: TextStyle(
-                      fontFamily: cairoFontFamily,
+                      fontFamily: 'Cairo',
                       fontSize: Responsive.fontSize(context, 12),
                       color: AppColors.error.withOpacity(0.8),
                     ),
@@ -333,8 +344,17 @@ class RegisterPageViewState extends State<RegisterPageView> {
         ),
       );
     } else if (state is AuthAuthenticated) {
-      // Navigate to content preferences page after registration
-      Navigator.of(context).pushReplacementNamed('/content-preferences');
+      // Check if we came from a specific page that needs return
+      final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+      final returnTo = args?['returnTo'] as String?;
+
+      if (returnTo == 'profile' || returnTo == 'subscriptions' || returnTo == 'certificates') {
+        // Return true to indicate successful registration
+        Navigator.of(context).pop(true);
+      } else {
+        // Navigate to content preferences page after registration
+        Navigator.of(context).pushReplacementNamed('/content-preferences');
+      }
     }
   }
 }

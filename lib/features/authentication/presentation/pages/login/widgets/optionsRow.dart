@@ -50,7 +50,7 @@ class OptionsRow extends StatelessWidget {
                 Text(
                   'تذكرني',
                   style: TextStyle(
-                    fontFamily: cairoFontFamily,
+                    fontFamily: 'Cairo',
                     fontSize: Responsive.fontSize(context, 14),
                     color: AppColors.black,
                     fontWeight: FontWeight.w500,
@@ -72,7 +72,7 @@ class OptionsRow extends StatelessWidget {
             child: Text(
               'هل نسيت كلمة المرور؟',
               style: TextStyle(
-                fontFamily: cairoFontFamily,
+                fontFamily: 'Cairo',
                 fontSize: Responsive.fontSize(context, 14),
                 color: AppColors.black,
                 fontWeight: FontWeight.w500,

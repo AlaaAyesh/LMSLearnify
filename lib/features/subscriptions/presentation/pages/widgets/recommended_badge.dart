@@ -22,7 +22,7 @@ class RecommendedBadge extends StatelessWidget {
         child: Text(
           'الأكثر مبيعاً',
           style: TextStyle(
-            fontFamily: cairoFontFamily,
+            fontFamily: 'Cairo',
             fontSize: Responsive.fontSize(context, 10),
             color: Colors.white,
             fontWeight: FontWeight.bold,

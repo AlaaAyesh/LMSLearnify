@@ -23,7 +23,7 @@ class SectionHeader extends StatelessWidget {
           Text(
             title,
             style: TextStyle(
-              fontFamily: cairoFontFamily,
+              fontFamily: 'Cairo',
               fontSize: Responsive.fontSize(context, 18),
               fontWeight: FontWeight.bold,
               color: AppColors.textPrimary,
@@ -35,7 +35,7 @@ class SectionHeader extends StatelessWidget {
               child: Text(
                 'عرض الكل',
                 style: TextStyle(
-                  fontFamily: cairoFontFamily,
+                  fontFamily: 'Cairo',
                   fontSize: Responsive.fontSize(context, 14),
                   fontWeight: FontWeight.w600,
                   color: AppColors.primary,

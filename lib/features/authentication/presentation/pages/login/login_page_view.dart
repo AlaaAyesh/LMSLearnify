@@ -52,10 +52,6 @@ class LoginPageViewState extends State<LoginPageView> {
     }
   }
 
-  void _onGuestLoginPressed() {
-    // إضافة حدث تسجيل الدخول كضيف إلى الـ Bloc
-    context.read<AuthBloc>().add(GuestLoginEvent());
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -113,26 +109,6 @@ class LoginPageViewState extends State<LoginPageView> {
                       const SocialLoginButtons(),
                       SizedBox(height: Responsive.spacing(context, 40)),
                       const CreateAccountButton(),
-
-                      // 🆕 زر الدخول كضيف
-                      SizedBox(height: Responsive.spacing(context, 16)),
-                      TextButton.icon(
-                        onPressed: _onGuestLoginPressed,
-                        icon: Icon(
-                          Icons.visibility_outlined,
-                          color: AppColors.textSecondary,
-                          size: Responsive.iconSize(context, 18),
-                        ),
-                        label: Text(
-                          'تصفح كضيف',
-                          style: TextStyle(
-                            fontFamily: cairoFontFamily,
-                            color: AppColors.textSecondary,
-                            fontSize: Responsive.fontSize(context, 16),
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ),
                     ],
                   ),
                 ),
@@ -153,13 +129,17 @@ class LoginPageViewState extends State<LoginPageView> {
         ),
       );
     } else if (state is AuthAuthenticated) {
-      // Check if we came from subscriptions page (or another page that needs return)
+      // Check if we came from a specific page that needs return
       final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
       final returnTo = args?['returnTo'] as String?;
 
-      if (returnTo == 'subscriptions') {
+      if (returnTo == 'subscriptions' || returnTo == 'profile' || returnTo == 'certificates') {
         // Return true to indicate successful login
         Navigator.of(context).pop(true);
+      } else if (returnTo == 'course' || returnTo == 'payment') {
+        // Return to the calling page (course details or payment flow)
+        Navigator.of(context).pop(true);
+        // The calling page will handle refreshing/continuing the flow
       } else {
         // Navigate to home - server handles verification
         Navigator.of(context).pushNamedAndRemoveUntil(

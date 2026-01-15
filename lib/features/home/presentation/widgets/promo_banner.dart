@@ -46,7 +46,7 @@ class PromoBanner extends StatelessWidget {
           Text(
             title,
             style: TextStyle(
-              fontFamily: cairoFontFamily,
+              fontFamily: 'Cairo',
               fontSize: Responsive.fontSize(context, 20),
               fontWeight: FontWeight.bold,
               color: Colors.white,
@@ -56,7 +56,7 @@ class PromoBanner extends StatelessWidget {
           Text(
             subtitle,
             style: TextStyle(
-              fontFamily: cairoFontFamily,
+              fontFamily: 'Cairo',
               fontSize: Responsive.fontSize(context, 14),
               color: Colors.white.withOpacity(0.9),
             ),
@@ -76,7 +76,7 @@ class PromoBanner extends StatelessWidget {
             child: Text(
               buttonText,
               style: TextStyle(
-                fontFamily: cairoFontFamily,
+                fontFamily: 'Cairo',
                 fontWeight: FontWeight.bold,
               ),
             ),

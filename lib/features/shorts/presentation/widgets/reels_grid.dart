@@ -43,7 +43,7 @@ class ReelsGrid extends StatelessWidget {
             Text(
               'لا توجد فيديوهات',
               style: TextStyle(
-                fontFamily: cairoFontFamily,
+                fontFamily: 'Cairo',
                 fontSize: Responsive.fontSize(context, 16),
                 color: Colors.grey[600],
               ),
@@ -186,7 +186,7 @@ class _ReelTile extends StatelessWidget {
                         child: Text(
                           _formatViews(viewCount),
                           style: TextStyle(
-                            fontFamily: cairoFontFamily,
+                            fontFamily: 'Cairo',
                             fontSize: Responsive.fontSize(context, 10),
                             color: Colors.white,
                             fontWeight: FontWeight.w500,

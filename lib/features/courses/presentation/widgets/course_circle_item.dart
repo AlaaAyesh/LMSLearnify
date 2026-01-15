@@ -67,7 +67,7 @@ class CourseCircleItem extends StatelessWidget {
                       child: Text(
                         'قريباً',
                         style: TextStyle(
-                          fontFamily: cairoFontFamily,
+                          fontFamily: 'Cairo',
                           fontSize: Responsive.fontSize(context, 8),
                           fontWeight: FontWeight.bold,
                           color: Colors.white,
@@ -108,7 +108,7 @@ class CourseCircleItem extends StatelessWidget {
                         child: Text(
                           'مجاني',
                           style: TextStyle(
-                            fontFamily: cairoFontFamily,
+                            fontFamily: 'Cairo',
                             fontSize: Responsive.fontSize(context, 9),
                             fontWeight: FontWeight.bold,
                             color: Colors.white,
@@ -124,7 +124,7 @@ class CourseCircleItem extends StatelessWidget {
             Text(
               course.nameAr,
               style: TextStyle(
-                fontFamily: cairoFontFamily,
+                fontFamily: 'Cairo',
                 fontSize: Responsive.fontSize(context, 12),
                 fontWeight: FontWeight.w600,
                 color: AppColors.textPrimary,
@@ -140,7 +140,7 @@ class CourseCircleItem extends StatelessWidget {
                 child: Text(
                   '${course.price} جم',
                   style: TextStyle(
-                    fontFamily: cairoFontFamily,
+                    fontFamily: 'Cairo',
                     fontSize: Responsive.fontSize(context, 11),
                     fontWeight: FontWeight.bold,
                     color: AppColors.primary,

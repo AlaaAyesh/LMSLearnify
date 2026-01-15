@@ -229,7 +229,7 @@ class _CompleteProfileViewState extends State<_CompleteProfileView> {
                 Text(
                   'العمر: $calculatedAge سنة',
                   style: TextStyle(
-                    fontFamily: cairoFontFamily,
+                    fontFamily: 'Cairo',
                     fontSize: Responsive.fontSize(context, 14),
                     fontWeight: FontWeight.w600,
                     color: isValidAge ? AppColors.success : AppColors.error,
@@ -239,7 +239,7 @@ class _CompleteProfileViewState extends State<_CompleteProfileView> {
                   Text(
                     'الفئة العمرية: $specialtyName',
                     style: TextStyle(
-                      fontFamily: cairoFontFamily,
+                      fontFamily: 'Cairo',
                       fontSize: Responsive.fontSize(context, 12),
                       color: isValidAge
                           ? AppColors.success.withOpacity(0.8)
@@ -251,7 +251,7 @@ class _CompleteProfileViewState extends State<_CompleteProfileView> {
                     AgeSpecialtyHelper.getAgeValidationMessage(calculatedAge!) ??
                         'العمر غير صالح',
                     style: TextStyle(
-                      fontFamily: cairoFontFamily,
+                      fontFamily: 'Cairo',
                       fontSize: Responsive.fontSize(context, 12),
                       color: AppColors.error.withOpacity(0.8),
                     ),
@@ -313,7 +313,7 @@ class _CompleteProfileViewState extends State<_CompleteProfileView> {
         decoration: InputDecoration(
           labelText: 'الدين',
           labelStyle: TextStyle(
-            fontFamily: cairoFontFamily,
+            fontFamily: 'Cairo',
             fontSize: Responsive.fontSize(context, 14),
             color: AppColors.textSecondary,
           ),
@@ -321,14 +321,14 @@ class _CompleteProfileViewState extends State<_CompleteProfileView> {
           contentPadding: EdgeInsets.zero,
         ),
         style: TextStyle(
-          fontFamily: cairoFontFamily,
+          fontFamily: 'Cairo',
           fontSize: Responsive.fontSize(context, 16),
           color: AppColors.textPrimary,
         ),
         hint: Text(
           'اختر الدين',
           style: TextStyle(
-            fontFamily: cairoFontFamily,
+            fontFamily: 'Cairo',
             fontSize: Responsive.fontSize(context, 16),
             color: AppColors.textHint,
           ),

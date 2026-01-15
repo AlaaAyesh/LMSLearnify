@@ -55,7 +55,7 @@ class CategoryItem extends StatelessWidget {
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
-                  fontFamily: cairoFontFamily,
+                  fontFamily: 'Cairo',
                   fontSize: Responsive.fontSize(context, 12),
                   fontWeight: FontWeight.w600,
                   color: AppColors.textPrimary,

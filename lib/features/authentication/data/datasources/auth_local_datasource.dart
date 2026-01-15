@@ -1,5 +1,4 @@
 import 'dart:convert';
-import '../../../../core/constants/app_constants.dart';
 import '../../../../core/error/exceptions.dart';
 import '../../../../core/storage/hive_service.dart';
 import '../../../../core/storage/secure_storage_service.dart';
@@ -12,8 +11,6 @@ abstract class AuthLocalDataSource {
   Future<void> saveTokens({required String accessToken, String? refreshToken});
   Future<String?> getAccessToken();
   Future<bool> isLoggedIn();
-  Future<void> saveGuestMode(bool isGuest); // 🆕
-  Future<bool> isGuestMode(); // 🆕
 }
 
 class AuthLocalDataSourceImpl implements AuthLocalDataSource {
@@ -21,7 +18,6 @@ class AuthLocalDataSourceImpl implements AuthLocalDataSource {
   final SecureStorageService secureStorage;
 
   static const String cachedUserKey = 'cached_user';
-  static const String guestModeKey = 'guest_mode'; // 🆕
 
   AuthLocalDataSourceImpl({
     required this.hiveService,
@@ -54,7 +50,6 @@ class AuthLocalDataSourceImpl implements AuthLocalDataSource {
   Future<void> clearCache() async {
     try {
       await hiveService.deleteData(cachedUserKey);
-      await hiveService.deleteData(guestModeKey); // 🆕 مسح حالة الضيف
       await secureStorage.clearAll();
     } catch (e) {
       throw CacheException(message: 'فشل مسح البيانات');
@@ -88,31 +83,9 @@ class AuthLocalDataSourceImpl implements AuthLocalDataSource {
   @override
   Future<bool> isLoggedIn() async {
     try {
-      // التحقق من وجود توكن أو حالة ضيف
+      // Check if user has a valid access token
       final token = await getAccessToken();
-      final isGuest = await isGuestMode();
-      return (token != null && token.isNotEmpty) || isGuest;
-    } catch (e) {
-      return false;
-    }
-  }
-
-  // 🆕 حفظ حالة الضيف
-  @override
-  Future<void> saveGuestMode(bool isGuest) async {
-    try {
-      await hiveService.saveData(guestModeKey, isGuest.toString());
-    } catch (e) {
-      throw CacheException(message: 'فشل حفظ حالة الضيف');
-    }
-  }
-
-  // 🆕 التحقق من حالة الضيف
-  @override
-  Future<bool> isGuestMode() async {
-    try {
-      final value = await hiveService.getData(guestModeKey);
-      return value == 'true';
+      return token != null && token.isNotEmpty;
     } catch (e) {
       return false;
     }

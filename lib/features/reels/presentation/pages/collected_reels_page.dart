@@ -124,7 +124,7 @@ class _CollectedReelsPageContentState extends State<_CollectedReelsPageContent>
         Text(
           'Learnify',
           style: TextStyle(
-            fontFamily: cairoFontFamily,
+            fontFamily: 'Cairo',
             fontSize: 24,
             fontWeight: FontWeight.bold,
             color: AppColors.textPrimary,
@@ -135,7 +135,7 @@ class _CollectedReelsPageContentState extends State<_CollectedReelsPageContent>
         Text(
           'I love a colorful life 🧡🧡🧡',
           style: TextStyle(
-            fontFamily: cairoFontFamily,
+            fontFamily: 'Cairo',
             fontSize: 14,
             color: AppColors.textSecondary,
           ),
@@ -154,12 +154,12 @@ class _CollectedReelsPageContentState extends State<_CollectedReelsPageContent>
         labelColor: AppColors.primary,
         unselectedLabelColor: AppColors.textSecondary,
         labelStyle: TextStyle(
-          fontFamily: cairoFontFamily,
+          fontFamily: 'Cairo',
           fontSize: 14,
           fontWeight: FontWeight.w600,
         ),
         unselectedLabelStyle: TextStyle(
-          fontFamily: cairoFontFamily,
+          fontFamily: 'Cairo',
           fontSize: 14,
           fontWeight: FontWeight.w500,
         ),
@@ -244,7 +244,7 @@ class _CollectedReelsPageContentState extends State<_CollectedReelsPageContent>
               Text(
                 'لا توجد فيديوهات مفضلة',
                 style: TextStyle(
-                  fontFamily: cairoFontFamily,
+                  fontFamily: 'Cairo',
                   fontSize: 16,
                   color: Colors.grey[600],
                 ),
@@ -288,7 +288,7 @@ class _CollectedReelsPageContentState extends State<_CollectedReelsPageContent>
           Text(
             'لا توجد فيديوهات مفضلة',
             style: TextStyle(
-              fontFamily: cairoFontFamily,
+              fontFamily: 'Cairo',
               fontSize: 16,
               color: Colors.grey[600],
             ),
@@ -312,7 +312,7 @@ class _CollectedReelsPageContentState extends State<_CollectedReelsPageContent>
           Text(
             'لا توجد فيديوهات',
             style: TextStyle(
-              fontFamily: cairoFontFamily,
+              fontFamily: 'Cairo',
               fontSize: 16,
               color: Colors.grey[600],
             ),
@@ -336,7 +336,7 @@ class _CollectedReelsPageContentState extends State<_CollectedReelsPageContent>
           Text(
             message,
             style: TextStyle(
-              fontFamily: cairoFontFamily,
+              fontFamily: 'Cairo',
               fontSize: 14,
               color: Colors.grey[600],
             ),
@@ -356,7 +356,7 @@ class _CollectedReelsPageContentState extends State<_CollectedReelsPageContent>
             child: Text(
               'إعادة المحاولة',
               style: TextStyle(
-                fontFamily: cairoFontFamily,
+                fontFamily: 'Cairo',
                 color: Colors.white,
               ),
             ),

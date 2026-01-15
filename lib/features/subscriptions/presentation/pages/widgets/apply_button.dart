@@ -24,7 +24,7 @@ class ApplyButton extends StatelessWidget {
         child: Text(
           'تطبيق',
           style: TextStyle(
-            fontFamily: cairoFontFamily,
+            fontFamily: 'Cairo',
             fontSize: Responsive.fontSize(context, 14),
             fontWeight: FontWeight.w600,
             color: Colors.white,

@@ -61,7 +61,6 @@ import '../../features/banners/domain/repositories/banners_repository.dart';
 import '../../features/banners/domain/usecases/get_site_banners_usecase.dart';
 import '../../features/banners/domain/usecases/record_banner_click_usecase.dart';
 import '../network/dio_client.dart';
-import '../services/guest_service.dart';
 import '../storage/hive_service.dart';
 import '../storage/secure_storage_service.dart';
 
@@ -80,8 +79,6 @@ Future<void> initDependencies() async {
   sl.registerLazySingleton(() => HiveService());
   sl.registerLazySingleton(() => DioClient(sl()));
 
-  // 🆕 Guest Service
-  sl.registerLazySingleton(() => GuestService(sl()));
 
   // Features
   _initAuth();
@@ -113,7 +110,6 @@ void _initAuth() {
         () => AuthRepositoryImpl(
       remoteDataSource: sl(),
       localDataSource: sl(),
-      guestService: sl(),
     ),
   );
 

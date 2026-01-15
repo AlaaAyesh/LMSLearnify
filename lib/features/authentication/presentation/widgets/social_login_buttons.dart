@@ -28,15 +28,18 @@ class SocialLoginButtons extends StatelessWidget {
             ),
           );
         } else if (state is AuthAuthenticated) {
-          // Check if content preferences are already completed
-          // If not, navigate to content preferences, otherwise to home
-          Navigator.of(context).pushReplacementNamed('/content-preferences');
+          // Existing user logging in via social - go to home
+          // New users will go through CompleteProfilePage which handles content-preferences navigation
+          Navigator.of(context).pushNamedAndRemoveUntil(
+            '/home',
+            (route) => false,
+          );
         } else if (state is AuthError) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
                 state.message,
-                style: TextStyle(fontFamily: cairoFontFamily),
+                style: TextStyle(fontFamily: 'Cairo'),
               ),
               backgroundColor: Colors.red,
             ),

@@ -31,7 +31,7 @@ class ShortsGrid extends StatelessWidget {
             Text(
               'لا توجد فيديوهات',
               style: TextStyle(
-                fontFamily: cairoFontFamily,
+                fontFamily: 'Cairo',
                 fontSize: 16,
                 color: Colors.grey[600],
               ),
@@ -129,7 +129,7 @@ class _ShortVideoTile extends StatelessWidget {
                       child: Text(
                         video.formattedViews,
                         style: TextStyle(
-                          fontFamily: cairoFontFamily,
+                          fontFamily: 'Cairo',
                           fontSize: 10,
                           color: Colors.white,
                           fontWeight: FontWeight.w500,

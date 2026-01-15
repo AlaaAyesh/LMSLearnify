@@ -7,21 +7,164 @@ import '../../../../core/di/injection_container.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/custom_app_bar.dart';
 import '../../../../core/widgets/custom_background.dart';
+import '../../../authentication/data/datasources/auth_local_datasource.dart';
 import '../../domain/entities/certificate.dart';
 import '../bloc/certificate_bloc.dart';
 import '../bloc/certificate_event.dart';
 import '../bloc/certificate_state.dart';
 import 'widgets/certificate_plan_card.dart';
 
-class CertificatesPage extends StatelessWidget {
+class CertificatesPage extends StatefulWidget {
   const CertificatesPage({super.key});
 
   @override
+  State<CertificatesPage> createState() => _CertificatesPageState();
+}
+
+class _CertificatesPageState extends State<CertificatesPage> {
+  bool _isCheckingAuth = true;
+  bool _isAuthenticated = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkAuthentication();
+  }
+
+  Future<void> _checkAuthentication() async {
+    final authLocalDataSource = sl<AuthLocalDataSource>();
+    final token = await authLocalDataSource.getAccessToken();
+    setState(() {
+      _isAuthenticated = token != null && token.isNotEmpty;
+      _isCheckingAuth = false;
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
-    // Always try to load certificates - the API will tell us if user is authenticated
+    if (_isCheckingAuth) {
+      return Scaffold(
+        backgroundColor: Colors.white,
+        appBar: const CustomAppBar(title: 'شهاداتي'),
+        body: Center(
+          child: CircularProgressIndicator(color: AppColors.primary),
+        ),
+      );
+    }
+
+    if (!_isAuthenticated) {
+      return _UnauthenticatedCertificatesPage();
+    }
+
+    // User is authenticated - load certificates
     return BlocProvider(
       create: (context) => sl<CertificateBloc>()..add(LoadOwnedCertificatesEvent()),
       child: const _CertificatesPageContent(),
+    );
+  }
+}
+
+// Unauthenticated Certificates Page
+class _UnauthenticatedCertificatesPage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.white,
+      appBar: const CustomAppBar(title: 'شهاداتي'),
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(32),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.lock_outline,
+                size: 80,
+                color: AppColors.primary,
+              ),
+              SizedBox(height: 32),
+              Text(
+                'تسجيل الدخول مطلوب',
+                style: AppTextStyles.displayMedium,
+                textAlign: TextAlign.center,
+              ),
+              SizedBox(height: 16),
+              Text(
+                'للوصول إلى شهاداتك، يرجى تسجيل الدخول أو إنشاء حساب جديد',
+                style: AppTextStyles.bodyLarge,
+                textAlign: TextAlign.center,
+              ),
+              SizedBox(height: 32),
+              SizedBox(
+                width: double.infinity,
+                height: 56,
+                child: ElevatedButton(
+                  onPressed: () async {
+                    final result = await Navigator.pushNamed(
+                      context,
+                      '/login',
+                      arguments: {'returnTo': 'certificates'},
+                    );
+                    if (result == true && context.mounted) {
+                      // Refresh page
+                      Navigator.of(context).pop();
+                      Navigator.of(context).pushNamed('/certificates');
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: Text(
+                    'تسجيل الدخول',
+                    style: TextStyle(
+                      fontFamily: 'Cairo',
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+              SizedBox(height: 16),
+              SizedBox(
+                width: double.infinity,
+                height: 56,
+                child: OutlinedButton(
+                  onPressed: () async {
+                    final result = await Navigator.pushNamed(
+                      context,
+                      '/register',
+                      arguments: {'returnTo': 'certificates'},
+                    );
+                    if (result == true && context.mounted) {
+                      // Refresh page
+                      Navigator.of(context).pop();
+                      Navigator.of(context).pushNamed('/certificates');
+                    }
+                  },
+                  style: OutlinedButton.styleFrom(
+                    side: const BorderSide(color: AppColors.primary),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: Text(
+                    'إنشاء حساب جديد',
+                    style: TextStyle(
+                      fontFamily: 'Cairo',
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.primary,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
@@ -189,7 +332,7 @@ class _CertificatesPageContent extends StatelessWidget {
             isAuthError ? 'يرجى تسجيل الدخول' : 'حدث خطأ',
             style: TextStyle(
               fontSize: 18,
-              fontFamily: cairoFontFamily,
+              fontFamily: 'Cairo',
               color: Colors.grey[600],
               fontWeight: FontWeight.w500,
             ),
@@ -202,7 +345,7 @@ class _CertificatesPageContent extends StatelessWidget {
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 14,
-                fontFamily: cairoFontFamily,
+                fontFamily: 'Cairo',
                 color: Colors.grey[500],
               ),
             ),
@@ -215,7 +358,7 @@ class _CertificatesPageContent extends StatelessWidget {
                     .pushReplacementNamed('/login');
               },
               icon: const Icon(Icons.login),
-              label: Text('تسجيل الدخول', style: TextStyle(fontFamily: cairoFontFamily)),
+              label: Text('تسجيل الدخول', style: TextStyle(fontFamily: 'Cairo')),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
                 foregroundColor: Colors.white,
@@ -231,7 +374,7 @@ class _CertificatesPageContent extends StatelessWidget {
                 context.read<CertificateBloc>().add(LoadOwnedCertificatesEvent());
               },
               icon: const Icon(Icons.refresh),
-              label: Text('إعادة المحاولة', style: TextStyle(fontFamily: cairoFontFamily)),
+              label: Text('إعادة المحاولة', style: TextStyle(fontFamily: 'Cairo')),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
                 foregroundColor: Colors.white,

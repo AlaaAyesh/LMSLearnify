@@ -30,7 +30,7 @@ class PlanDetailsSection extends StatelessWidget {
             Text(
               title,
               style: TextStyle(
-                fontFamily: cairoFontFamily,
+                fontFamily: 'Cairo',
                 fontSize: Responsive.fontSize(context, 20),
                 fontWeight: FontWeight.bold,
                 color: Colors.black,
@@ -45,7 +45,7 @@ class PlanDetailsSection extends StatelessWidget {
         Text(
           description,
           style: TextStyle(
-            fontFamily: cairoFontFamily,
+            fontFamily: 'Cairo',
             fontSize: Responsive.fontSize(context, 10),
             color: Color(0xFF565E6C),
             height: 1.4,

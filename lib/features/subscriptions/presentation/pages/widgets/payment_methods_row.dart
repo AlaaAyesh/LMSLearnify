@@ -15,7 +15,7 @@ class PaymentMethodsRow extends StatelessWidget {
         Text(
           'طرق الدفع المتاحة',
           style: TextStyle(
-            fontFamily: cairoFontFamily,
+            fontFamily: 'Cairo',
             fontSize: 12,
             color: AppColors.textSecondary,
           ),
