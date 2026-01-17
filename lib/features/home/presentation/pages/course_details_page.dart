@@ -76,7 +76,7 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> {
         builder: (blocContext) {
           // Capture bloc reference for use in dialogs
           _subscriptionBloc = blocContext.read<SubscriptionBloc>();
-          
+
           return BlocListener<SubscriptionBloc, SubscriptionState>(
             listener: (context, state) {
               if (state is PaymentProcessing) {
@@ -95,36 +95,36 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> {
               }
             },
             child: Scaffold(
-      backgroundColor: AppColors.white,
-      appBar: CustomAppBar(title: course.nameAr),
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Course Thumbnail/Video
-            _buildCourseThumbnail(context),
-            
-            // Course Info Card
-            _buildCourseInfoCard(),
-            
-            SizedBox(height: 24),
-            
-            // Free Course Banner + Lessons Title
-            _buildLessonsTitleSection(context),
-            
-            SizedBox(height: 16),
-            
-            // Lessons Grid
-            _buildLessonsGrid(context),
-            
-            SizedBox(height: 100),
-          ],
-        ),
-      ),
-      // Enroll/Access Button
-      bottomNavigationBar: _buildBottomBar(context),
-          ),
-        );
+              backgroundColor: AppColors.white,
+              appBar: CustomAppBar(title: course.nameAr),
+              body: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Course Thumbnail/Video
+                    _buildCourseThumbnail(context),
+
+                    // Course Info Card
+                    _buildCourseInfoCard(),
+
+                    const SizedBox(height: 24),
+
+                    // Free Course Banner + Lessons Title
+                    _buildLessonsTitleSection(context),
+
+                    const SizedBox(height: 16),
+
+                    // Lessons Grid
+                    _buildLessonsGrid(context),
+
+                    const SizedBox(height: 100),
+                  ],
+                ),
+              ),
+              // Enroll/Access Button
+              bottomNavigationBar: _buildBottomBar(context),
+            ),
+          );
         },
       ),
     );
@@ -188,12 +188,13 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> {
                 top: 12,
                 right: 12,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
                     color: AppColors.warning,
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: Text(
+                  child: const Text(
                     'قريباً',
                     style: TextStyle(
                       fontFamily: 'Cairo',
@@ -232,7 +233,7 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> {
       [const Color(0xFFFFAB91), const Color(0xFFFF7043)],
     ];
     final colors = gradientColors[course.id % gradientColors.length];
-    
+
     return Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(
@@ -256,27 +257,29 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> {
       margin: const EdgeInsets.symmetric(horizontal: 16),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppColors.primary,
+        color: AppColors.primaryCard,
         borderRadius: BorderRadius.circular(20),
       ),
       child: Column(
         children: [
           Text(
-            course.about ?? 'مقدمة ممتعة وشاملة لتعلم، مع التركيز على الأساسيات بطريقة تفاعلية ومبتكرة.',
-            style: TextStyle(
+            course.about ??
+                'مقدمة ممتعة وشاملة لتعلم، مع التركيز على الأساسيات بطريقة تفاعلية ومبتكرة.',
+            style: const TextStyle(
               fontFamily: 'Cairo',
               fontSize: 14,
-              color: Colors.white,
+              color: Colors.black,
               height: 1.6,
             ),
             textAlign: TextAlign.center,
           ),
-          SizedBox(height: 20),
+          const SizedBox(height: 20),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               _buildInfoChip(Icons.workspace_premium_outlined, 'شهادة'),
-              _buildInfoChip(Icons.people_outline, course.specialty?.nameAr ?? '4-13 سنة'),
+              _buildInfoChip(
+                  Icons.people_outline, course.specialty?.nameAr ?? '4-13 سنة'),
               _buildInfoChip(Icons.access_time_rounded, _getSimpleDuration()),
             ],
           ),
@@ -302,7 +305,9 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> {
     final hours = totalMinutes ~/ 60;
     final minutes = totalMinutes % 60;
     if (hours > 0) {
-      return minutes > 0 ? '$hours:${minutes.toString().padLeft(2, '0')} ساعة' : '$hours ساعات';
+      return minutes > 0
+          ? '$hours:${minutes.toString().padLeft(2, '0')} ساعة'
+          : '$hours ساعات';
     }
     return '$minutes دقيقة';
   }
@@ -311,30 +316,30 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text(
-          text,
-          style: TextStyle(
-            fontFamily: 'Cairo',
-            fontSize: 13,
-            color: Colors.white,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        SizedBox(width: 6),
         Icon(
           icon,
-          color: Colors.white,
-          size: 18,
+          color: Colors.black,
+          size: 16,
+        ),
+        const SizedBox(width: 6),
+        Text(
+          text,
+          style: const TextStyle(
+            fontFamily: 'Cairo',
+            fontSize: 14,
+            color: Colors.black,
+            fontWeight: FontWeight.w600,
+          ),
         ),
       ],
     );
   }
 
   bool get _isFreeCourse {
-    return course.price == null || 
-           course.price!.isEmpty || 
-           course.price == '0' || 
-           course.price == '0.00';
+    return course.price == null ||
+        course.price!.isEmpty ||
+        course.price == '0' ||
+        course.price == '0.00';
   }
 
   Widget _buildLessonsTitleSection(BuildContext context) {
@@ -342,22 +347,8 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> {
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Row(
         children: [
-          // Code icon
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: AppColors.primary.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: const Icon(
-              Icons.code,
-              color: AppColors.primary,
-              size: 20,
-            ),
-          ),
-          SizedBox(width: 12),
           // Title
-          Text(
+          const Text(
             'دروس الدورة',
             style: TextStyle(
               fontFamily: 'Cairo',
@@ -372,7 +363,8 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> {
             GestureDetector(
               onTap: () => Navigator.pushNamed(context, '/login'),
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 decoration: BoxDecoration(
                   color: AppColors.primary,
                   borderRadius: BorderRadius.circular(20),
@@ -380,7 +372,7 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text(
+                    const Text(
                       'الكورس مجاني سجل دخولك للمشاهدة',
                       style: TextStyle(
                         fontFamily: 'Cairo',
@@ -389,14 +381,15 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> {
                         fontWeight: FontWeight.w500,
                       ),
                     ),
-                    SizedBox(width: 4),
+                    const SizedBox(width: 4),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 6, vertical: 2),
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: Text(
+                      child: const Text(
                         'من هنا',
                         style: TextStyle(
                           fontFamily: 'Cairo',
@@ -435,7 +428,7 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> {
                 size: 48,
                 color: Colors.grey[400],
               ),
-              SizedBox(height: 12),
+              const SizedBox(height: 12),
               Text(
                 'لا يوجد دروس متاحة حالياً',
                 style: TextStyle(
@@ -464,7 +457,8 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> {
         itemCount: allLessons.length,
         itemBuilder: (context, index) {
           final item = allLessons[index];
-          final isFirstLesson = index == 0; // First lesson always available for preview
+          final isFirstLesson =
+              index == 0; // First lesson always available for preview
           return _LessonCard(
             lesson: item.lesson,
             isAvailable: isFirstLesson,
@@ -513,7 +507,7 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> {
                   if (course.hasDiscount && !_isFreeCourse)
                     Text(
                       '${course.priceBeforeDiscount} جم',
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontFamily: 'Cairo',
                         fontSize: 12,
                         color: AppColors.textSecondary,
@@ -526,7 +520,8 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> {
                       fontFamily: 'Cairo',
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
-                      color: _isFreeCourse ? AppColors.success : AppColors.primary,
+                      color:
+                          _isFreeCourse ? AppColors.success : AppColors.primary,
                     ),
                   ),
                 ],
@@ -536,9 +531,12 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> {
             Expanded(
               flex: 2,
               child: ElevatedButton(
-                onPressed: (course.soon || _isPaymentLoading) ? null : () => _onEnrollPressed(context),
+                onPressed: (course.soon || _isPaymentLoading)
+                    ? null
+                    : () => _onEnrollPressed(context),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: course.hasAccess ? AppColors.success : AppColors.primary,
+                  backgroundColor:
+                      course.hasAccess ? AppColors.success : AppColors.primary,
                   disabledBackgroundColor: Colors.grey[300],
                   padding: const EdgeInsets.symmetric(vertical: 14),
                   shape: RoundedRectangleBorder(
@@ -546,7 +544,7 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> {
                   ),
                 ),
                 child: _isPaymentLoading
-                    ? SizedBox(
+                    ? const SizedBox(
                         height: 20,
                         width: 20,
                         child: CircularProgressIndicator(
@@ -556,7 +554,7 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> {
                       )
                     : Text(
                         buttonText,
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontFamily: 'Cairo',
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
@@ -591,7 +589,7 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> {
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+        const SnackBar(
           content: Text('فيديو المقدمة غير متاح حالياً'),
           backgroundColor: AppColors.warning,
         ),
@@ -599,7 +597,8 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> {
     }
   }
 
-  void _onLessonTap(BuildContext context, Lesson lesson, Chapter chapter) async {
+  void _onLessonTap(
+      BuildContext context, Lesson lesson, Chapter chapter) async {
     // If user has access (subscribed), allow all lessons
     if (course.hasAccess) {
       await Navigator.of(context, rootNavigator: true).push(
@@ -618,10 +617,10 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> {
     }
 
     // For non-subscribers, only allow first lesson preview
-    final isFirstLesson = course.chapters.isNotEmpty && 
+    final isFirstLesson = course.chapters.isNotEmpty &&
         course.chapters.first.lessons.isNotEmpty &&
         course.chapters.first.lessons.first.id == lesson.id;
-    
+
     if (!isFirstLesson) {
       // Locked lesson - handle based on course type and login status
       await _handleLockedLessonTap(context);
@@ -645,16 +644,16 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> {
   Future<void> _handleLockedLessonTap(BuildContext context) async {
     final authLocalDataSource = sl<AuthLocalDataSource>();
     final token = await authLocalDataSource.getAccessToken();
-    
+
     final isAuthenticated = token != null && token.isNotEmpty;
-    
+
     if (_isFreeCourse) {
       // Free course - only require login
       if (!isAuthenticated) {
         // Not logged in - show message and redirect to login
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('الكورس مجاني! سجل دخولك للمشاهدة'),
+            content: const Text('الكورس مجاني! سجل دخولك للمشاهدة'),
             backgroundColor: AppColors.primary,
             action: SnackBarAction(
               label: 'تسجيل الدخول',
@@ -668,7 +667,7 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> {
                 // After login, user will find the course unlocked
                 if (result == true && mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
+                    const SnackBar(
                       content: Text('تم تسجيل الدخول! الكورس متاح الآن'),
                       backgroundColor: AppColors.success,
                     ),
@@ -682,7 +681,7 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> {
         // Logged in but no access - this shouldn't happen for free courses
         // Show a refresh message
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
+          const SnackBar(
             content: Text('يرجى تحديث الصفحة للوصول إلى الدروس'),
             backgroundColor: AppColors.warning,
           ),
@@ -697,7 +696,7 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> {
           '/login',
           arguments: {'returnTo': 'payment', 'courseId': course.id},
         );
-        
+
         if (result == true && mounted) {
           // After login, show phone dialog for payment
           _showPhoneInputDialog();
@@ -712,7 +711,8 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> {
   void _onEnrollPressed(BuildContext context) async {
     if (course.hasAccess) {
       // User has access - start learning
-      if (course.chapters.isNotEmpty && course.chapters.first.lessons.isNotEmpty) {
+      if (course.chapters.isNotEmpty &&
+          course.chapters.first.lessons.isNotEmpty) {
         final firstChapter = course.chapters.first;
         final firstLesson = firstChapter.lessons.first;
         await Navigator.of(context, rootNavigator: true).push(
@@ -739,11 +739,11 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> {
 
   void _showPhoneInputDialog() {
     _phoneController.clear();
-    
+
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text(
+        title: const Text(
           'شراء الكورس',
           textAlign: TextAlign.center,
           style: TextStyle(fontFamily: 'Cairo', fontWeight: FontWeight.bold),
@@ -754,9 +754,9 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> {
             Text(
               '${course.nameAr}\nالسعر: ${course.price} جم',
               textAlign: TextAlign.center,
-              style: TextStyle(fontFamily: 'Cairo', fontSize: 14),
+              style: const TextStyle(fontFamily: 'Cairo', fontSize: 14),
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             TextField(
               controller: _phoneController,
               keyboardType: TextInputType.phone,
@@ -775,28 +775,29 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: Text('إلغاء', style: TextStyle(fontFamily: 'Cairo')),
+            child: const Text('إلغاء', style: TextStyle(fontFamily: 'Cairo')),
           ),
           ElevatedButton(
             onPressed: () {
               final phone = _phoneController.text.trim();
               if (phone.isEmpty) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
+                  const SnackBar(
                     content: Text('يرجى إدخال رقم الهاتف'),
                     backgroundColor: Colors.red,
                   ),
                 );
                 return;
               }
-              
+
               Navigator.pop(ctx);
               _processCoursePurchase(phone);
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primary,
             ),
-            child: Text('شراء', style: TextStyle(fontFamily: 'Cairo', color: Colors.white)),
+            child: const Text('شراء',
+                style: TextStyle(fontFamily: 'Cairo', color: Colors.white)),
           ),
         ],
       ),
@@ -835,8 +836,8 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> {
                 size: 64,
               ),
             ),
-            SizedBox(height: 16),
-            Text(
+            const SizedBox(height: 16),
+            const Text(
               'تم الشراء بنجاح!',
               style: TextStyle(
                 fontFamily: 'Cairo',
@@ -844,18 +845,18 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> {
                 fontWeight: FontWeight.bold,
               ),
             ),
-            SizedBox(height: 8),
+            const SizedBox(height: 8),
             Text(
               message,
               textAlign: TextAlign.center,
-              style: TextStyle(
+              style: const TextStyle(
                 fontFamily: 'Cairo',
                 fontSize: 14,
                 color: AppColors.textSecondary,
               ),
             ),
-            SizedBox(height: 8),
-            Text(
+            const SizedBox(height: 8),
+            const Text(
               'يمكنك الآن مشاهدة جميع الدروس',
               textAlign: TextAlign.center,
               style: TextStyle(
@@ -883,7 +884,7 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> {
                   borderRadius: BorderRadius.circular(12),
                 ),
               ),
-              child: Text(
+              child: const Text(
                 'ابدأ المشاهدة',
                 style: TextStyle(
                   fontFamily: 'Cairo',
@@ -906,10 +907,10 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> {
       // The course object will be updated when the page is rebuilt
       // We trigger a rebuild to show the unlocked state
     });
-    
+
     // Show snackbar confirming access
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
+      const SnackBar(
         content: Text('تم تفعيل الاشتراك! جميع الدروس متاحة الآن'),
         backgroundColor: AppColors.success,
         duration: Duration(seconds: 3),
@@ -944,128 +945,152 @@ class _LessonCard extends StatelessWidget {
   Widget build(BuildContext context) {
     // If user has access (subscribed), all lessons are available
     final bool canAccess = hasAccess || isAvailable;
-    
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.06),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Thumbnail
-            Expanded(
-              flex: 3,
-              child: Stack(
-                children: [
-                  ClipRRect(
-                    borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-                    child: SizedBox(
-                      width: double.infinity,
-                      height: double.infinity,
-                      child: _buildLessonThumbnail(),
-                    ),
-                  ),
-                  // Lock overlay for unavailable lessons (only for non-subscribers)
-                  if (!canAccess)
-                    Positioned.fill(
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: Colors.black.withOpacity(0.4),
-                          borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-                        ),
-                        child: Center(
-                          child: Container(
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.2),
-                              shape: BoxShape.circle,
-                            ),
-                            child: const Icon(
-                              Icons.lock_rounded,
-                              color: Colors.white,
-                              size: 24,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  // Badge logic:
-                  // - Watched & completed: "تم المشاهدة" (red) - ONLY when actually watched
-                  // - Accessible but not watched: "متاح" (green)
-                  // - Locked: no badge (has lock overlay instead)
-                  if (canAccess)
-                    Positioned(
-                      top: 8,
-                      right: 8,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: isViewed 
-                              ? const Color(0xFFFF6B6B) // Red for watched
-                              : AppColors.success, // Green for available
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Text(
-                          isViewed ? 'تم المشاهدة' : 'متاح',
-                          style: TextStyle(
-                            fontFamily: 'Cairo',
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                    ),
-                  // No badge for locked lessons - they show lock overlay
-                ],
+
+    return Padding(
+      padding: const EdgeInsets.all(4),
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(22),
+            boxShadow: [
+              BoxShadow(
+                // Black shadow for locked lessons, primary color for accessible ones
+                color: canAccess
+                    ? AppColors.primary.withOpacity(0.25)
+                    : Colors.grey.withOpacity(0.25),
+                blurRadius: 8,
+                offset: const Offset(0, 4),
+                spreadRadius: 0,
               ),
-            ),
-            // Lesson Info
-            Expanded(
-              flex: 2,
-              child: Padding(
-                padding: const EdgeInsets.all(10),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  mainAxisAlignment: MainAxisAlignment.center,
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Thumbnail
+              Expanded(
+                flex: 2,
+                child: Stack(
                   children: [
-                    Text(
-                      lesson.nameAr,
-                      style: TextStyle(
-                        fontFamily: 'Cairo',
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: (hasAccess || isAvailable) ? AppColors.textPrimary : Colors.grey[500],
+                    ClipRRect(
+                      borderRadius:
+                          const BorderRadius.vertical(top: Radius.circular(22)),
+                      child: SizedBox(
+                        width: double.infinity,
+                        height: double.infinity,
+                        child: _buildLessonThumbnail(),
                       ),
-                      textAlign: TextAlign.right,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
                     ),
-                    SizedBox(height: 4),
-                    if (lesson.duration != null || lesson.videoDuration != null)
-                      Text(
-                        _formatDuration(lesson.videoDuration ?? lesson.duration!),
-                        style: TextStyle(
-                          fontFamily: 'Cairo',
-                          fontSize: 11,
-                          color: Colors.grey[500],
+                    // Lock overlay for unavailable lessons (only for non-subscribers)
+                    if (!canAccess)
+                      Positioned.fill(
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Colors.black.withOpacity(0.4),
+                            borderRadius: const BorderRadius.vertical(
+                                top: Radius.circular(22)),
+                          ),
+                          child: Center(
+                            child: Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.2),
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(
+                                Icons.lock_outline_rounded,
+                                color: Colors.white,
+                                size: 32,
+                              ),
+                            ),
+                          ),
                         ),
                       ),
+                    // Badge logic:
+                    // - Watched & completed: "تم المشاهدة" (red) - ONLY when actually watched
+                    // - Accessible but not watched: "متاح" (green)
+                    // - Locked: no badge (has lock overlay instead)
+                    if (canAccess)
+                      Positioned(
+                        top: 10,
+                        right: 10,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: const Color(
+                                0xFF9B59D0), // Purple for available (matching image)
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          child: Text(
+                            isViewed ? 'تم المشاهدة' : 'متاح',
+                            style: const TextStyle(
+                              fontFamily: 'Cairo',
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                              height: 1.2,
+                            ),
+                          ),
+                        ),
+                      ),
+                    // No badge for locked lessons - they show lock overlay
                   ],
                 ),
               ),
-            ),
-          ],
+              // Lesson Info
+              Expanded(
+                flex: 1,
+                child: Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Align(
+                        alignment: Alignment.topRight,
+                        child: Text(
+                          lesson.nameAr,
+                          style: TextStyle(
+                            fontFamily: 'Cairo',
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: (hasAccess || isAvailable)
+                                ? AppColors.textPrimary
+                                : Colors.grey[500],
+                            height: 1.4,
+                          ),
+                          textAlign: TextAlign.right,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      const Spacer(),
+                      if (lesson.duration != null ||
+                          lesson.videoDuration != null)
+                        Align(
+                          alignment: Alignment.bottomLeft,
+                          child: Text(
+                            _formatDuration(
+                                lesson.videoDuration ?? lesson.duration!),
+                            style: TextStyle(
+                              fontFamily: 'Cairo',
+                              fontSize: 11,
+                              fontWeight: FontWeight.w500,
+                              color: (hasAccess || isAvailable)
+                                  ? AppColors.textPrimary
+                                  : Colors.grey[500],
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -1073,8 +1098,8 @@ class _LessonCard extends StatelessWidget {
 
   Widget _buildLessonThumbnail() {
     // Try to get thumbnail from lesson's bunny_uri
-    if (lesson.bunnyUri != null && 
-        lesson.bunnyUri!.isNotEmpty && 
+    if (lesson.bunnyUri != null &&
+        lesson.bunnyUri!.isNotEmpty &&
         lesson.bunnyUri!.startsWith('http')) {
       return CachedNetworkImage(
         imageUrl: lesson.bunnyUri!,
@@ -1095,7 +1120,7 @@ class _LessonCard extends StatelessWidget {
       [const Color(0xFFF3E5F5), const Color(0xFFE1BEE7)],
     ];
     final colorPair = colors[lesson.id % colors.length];
-    
+
     return Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(
@@ -1107,7 +1132,7 @@ class _LessonCard extends StatelessWidget {
       child: Center(
         child: Icon(
           _getLessonIcon(),
-          size: 40,
+          size: 42,
           color: Colors.grey[400],
         ),
       ),
@@ -1119,7 +1144,9 @@ class _LessonCard extends StatelessWidget {
     if (name.contains('أرقام') || name.contains('رقم') || name.contains('عد')) {
       return Icons.calculate_outlined;
     }
-    if (name.contains('حرف') || name.contains('أبجد') || name.contains('حروف')) {
+    if (name.contains('حرف') ||
+        name.contains('أبجد') ||
+        name.contains('حروف')) {
       return Icons.abc;
     }
     if (name.contains('حيوان') || name.contains('قط') || name.contains('كلب')) {
@@ -1140,7 +1167,7 @@ class _LessonCard extends StatelessWidget {
       final hours = int.tryParse(parts[0]) ?? 0;
       final minutes = int.tryParse(parts[1]) ?? 0;
       final seconds = int.tryParse(parts.length > 2 ? parts[2] : '0') ?? 0;
-      
+
       if (hours > 0) {
         return '$hours:${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
       }
@@ -1149,6 +1176,3 @@ class _LessonCard extends StatelessWidget {
     return duration;
   }
 }
-
-
-

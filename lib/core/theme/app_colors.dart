@@ -6,6 +6,8 @@ class AppColors {
 
   // Primary Colors
   static const Color primary = Color(0xFFFDB914); // اللون الأصفر من التصميم
+  static const Color primaryCard = Color(0xFFFFF2D9);
+  // rgb(255, 242, 217)
   static const Color primaryDark = Color(0xFFE5A000);
   static const Color primaryLight = Color(0xFFFFC847);
 
