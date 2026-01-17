@@ -47,7 +47,7 @@ class PlanDetailsSection extends StatelessWidget {
           style: TextStyle(
             fontFamily: 'Cairo',
             fontSize: Responsive.fontSize(context, 10),
-            color: Color(0xFF565E6C),
+            color: Colors.black,
             height: 1.4,
           ),
           textAlign: TextAlign.right,

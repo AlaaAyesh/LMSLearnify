@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:learnify_lms/core/theme/app_text_styles.dart';
 
@@ -20,6 +21,7 @@ class LessonPlayerPage extends StatelessWidget {
   final Lesson? lesson;
   final Course? course;
   final Chapter? chapter;
+  final Function(double)? onProgressUpdate;
 
   const LessonPlayerPage({
     super.key,
@@ -27,6 +29,7 @@ class LessonPlayerPage extends StatelessWidget {
     this.lesson,
     this.course,
     this.chapter,
+    this.onProgressUpdate,
   });
 
   @override
@@ -44,6 +47,7 @@ class LessonPlayerPage extends StatelessWidget {
         initialLesson: lesson,
         course: course,
         chapter: chapter,
+        onProgressUpdate: onProgressUpdate,
       ),
     );
   }
@@ -54,12 +58,14 @@ class _LessonPlayerPageContent extends StatefulWidget {
   final Lesson? initialLesson;
   final Course? course;
   final Chapter? chapter;
+  final Function(double)? onProgressUpdate;
 
   const _LessonPlayerPageContent({
     required this.lessonId,
     this.initialLesson,
     this.course,
     this.chapter,
+    this.onProgressUpdate,
   });
 
   @override
@@ -72,6 +78,12 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
   WebViewController? _videoController;
   String? _currentVideoUrl;
   bool _autoLandscape = false;
+  
+  // Video progress tracking
+  DateTime? _videoStartTime;
+  Timer? _progressTimer;
+  double _currentProgress = 0.0;
+  int? _videoDurationSeconds;
 
   @override
   void initState() {
@@ -117,14 +129,79 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
   void dispose() {
     // Restore portrait orientation when leaving
     SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+    _progressTimer?.cancel();
+    // Update final progress when leaving
+    if (widget.onProgressUpdate != null && _currentProgress > 0) {
+      widget.onProgressUpdate!(_currentProgress);
+    }
     super.dispose();
   }
 
-  void _onVideoLoaded() {
-    if (!_hasMarkedAsViewed && widget.lessonId > 0) {
-      _hasMarkedAsViewed = true;
-      context.read<LessonBloc>().add(MarkLessonViewedEvent(lessonId: widget.lessonId));
+  int? _parseDurationToSeconds(String? duration) {
+    if (duration == null || duration.isEmpty) return null;
+    try {
+      // Parse format like "05:30" or "1:05:30"
+      final parts = duration.split(':');
+      if (parts.length == 2) {
+        final minutes = int.parse(parts[0]);
+        final seconds = int.parse(parts[1]);
+        return minutes * 60 + seconds;
+      } else if (parts.length == 3) {
+        final hours = int.parse(parts[0]);
+        final minutes = int.parse(parts[1]);
+        final seconds = int.parse(parts[2]);
+        return hours * 3600 + minutes * 60 + seconds;
+      }
+    } catch (e) {
+      return null;
     }
+    return null;
+  }
+
+  void _startProgressTracking(Lesson lesson) {
+    if (widget.lessonId <= 0) return;
+    
+    _videoDurationSeconds = _parseDurationToSeconds(lesson.videoDuration ?? lesson.duration);
+    if (_videoDurationSeconds == null || _videoDurationSeconds! <= 0) return;
+    
+    _videoStartTime = DateTime.now();
+    _currentProgress = 0.0;
+    
+    // Update progress every second
+    _progressTimer?.cancel();
+    _progressTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (_videoStartTime == null || _videoDurationSeconds == null) {
+        timer.cancel();
+        return;
+      }
+      
+      final elapsed = DateTime.now().difference(_videoStartTime!).inSeconds;
+      final newProgress = (elapsed / _videoDurationSeconds!).clamp(0.0, 1.0);
+      
+      if (mounted) {
+        setState(() {
+          _currentProgress = newProgress;
+        });
+        
+        // Update parent with progress
+        if (widget.onProgressUpdate != null) {
+          widget.onProgressUpdate!(newProgress);
+        }
+        
+        // Mark as viewed when >90% watched
+        if (newProgress > 0.9 && !_hasMarkedAsViewed) {
+          _hasMarkedAsViewed = true;
+          context.read<LessonBloc>().add(MarkLessonViewedEvent(lessonId: widget.lessonId));
+        }
+      } else {
+        timer.cancel();
+      }
+    });
+  }
+
+  void _onVideoLoaded() {
+    // Don't mark as viewed immediately - wait for >90% progress
+    // Progress tracking will handle marking as viewed
   }
 
   WebViewController _getVideoController(String videoUrl) {
@@ -198,6 +275,12 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
             SnackBar(content: Text(state.message), backgroundColor: Colors.red),
           );
         }
+        if (state is LessonLoaded) {
+          // Start tracking progress when lesson is loaded
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            _startProgressTracking(state.lesson);
+          });
+        }
       },
       builder: (context, state) {
         if (state is LessonLoading) return _buildLoadingScreen();
@@ -215,7 +298,7 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
         backgroundColor: Colors.black,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () => Navigator.pop(context, _currentProgress),
         ),
       ),
       body: Center(
@@ -267,6 +350,13 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
     if (videoUrl == null || videoUrl.isEmpty) {
       return _buildNoVideoScreen(lesson);
     }
+    
+    // Start progress tracking if not already started
+    if (_videoStartTime == null && widget.lessonId > 0) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _startProgressTracking(lesson);
+      });
+    }
 
     return OrientationBuilder(
       builder: (context, orientation) {
@@ -292,7 +382,9 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
                       ),
                       child: IconButton(
                         icon: Icon(Icons.arrow_back, color: Colors.white, size: Responsive.iconSize(context, 20)),
-                        onPressed: () => Navigator.pop(context),
+                        onPressed: () {
+                          Navigator.pop(context, _currentProgress);
+                        },
                       ),
                     ),
                   ),
@@ -313,7 +405,13 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
                   children: [
                     BunnyVideoPlayer(
                       videoUrl: videoUrl,
-                      onVideoLoaded: _onVideoLoaded,
+                      onVideoLoaded: () {
+                        _onVideoLoaded();
+                        // Start progress tracking when video loads
+                        if (widget.lessonId > 0) {
+                          _startProgressTracking(lesson);
+                        }
+                      },
                     ),
                     // Back button overlay
                     Positioned(
@@ -326,7 +424,9 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
                         ),
                         child: IconButton(
                           icon: Icon(Icons.arrow_back, color: Colors.white, size: Responsive.iconSize(context, 20)),
-                          onPressed: () => Navigator.pop(context),
+                          onPressed: () {
+                            Navigator.pop(context, _currentProgress);
+                          },
                         ),
                       ),
                     ),
@@ -768,7 +868,7 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
         backgroundColor: Colors.white,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: AppColors.primary),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () => Navigator.pop(context, _currentProgress),
         ),
         title: Text(
           lesson.nameAr,

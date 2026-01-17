@@ -125,11 +125,18 @@ class ReelsRemoteDataSourceImpl implements ReelsRemoteDataSource {
         statusCode: response.statusCode,
       );
     } on DioException catch (e) {
+      // For 401 errors on getReelsFeed, return empty reels instead of throwing error
+      // This allows users to view free reels without authentication
+      if (e.response?.statusCode == 401) {
+        return const ReelsFeedResponseModel(
+          reels: [],
+          meta: ReelsFeedMetaModel(perPage: 10, hasMore: false),
+        );
+      }
+
       String errorMessage = 'خطأ في الاتصال بالخادم';
 
-      if (e.response?.statusCode == 401) {
-        errorMessage = 'يجب تسجيل الدخول أولاً';
-      } else if (e.response?.data != null && e.response?.data['message'] != null) {
+      if (e.response?.data != null && e.response?.data['message'] != null) {
         errorMessage = e.response?.data['message'];
       }
 

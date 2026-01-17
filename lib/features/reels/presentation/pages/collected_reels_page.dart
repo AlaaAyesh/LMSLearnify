@@ -4,6 +4,8 @@ import '../../../../core/di/injection_container.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/custom_app_bar.dart';
+import '../../../home/presentation/pages/main_navigation_page.dart';
+import '../../../shorts/presentation/pages/shorts_page.dart';
 import '../../../shorts/presentation/widgets/reels_grid.dart';
 import '../bloc/reels_bloc.dart';
 import '../bloc/reels_event.dart';
@@ -121,7 +123,7 @@ class _CollectedReelsPageContentState extends State<_CollectedReelsPageContent>
         ),
         const SizedBox(height: 16),
         // Title
-        Text(
+        const Text(
           'Learnify',
           style: TextStyle(
             fontFamily: 'Cairo',
@@ -132,8 +134,8 @@ class _CollectedReelsPageContentState extends State<_CollectedReelsPageContent>
         ),
         const SizedBox(height: 4),
         // Subtitle
-        Text(
-          'I love a colorful life 🧡🧡🧡',
+        const Text(
+          '🧡🧡🧡I love a colorful life ',
           style: TextStyle(
             fontFamily: 'Cairo',
             fontSize: 14,
@@ -153,12 +155,12 @@ class _CollectedReelsPageContentState extends State<_CollectedReelsPageContent>
         indicatorWeight: 2,
         labelColor: AppColors.primary,
         unselectedLabelColor: AppColors.textSecondary,
-        labelStyle: TextStyle(
+        labelStyle: const TextStyle(
           fontFamily: 'Cairo',
           fontSize: 14,
           fontWeight: FontWeight.w600,
         ),
-        unselectedLabelStyle: TextStyle(
+        unselectedLabelStyle: const TextStyle(
           fontFamily: 'Cairo',
           fontSize: 14,
           fontWeight: FontWeight.w500,
@@ -353,7 +355,7 @@ class _CollectedReelsPageContentState extends State<_CollectedReelsPageContent>
                 borderRadius: BorderRadius.circular(20),
               ),
             ),
-            child: Text(
+            child: const Text(
               'إعادة المحاولة',
               style: TextStyle(
                 fontFamily: 'Cairo',
@@ -367,17 +369,35 @@ class _CollectedReelsPageContentState extends State<_CollectedReelsPageContent>
   }
 
   void _onReelTap(BuildContext context, ReelsLoaded state, int index) {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => BlocProvider.value(
-          value: context.read<ReelsBloc>(),
-          child: ReelsFeedPage(
-            initialIndex: index,
-            showBackButton: true,
-            isTabActive: false, // Videos should NOT autoplay from collected reels page
-          ),
-        ),
-      ),
-    );
+    // Set the initial index for ShortsPage
+    ShortsPage.setInitialIndex(index);
+    
+    // Try to get main navigation before popping
+    final mainNav = context.mainNavigation;
+    
+    // Pop back to the main navigation (root)
+    Navigator.of(context, rootNavigator: true).popUntil((route) {
+      // Keep popping until we reach the main navigation
+      return route.isFirst;
+    });
+    
+    // Switch to Shorts tab after navigation completes
+    if (mainNav != null) {
+      // Use post-frame callback to ensure navigation is complete
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          mainNav.switchToTab(1);
+          // Also update tab notifier if we can access it
+          try {
+            final tabNotifier = TabIndexProvider.of(context);
+            if (tabNotifier != null) {
+              tabNotifier.value = 1;
+            }
+          } catch (e) {
+            // Context might not be available, but mainNav.switchToTab should still work
+          }
+        }
+      });
+    }
   }
 }

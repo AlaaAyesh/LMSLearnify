@@ -244,7 +244,8 @@ class _ReelsFeedPageState extends State<ReelsFeedPage> with RouteAware, WidgetsB
             listener: (context, state) {
               if (state is ReelsWithCategories) {
                 setState(() {
-                  _categories = state.categories.where((c) => c.isActive).toList();
+                  // Get active categories and reverse the order
+                  _categories = state.categories.where((c) => c.isActive).toList().reversed.toList();
                   
                   // Find "General" category (slug: "general" or name contains "عام")
                   if (_categories.isNotEmpty) {
@@ -508,6 +509,7 @@ class _ReelsFeedPageState extends State<ReelsFeedPage> with RouteAware, WidgetsB
               color: AppColors.primary,
             ),
           );
+
         }
 
         final reel = state.reels[index];

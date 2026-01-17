@@ -29,7 +29,7 @@ class SubscriptionPlanCard extends StatelessWidget {
         children: [
           Container(
             constraints: BoxConstraints(minHeight: Responsive.height(context, 70)),
-            padding: Responsive.padding(context, horizontal: 28, vertical: 10),
+            padding: Responsive.padding(context, horizontal: 22, vertical: 10),
             decoration: BoxDecoration(
               color: colors.background,
               borderRadius: BorderRadius.circular(Responsive.radius(context, 26)),
@@ -64,8 +64,8 @@ class SubscriptionPlanCard extends StatelessWidget {
     if (isSelected) {
       // Yellow/golden color for selected card
       return CardColors(
-        background: const Color(0xFFFFF4DC).withOpacity(0.70),
-        border: const Color(0xFFE6C068),
+        background: const Color(0xFFFEEDBE).withOpacity(0.70),
+        border: Colors.black,
       );
     } else {
       // Normal white/grey for unselected cards

@@ -135,19 +135,18 @@ class _SubscriptionsPageContentState extends State<_SubscriptionsPageContent> {
       child: SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
             child: Padding(
-              padding: Responsive.padding(context, horizontal: 32, vertical: 16),
+              padding: Responsive.padding(context, horizontal: 22, vertical: 16),
               child: Column(
                 children: [
               _buildPlansList(context, state),
-                  SizedBox(height: Responsive.spacing(context, 24)),
-                  _buildBenefitsList(),
-                  SizedBox(height: Responsive.spacing(context, 24)),
-                  _buildPromoCodeSection(context),
-                  SizedBox(height: Responsive.spacing(context, 24)),
-              _buildPaymentSection(context, state),
                   SizedBox(height: Responsive.spacing(context, 16)),
+                  _buildBenefitsList(),
+                  SizedBox(height: Responsive.spacing(context, 16)),
+                  _buildPromoCodeSection(context),
+                  SizedBox(height: Responsive.spacing(context, 16)),
+              _buildPaymentSection(context, state),
+                  SizedBox(height: Responsive.spacing(context, 6)),
                   const SupportSection(),
-                  SizedBox(height: Responsive.spacing(context, 24)),
                 ],
               ),
             ),
@@ -231,7 +230,8 @@ class _SubscriptionsPageContentState extends State<_SubscriptionsPageContent> {
         Text(
           'هل لديك كوبون خصم؟',
           style: AppTextStyles.bodyLarge.copyWith(
-            fontSize: Responsive.fontSize(context, AppTextStyles.bodyLarge.fontSize ?? 16),
+            color: AppColors.black,
+            fontSize: Responsive.fontSize(context, 14),
           ),
           textAlign: TextAlign.right,
         ),
@@ -258,18 +258,18 @@ class _SubscriptionsPageContentState extends State<_SubscriptionsPageContent> {
       padding: Responsive.padding(context, all: 16),
       child: Column(
         children: [
-          if (selectedSubscription != null) ...[
-            Text(
-              'المجموع: ${selectedSubscription.price} $currencySymbol',
-              style: AppTextStyles.bodyLarge.copyWith(
-                fontWeight: FontWeight.bold,
-                fontSize: Responsive.fontSize(context, AppTextStyles.bodyLarge.fontSize ?? 16),
-              ),
-            ),
-            SizedBox(height: Responsive.spacing(context, 8)),
-          ],
+          // if (selectedSubscription != null) ...[
+          //   Text(
+          //     'المجموع: ${selectedSubscription.price} $currencySymbol',
+          //     style: AppTextStyles.bodyLarge.copyWith(
+          //       fontWeight: FontWeight.bold,
+          //       fontSize: Responsive.fontSize(context, AppTextStyles.bodyLarge.fontSize ?? 16),
+          //     ),
+          //   ),
+          //   SizedBox(height: Responsive.spacing(context, 8)),
+          // ],
           PaymentButton(onPressed: () => _processPayment(state)),
-          SizedBox(height: Responsive.spacing(context, 16)),
+          SizedBox(height: Responsive.spacing(context, 10)),
           const PaymentMethodsRow(),
         ],
       ),

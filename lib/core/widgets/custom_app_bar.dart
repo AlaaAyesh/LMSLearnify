@@ -39,10 +39,18 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
               style: TextStyle(
                 fontFamily: 'Cairo',
                 fontSize: Responsive.fontSize(context, 22),
-                fontWeight: FontWeight.w900,
+                fontWeight: FontWeight.w600,
                 color: AppColors.primary,
+                shadows: [
+                  Shadow(
+                    offset: const Offset(1, 1), // اتجاه الظل
+                    blurRadius: 3,        // نعومة الظل
+                    color: Colors.black.withOpacity(0.4), // لون الظل
+                  ),
+                ],
               ),
             ),
+
 
             const Spacer(),
 

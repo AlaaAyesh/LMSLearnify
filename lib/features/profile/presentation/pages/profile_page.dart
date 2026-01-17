@@ -386,8 +386,8 @@ class _AuthenticatedProfilePageState extends State<_AuthenticatedProfilePage> {
                 ),
                 SizedBox(height: 16),
 
-                EmailField(controller: emailController),
-                SizedBox(height: 24),
+                // EmailField(controller: emailController),
+                // SizedBox(height: 24),
 
                 // Change Password Section
                 _buildSectionTitle('تغيير كلمة المرور'),

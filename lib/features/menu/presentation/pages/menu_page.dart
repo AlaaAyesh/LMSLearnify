@@ -56,7 +56,6 @@ class _MenuPageContent extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 24),
           child: Column(
             children: [
-              SizedBox(height: 20),
 
               /// LOGO
               Image.asset(
@@ -67,7 +66,7 @@ class _MenuPageContent extends StatelessWidget {
                   return Container(
                     height: 180,
                     alignment: Alignment.center,
-                    child: Text(
+                    child: const Text(
                       'Learnify',
                       style: TextStyle(
                         fontFamily: 'Cairo',
@@ -80,7 +79,7 @@ class _MenuPageContent extends StatelessWidget {
                 },
               ),
 
-              SizedBox(height: 20),
+              // const SizedBox(height: 20),
 
               /// MENU BUTTONS
               MenuButton(
@@ -124,7 +123,7 @@ class _MenuPageContent extends StatelessWidget {
                 },
               ),
 
-              SizedBox(height: 10),
+              const SizedBox(height: 10),
 
               /// CREATE ACCOUNT / LOGOUT
               BlocBuilder<AuthBloc, AuthState>(
@@ -149,12 +148,12 @@ class _MenuPageContent extends StatelessWidget {
                 },
               ),
 
-              SizedBox(height: 24),
+              const SizedBox(height: 24),
 
               /// SUPPORT
               const SupportSection(),
 
-              SizedBox(height: 24),
+              const SizedBox(height: 24),
             ],
           ),
         ),
@@ -169,12 +168,12 @@ class _MenuPageContent extends StatelessWidget {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
         ),
-        title: Text(
+        title: const Text(
           'تسجيل الخروج',
           style: TextStyle(fontFamily: 'Cairo'),
           textAlign: TextAlign.center,
         ),
-        content: Text(
+        content: const Text(
           'هل أنت متأكد من تسجيل الخروج؟',
           style: TextStyle(fontFamily: 'Cairo'),
           textAlign: TextAlign.center,
@@ -182,7 +181,7 @@ class _MenuPageContent extends StatelessWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
-            child: Text(
+            child: const Text(
               'إلغاء',
               style: TextStyle(fontFamily: 'Cairo'),
             ),
@@ -195,7 +194,7 @@ class _MenuPageContent extends StatelessWidget {
               Navigator.pop(dialogContext);
               context.read<AuthBloc>().add(LogoutEvent());
             },
-            child: Text(
+            child: const Text(
               'تسجيل الخروج',
               style: TextStyle(fontFamily: 'Cairo'),
             ),

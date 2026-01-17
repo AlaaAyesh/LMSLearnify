@@ -6,6 +6,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/di/injection_container.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/custom_app_bar.dart';
+import '../../../../core/widgets/custom_background.dart';
 import '../../../authentication/data/datasources/auth_local_datasource.dart';
 import '../../../lessons/presentation/pages/lesson_player_page.dart';
 import '../../../subscriptions/data/models/payment_model.dart';
@@ -29,11 +30,15 @@ class CourseDetailsPage extends StatefulWidget {
 }
 
 class _CourseDetailsPageState extends State<CourseDetailsPage> {
-  // Track viewed lessons locally
+  // Track viewed lessons locally (only lessons watched >90%)
   final Set<int> _viewedLessonIds = {};
+  // Track lesson progress percentages (0.0 to 1.0)
+  final Map<int, double> _lessonProgress = {};
   final TextEditingController _phoneController = TextEditingController();
   bool _isPaymentLoading = false;
   SubscriptionBloc? _subscriptionBloc;
+  bool _isAuthenticated = false;
+  bool _isCheckingAuth = true;
 
   @override
   void initState() {
@@ -46,16 +51,43 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> {
         }
       }
     }
+    _checkAuthentication();
+  }
+
+  Future<void> _checkAuthentication() async {
+    final authLocalDataSource = sl<AuthLocalDataSource>();
+    final token = await authLocalDataSource.getAccessToken();
+    setState(() {
+      _isAuthenticated = token != null && token.isNotEmpty;
+      _isCheckingAuth = false;
+    });
   }
 
   bool _isLessonViewed(int lessonId) {
-    return _viewedLessonIds.contains(lessonId);
+    // Only consider viewed if progress > 90%
+    final progress = _lessonProgress[lessonId] ?? 0.0;
+    return progress > 0.9 || _viewedLessonIds.contains(lessonId);
   }
 
   void _markLessonAsViewed(int lessonId) {
     if (lessonId > 0) {
       setState(() {
         _viewedLessonIds.add(lessonId);
+      });
+    }
+  }
+
+  void _updateLessonProgress(int lessonId, double progress) {
+    if (lessonId > 0) {
+      setState(() {
+        _lessonProgress[lessonId] = progress;
+        // Mark as viewed if progress > 90%
+        if (progress > 0.9) {
+          _viewedLessonIds.add(lessonId);
+        } else {
+          // Remove from viewed if progress drops below 90%
+          _viewedLessonIds.remove(lessonId);
+        }
       });
     }
   }
@@ -97,32 +129,35 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> {
             child: Scaffold(
               backgroundColor: AppColors.white,
               appBar: CustomAppBar(title: course.nameAr),
-              body: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Course Thumbnail/Video
-                    _buildCourseThumbnail(context),
+              body: Stack(
+                  children:[
+                    const CustomBackground(),
 
-                    // Course Info Card
-                    _buildCourseInfoCard(),
+                    SingleChildScrollView(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Course Thumbnail/Video
+                          _buildCourseThumbnail(context),
 
-                    const SizedBox(height: 24),
+                          // Course Info Card
+                          _buildCourseInfoCard(),
 
-                    // Free Course Banner + Lessons Title
-                    _buildLessonsTitleSection(context),
+                          const SizedBox(height: 24),
 
-                    const SizedBox(height: 16),
+                          // Free Course Banner + Lessons Title
+                          _buildLessonsTitleSection(context),
 
-                    // Lessons Grid
-                    _buildLessonsGrid(context),
+                          const SizedBox(height: 16),
 
-                    const SizedBox(height: 100),
-                  ],
-                ),
-              ),
-              // Enroll/Access Button
-              bottomNavigationBar: _buildBottomBar(context),
+                          // Lessons Grid
+                          _buildLessonsGrid(context),
+
+                          const SizedBox(height: 100),
+                        ],
+                      ),
+                    ),
+                  ]),
             ),
           );
         },
@@ -189,7 +224,7 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> {
                 right: 12,
                 child: Container(
                   padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
                     color: AppColors.warning,
                     borderRadius: BorderRadius.circular(8),
@@ -358,13 +393,13 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> {
             ),
           ),
           const Spacer(),
-          // Free course banner (only show if free and user doesn't have access)
-          if (_isFreeCourse && !course.hasAccess)
+          // Free course banner (only show if free and user is not logged in)
+          if (_isFreeCourse && !_isAuthenticated)
             GestureDetector(
               onTap: () => Navigator.pushNamed(context, '/login'),
               child: Container(
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 decoration: BoxDecoration(
                   color: AppColors.primary,
                   borderRadius: BorderRadius.circular(20),
@@ -521,7 +556,7 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> {
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
                       color:
-                          _isFreeCourse ? AppColors.success : AppColors.primary,
+                      _isFreeCourse ? AppColors.success : AppColors.primary,
                     ),
                   ),
                 ],
@@ -536,7 +571,7 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> {
                     : () => _onEnrollPressed(context),
                 style: ElevatedButton.styleFrom(
                   backgroundColor:
-                      course.hasAccess ? AppColors.success : AppColors.primary,
+                  course.hasAccess ? AppColors.success : AppColors.primary,
                   disabledBackgroundColor: Colors.grey[300],
                   padding: const EdgeInsets.symmetric(vertical: 14),
                   shape: RoundedRectangleBorder(
@@ -545,22 +580,22 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> {
                 ),
                 child: _isPaymentLoading
                     ? const SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.white,
-                        ),
-                      )
+                  height: 20,
+                  width: 20,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: Colors.white,
+                  ),
+                )
                     : Text(
-                        buttonText,
-                        style: const TextStyle(
-                          fontFamily: 'Cairo',
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
+                  buttonText,
+                  style: const TextStyle(
+                    fontFamily: 'Cairo',
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
               ),
             ),
           ],
@@ -601,18 +636,21 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> {
       BuildContext context, Lesson lesson, Chapter chapter) async {
     // If user has access (subscribed), allow all lessons
     if (course.hasAccess) {
-      await Navigator.of(context, rootNavigator: true).push(
+      final result = await Navigator.of(context, rootNavigator: true).push(
         MaterialPageRoute(
           builder: (_) => LessonPlayerPage(
             lessonId: lesson.id,
             lesson: lesson,
             course: course,
             chapter: chapter,
+            onProgressUpdate: (progress) => _updateLessonProgress(lesson.id, progress),
           ),
         ),
       );
-      // Mark as viewed when returning from lesson player
-      _markLessonAsViewed(lesson.id);
+      // Update progress from result if available
+      if (result != null && result is double) {
+        _updateLessonProgress(lesson.id, result);
+      }
       return;
     }
 
@@ -627,18 +665,21 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> {
       return;
     }
 
-    await Navigator.of(context, rootNavigator: true).push(
+    final result = await Navigator.of(context, rootNavigator: true).push(
       MaterialPageRoute(
         builder: (_) => LessonPlayerPage(
           lessonId: lesson.id,
           lesson: lesson,
           course: course,
           chapter: chapter,
+          onProgressUpdate: (progress) => _updateLessonProgress(lesson.id, progress),
         ),
       ),
     );
-    // Mark as viewed when returning from lesson player
-    _markLessonAsViewed(lesson.id);
+    // Update progress from result if available
+    if (result != null && result is double) {
+      _updateLessonProgress(lesson.id, result);
+    }
   }
 
   Future<void> _handleLockedLessonTap(BuildContext context) async {
@@ -715,18 +756,21 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> {
           course.chapters.first.lessons.isNotEmpty) {
         final firstChapter = course.chapters.first;
         final firstLesson = firstChapter.lessons.first;
-        await Navigator.of(context, rootNavigator: true).push(
+        final result = await Navigator.of(context, rootNavigator: true).push(
           MaterialPageRoute(
             builder: (_) => LessonPlayerPage(
               lessonId: firstLesson.id,
               lesson: firstLesson,
               course: course,
               chapter: firstChapter,
+              onProgressUpdate: (progress) => _updateLessonProgress(firstLesson.id, progress),
             ),
           ),
         );
-        // Mark first lesson as viewed
-        _markLessonAsViewed(firstLesson.id);
+        // Update progress from result if available
+        if (result != null && result is double) {
+          _updateLessonProgress(firstLesson.id, result);
+        }
       }
     } else if (_isFreeCourse) {
       // Free course - redirect to login
@@ -949,23 +993,25 @@ class _LessonCard extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.all(4),
       child: GestureDetector(
-        onTap: onTap,
-        child: Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(22),
-            boxShadow: [
-              BoxShadow(
-                // Black shadow for locked lessons, primary color for accessible ones
-                color: canAccess
-                    ? AppColors.primary.withOpacity(0.25)
-                    : Colors.grey.withOpacity(0.25),
-                blurRadius: 8,
-                offset: const Offset(0, 4),
-                spreadRadius: 0,
-              ),
-            ],
-          ),
+        onTap: canAccess ? onTap : null,
+        child: Opacity(
+          opacity: canAccess ? 1.0 : 0.7,
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(22),
+              boxShadow: [
+                BoxShadow(
+                  // Black shadow for locked lessons, primary color for accessible ones
+                  color: canAccess
+                      ? AppColors.primary.withOpacity(0.25)
+                      : Colors.grey.withOpacity(0.25),
+                  blurRadius: 8,
+                  offset: const Offset(0, 4),
+                  spreadRadius: 0,
+                ),
+              ],
+            ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -976,7 +1022,7 @@ class _LessonCard extends StatelessWidget {
                   children: [
                     ClipRRect(
                       borderRadius:
-                          const BorderRadius.vertical(top: Radius.circular(22)),
+                      const BorderRadius.vertical(top: Radius.circular(22)),
                       child: SizedBox(
                         width: double.infinity,
                         height: double.infinity,
@@ -1045,7 +1091,7 @@ class _LessonCard extends StatelessWidget {
                 flex: 1,
                 child: Padding(
                   padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -1091,6 +1137,7 @@ class _LessonCard extends StatelessWidget {
               ),
             ],
           ),
+        ),
         ),
       ),
     );

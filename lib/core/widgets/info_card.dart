@@ -17,10 +17,10 @@ class InfoCard extends StatelessWidget {
     required this.text,
     this.backgroundColor = const Color(0xFFFDF0D8),
     this.textColor = const Color(0xFF3A3A3A),
-    this.fontSize = 20,
+    this.fontSize = 18,
     this.padding = const EdgeInsets.symmetric(
-      horizontal: 20,
-      vertical: 24,
+      horizontal: 18,
+      vertical: 20,
     ),
     this.borderRadius = 24,
     this.textAlign = TextAlign.right,
@@ -52,7 +52,7 @@ class InfoCard extends StatelessWidget {
           fontSize: Responsive.fontSize(context, fontSize),
           height: 1.6,
           color: textColor,
-          fontWeight: FontWeight.bold,
+          fontWeight: FontWeight.w600,
         ),
       ),
     );

@@ -31,13 +31,13 @@ class PriceSection extends StatelessWidget {
             child: StrikethroughPrice(price: originalPrice),
           ),
           Positioned(
-            bottom: Responsive.height(context, 4),
-            left: 0,
+            bottom: Responsive.height(context, 8),
+            left: -20,
             child: Text(
-              ' ج.م$discountedPrice',
+              discountedPrice,
               style: TextStyle(
                 fontFamily: 'Cairo',
-                fontSize: Responsive.fontSize(context, 18),
+                fontSize: Responsive.fontSize(context, 16),
                 fontWeight: FontWeight.bold,
                 color: Colors.black,
               ),

@@ -117,10 +117,8 @@ class _AllCoursesPageContent extends StatelessWidget {
               padding: Responsive.padding(context, all: 16),
               sliver: SliverGrid(
                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 3, // 3 circles per row
-                  childAspectRatio: 0.75,
+                  crossAxisCount: 2,
                   crossAxisSpacing: Responsive.width(context, 8),
-                  mainAxisSpacing: Responsive.height(context, 16),
                 ),
                 delegate: SliverChildBuilderDelegate(
                   (context, index) {

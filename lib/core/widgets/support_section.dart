@@ -6,7 +6,7 @@ import '../theme/app_colors.dart';
 import '../../features/subscriptions/presentation/pages/widgets/payment_method_icon.dart';
 
 class SupportSection extends StatelessWidget {
-  static const String _whatsappNumber = '201068875327';
+  static const String _whatsappNumber = '201019865875';
   
   const SupportSection({super.key});
 
@@ -33,7 +33,7 @@ class SupportSection extends StatelessWidget {
     } catch (_) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
+          const SnackBar(
             content: Text('لم يتم العثور على تطبيق واتساب', style: TextStyle(fontFamily: 'Cairo')),
             backgroundColor: Colors.red,
           ),
@@ -46,7 +46,7 @@ class SupportSection extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Text(
+        const Text(
           'لديك مشاكل أو استفسارات ؟',
           style: TextStyle(
             fontFamily: 'Cairo',
@@ -54,10 +54,9 @@ class SupportSection extends StatelessWidget {
             color: AppColors.textPrimary,
           ),
         ),
-        SizedBox(height: 8),
         GestureDetector(
           onTap: () => _openWhatsApp(context),
-          child: Row(
+          child: const Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
 
