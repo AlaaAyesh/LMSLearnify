@@ -22,6 +22,7 @@ import '../bloc/subscription_bloc.dart';
 import '../bloc/subscription_event.dart';
 import '../bloc/subscription_state.dart';
 import '../../data/models/payment_model.dart';
+import '../../../../core/routing/app_router.dart';
 
 class SubscriptionsPage extends StatelessWidget {
   /// When true, shows the back button in the app bar.
@@ -316,7 +317,24 @@ class _SubscriptionsPageContentState extends State<_SubscriptionsPageContent> {
     
     final isAuthenticated = token != null && token.isNotEmpty;
     
+    print('Payment button pressed - isAuthenticated: $isAuthenticated, token: ${token != null ? "exists" : "null"}');
+    
     if (!isAuthenticated) {
+      print('User not authenticated - showing login dialog');
+      // Show dialog and wait for user response
+      final goToLogin = await _showLoginRequiredDialog(context);
+      print('Login dialog result: $goToLogin');
+      
+      // If user cancelled or dismissed dialog, return early
+      if (goToLogin != true) {
+        print('User cancelled login - returning');
+        return;
+      }
+
+      // User chose to login - navigate to login page
+      if (!mounted) return;
+      print('Navigating to login page...');
+      
       // Save selected plan index before redirecting to login
       final selectedIndex = state.selectedIndex;
       final promoCode = state.appliedPromoCode;
@@ -328,10 +346,9 @@ class _SubscriptionsPageContentState extends State<_SubscriptionsPageContent> {
         _pendingPromoCode = promoCode;
       });
       
-      // Navigate to login with return info
-      final result = await Navigator.pushNamed(
-        context,
-        '/login',
+      // Navigate to login with return info (use root navigator to avoid nested navigator issues)
+      final result = await Navigator.of(context, rootNavigator: true).pushNamed(
+        AppRouter.login,
         arguments: {
           'returnTo': 'subscriptions',
           'selectedPlanIndex': selectedIndex,
@@ -352,17 +369,65 @@ class _SubscriptionsPageContentState extends State<_SubscriptionsPageContent> {
         });
       } else {
         // Login cancelled or failed - reset flag
-        setState(() {
-          _shouldShowPaymentAfterLogin = false;
-          _pendingSelectedIndex = null;
-          _pendingPromoCode = null;
-        });
+        if (mounted) {
+          setState(() {
+            _shouldShowPaymentAfterLogin = false;
+            _pendingSelectedIndex = null;
+            _pendingPromoCode = null;
+          });
+        }
       }
       return;
     }
 
     // User is authenticated - show compact payment sheet
     _showPaymentBottomSheet(context, selectedSubscription, state.appliedPromoCode);
+  }
+
+  Future<bool?> _showLoginRequiredDialog(BuildContext context) async {
+    return showDialog<bool>(
+      context: context,
+      barrierDismissible: true,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text(
+            'تسجيل الدخول مطلوب',
+            textAlign: TextAlign.right,
+            style: TextStyle(fontFamily: 'Cairo'),
+          ),
+          content: const Text(
+            'لا يمكنك إتمام عملية الدفع بدون تسجيل الدخول. الرجاء تسجيل الدخول ثم المتابعة.',
+            textAlign: TextAlign.right,
+            style: TextStyle(fontFamily: 'Cairo'),
+          ),
+          actionsAlignment: MainAxisAlignment.spaceBetween,
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(false),
+              child: const Text(
+                'إلغاء',
+                style: TextStyle(fontFamily: 'Cairo'),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(dialogContext).pop(true);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+              ),
+              child: const Text(
+                'تسجيل الدخول',
+                style: TextStyle(
+                  fontFamily: 'Cairo',
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   void _showPaymentBottomSheet(
