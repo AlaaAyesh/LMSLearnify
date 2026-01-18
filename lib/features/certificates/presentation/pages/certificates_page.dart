@@ -94,69 +94,101 @@ class _UnauthenticatedCertificatesPage extends StatelessWidget {
                 style: AppTextStyles.bodyLarge,
                 textAlign: TextAlign.center,
               ),
+
               SizedBox(height: 32),
+
+
+              // Login Button
               SizedBox(
                 width: double.infinity,
                 height: 56,
-                child: ElevatedButton(
-                  onPressed: () async {
-                    final result = await Navigator.pushNamed(
-                      context,
-                      '/login',
-                      arguments: {'returnTo': 'certificates'},
-                    );
-                    if (result == true && context.mounted) {
-                      // Refresh page
-                      Navigator.of(context).pop();
-                      Navigator.of(context).pushNamed('/certificates');
-                    }
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(22),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.primary.withOpacity(0.2),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
                   ),
-                  child: Text(
-                    'تسجيل الدخول',
-                    style: TextStyle(
-                      fontFamily: 'Cairo',
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
+                  child: ElevatedButton(
+                    onPressed: () async {
+                      final result = await Navigator.pushNamed(
+                        context,
+                        '/login',
+                        arguments: {'returnTo': 'profile'},
+                      );
+                      if (result == true && context.mounted) {
+                        Navigator.of(context).pop();
+                        Navigator.of(context).pushNamed('/profile');
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      elevation: 0, // مهم: نشيل elevation الافتراضي
+                      padding: EdgeInsets.zero, // إزالة أي padding
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(22),
+                      ),
+                    ),
+                    child: const Text(
+                      'تسجيل الدخول',
+                      style: TextStyle(
+                        fontFamily: 'Cairo',
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                 ),
               ),
-              SizedBox(height: 16),
+              SizedBox(height: 32),
+
+              // Register Button
               SizedBox(
                 width: double.infinity,
                 height: 56,
-                child: OutlinedButton(
-                  onPressed: () async {
-                    final result = await Navigator.pushNamed(
-                      context,
-                      '/register',
-                      arguments: {'returnTo': 'certificates'},
-                    );
-                    if (result == true && context.mounted) {
-                      // Refresh page
-                      Navigator.of(context).pop();
-                      Navigator.of(context).pushNamed('/certificates');
-                    }
-                  },
-                  style: OutlinedButton.styleFrom(
-                    side: const BorderSide(color: AppColors.primary),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(22),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.primary.withOpacity(0.15),
+                        blurRadius: 8,
+                        offset: const Offset(0, 3),
+                      ),
+                    ],
                   ),
-                  child: Text(
-                    'إنشاء حساب جديد',
-                    style: TextStyle(
-                      fontFamily: 'Cairo',
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.primary,
+                  child: OutlinedButton(
+                    onPressed: () async {
+                      final result = await Navigator.pushNamed(
+                        context,
+                        '/register',
+                        arguments: {'returnTo': 'profile'},
+                      );
+                      if (result == true && context.mounted) {
+                        Navigator.of(context).pop();
+                        Navigator.of(context).pushNamed('/profile');
+                      }
+                    },
+                    style: OutlinedButton.styleFrom(
+                      padding: EdgeInsets.zero, // إزالة margin الداخلي
+                      side: const BorderSide(color: AppColors.primary),
+                      backgroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(22),
+                      ),
+                    ),
+                    child: const Text(
+                      'إنشاء حساب جديد',
+                      style: TextStyle(
+                        fontFamily: 'Cairo',
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.primary,
+                      ),
                     ),
                   ),
                 ),

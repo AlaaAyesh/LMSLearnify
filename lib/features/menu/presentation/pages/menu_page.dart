@@ -170,7 +170,7 @@ class _MenuPageContent extends StatelessWidget {
         ),
         title: const Text(
           'تسجيل الخروج',
-          style: TextStyle(fontFamily: 'Cairo'),
+          style: TextStyle(fontFamily: 'Cairo',fontWeight: FontWeight.w800,color: AppColors.primary),
           textAlign: TextAlign.center,
         ),
         content: const Text(
