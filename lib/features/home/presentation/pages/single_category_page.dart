@@ -1,34 +1,130 @@
 import 'package:flutter/material.dart';
 import 'package:learnify_lms/core/theme/app_text_styles.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../../core/di/injection_container.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/custom_app_bar.dart';
 import '../../../../core/widgets/custom_background.dart';
 import '../../domain/entities/category.dart';
 import '../../domain/entities/course.dart';
+import '../../../courses/presentation/bloc/courses_bloc.dart';
+import '../../../courses/presentation/bloc/courses_event.dart';
+import '../../../courses/presentation/bloc/courses_state.dart';
 import 'course_details_page.dart';
 import 'main_navigation_page.dart';
 
-class SingleCategoryPage extends StatelessWidget {
+class SingleCategoryPage extends StatefulWidget {
   final Category category;
-  final List<Course> courses;
+  final List<Course>? initialCourses; // Optional initial courses
 
   const SingleCategoryPage({
     super.key,
     required this.category,
-    required this.courses,
+    this.initialCourses,
   });
 
   @override
+  State<SingleCategoryPage> createState() => _SingleCategoryPageState();
+}
+
+class _SingleCategoryPageState extends State<SingleCategoryPage> {
+  late final CoursesBloc _coursesBloc;
+
+  @override
+  void initState() {
+    super.initState();
+    // Create bloc instance
+    _coursesBloc = sl<CoursesBloc>();
+    // Load courses for this category from API
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _coursesBloc.add(
+        LoadCoursesEvent(
+          categoryId: widget.category.id,
+          perPage: 50, // Load more courses
+          refresh: true,
+        ),
+      );
+    });
+  }
+
+  @override
+  void dispose() {
+    _coursesBloc.close();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.white,
-      appBar: CustomAppBar(title: 'دورات ${category.nameAr}'),
-      body: Stack(
-        children: [
-          const CustomBackground(),
-          courses.isEmpty ? _buildEmptyState() : _buildCoursesGrid(context),
+    return BlocProvider.value(
+      value: _coursesBloc,
+      child: Scaffold(
+        backgroundColor: AppColors.white,
+        appBar: CustomAppBar(title: 'دورات ${widget.category.nameAr}'),
+        body: Stack(
+          children: [
+            const CustomBackground(),
+            BlocBuilder<CoursesBloc, CoursesState>(
+            builder: (context, state) {
+              if (state is CoursesLoading) {
+                return const Center(
+                  child: CircularProgressIndicator(color: AppColors.primary),
+                );
+              }
+              
+              if (state is CoursesError) {
+                return Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.error_outline,
+                        size: 80,
+                        color: Colors.grey[400],
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        state.message,
+                        style: TextStyle(
+                          fontFamily: 'Cairo',
+                          fontSize: 16,
+                          color: Colors.grey[600],
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 16),
+                      ElevatedButton(
+                        onPressed: () {
+                          context.read<CoursesBloc>().add(
+                            LoadCoursesEvent(
+                              categoryId: widget.category.id,
+                              perPage: 50,
+                              refresh: true,
+                            ),
+                          );
+                        },
+                        child: const Text('إعادة المحاولة'),
+                      ),
+                    ],
+                  ),
+                );
+              }
+              
+              final courses = state is CoursesLoaded 
+                  ? state.courses 
+                  : (state is CoursesEmpty 
+                      ? <Course>[] 
+                      : (widget.initialCourses ?? <Course>[]));
+              
+              if (courses.isEmpty) {
+                return _buildEmptyState();
+              }
+              
+              return _buildCoursesGrid(context, courses);
+            },
+          ),
         ],
+      ),
       ),
     );
   }
@@ -58,7 +154,7 @@ class SingleCategoryPage extends StatelessWidget {
     );
   }
 
-  Widget _buildCoursesGrid(BuildContext context) {
+  Widget _buildCoursesGrid(BuildContext context, List<Course> courses) {
     return GridView.builder(
       padding: const EdgeInsets.all(24),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(

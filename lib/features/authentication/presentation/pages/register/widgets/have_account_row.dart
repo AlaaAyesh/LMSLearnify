@@ -15,8 +15,8 @@ class HaveAccountRow extends StatelessWidget {
           'هل لديك حساب؟ ',
           style: TextStyle(
             fontFamily: 'Cairo',
-            color: AppColors.textSecondary,
-            fontWeight: FontWeight.w600,
+            color: AppColors.textPrimary,
+            fontWeight: FontWeight.w700,
             fontSize: Responsive.fontSize(context, 14),
           ),
         ),
@@ -28,11 +28,11 @@ class HaveAccountRow extends StatelessWidget {
             tapTargetSize: MaterialTapTargetSize.shrinkWrap,
           ),
           child: Text(
-            ' اضغط من هنا',
+            ' ادخل من هنا',
             style: TextStyle(
               fontFamily: 'Cairo',
               color: AppColors.primary,
-              fontWeight: FontWeight.w600,
+              fontWeight: FontWeight.w700,
               decoration: TextDecoration.underline,
               decorationColor: AppColors.primary,
               fontSize: Responsive.fontSize(context, 14),

@@ -84,11 +84,8 @@ class CategoriesPage extends StatelessWidget {
   }
 
   void _onCategoryTap(BuildContext context, Category category) {
-    final courses = coursesByCategory[category] ?? [];
-
     context.pushWithNav(SingleCategoryPage(
       category: category,
-      courses: courses,
     ));
   }
 }

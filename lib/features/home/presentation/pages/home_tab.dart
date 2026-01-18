@@ -330,7 +330,6 @@ class _HomeTabContent extends StatelessWidget {
   void _navigateToSingleCategory(BuildContext context, Category category, List<Course> courses) {
     context.pushWithNav(SingleCategoryPage(
       category: category,
-      courses: courses,
     ));
   }
 

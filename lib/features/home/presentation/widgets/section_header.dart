@@ -37,7 +37,7 @@ class SectionHeader extends StatelessWidget {
                 style: TextStyle(
                   fontFamily: 'Cairo',
                   fontSize: Responsive.fontSize(context, 12),
-                  fontWeight: FontWeight.w700,
+                  fontWeight: FontWeight.w800,
                   color: AppColors.primary,
                 ),
               ),

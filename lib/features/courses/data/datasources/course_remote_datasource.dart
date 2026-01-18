@@ -39,8 +39,19 @@ class CourseRemoteDataSourceImpl implements CourseRemoteDataSource {
       final queryParams = <String, dynamic>{};
       if (page != null) queryParams['page'] = page;
       if (perPage != null) queryParams['per_page'] = perPage;
-      if (categoryId != null) queryParams['category_id'] = categoryId;
-      if (specialtyId != null) queryParams['specialty_id'] = specialtyId;
+      
+      // Build search parameter using new API format
+      final searchParts = <String>[];
+      if (categoryId != null) {
+        searchParts.add('categories.category_id:$categoryId');
+      }
+      if (specialtyId != null) {
+        searchParts.add('specialty_id:$specialtyId');
+      }
+      
+      if (searchParts.isNotEmpty) {
+        queryParams['search'] = searchParts.join(';');
+      }
 
       final response = await dioClient.get(
         ApiConstants.courses,

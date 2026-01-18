@@ -64,7 +64,7 @@ class PrimaryButton extends StatelessWidget {
           text,
           style: AppTextStyles.button.copyWith(
               fontSize: Responsive.fontSize(context, 24),
-              fontWeight: FontWeight.w900
+              fontWeight: FontWeight.w800
           ),
         ),
       ),

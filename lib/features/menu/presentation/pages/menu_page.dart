@@ -56,7 +56,6 @@ class _MenuPageContent extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 24),
           child: Column(
             children: [
-
               /// LOGO
               Image.asset(
                 'assets/images/app_logo.png',
@@ -141,7 +140,8 @@ class _MenuPageContent extends StatelessWidget {
                       text: 'إنشاء حساب جديد',
                       onTap: () {
                         print('🔵 Login button tapped');
-                        Navigator.of(context, rootNavigator: true).pushNamed('/login');
+                        Navigator.of(context, rootNavigator: true)
+                            .pushNamed('/login');
                       },
                     );
                   }
@@ -170,7 +170,10 @@ class _MenuPageContent extends StatelessWidget {
         ),
         title: const Text(
           'تسجيل الخروج',
-          style: TextStyle(fontFamily: 'Cairo',fontWeight: FontWeight.w800,color: AppColors.primary),
+          style: TextStyle(
+              fontFamily: 'Cairo',
+              fontWeight: FontWeight.w800,
+              color: AppColors.soonText),
           textAlign: TextAlign.center,
         ),
         content: const Text(
@@ -188,7 +191,7 @@ class _MenuPageContent extends StatelessWidget {
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
+              backgroundColor: AppColors.soonText,
             ),
             onPressed: () {
               Navigator.pop(dialogContext);
@@ -204,6 +207,3 @@ class _MenuPageContent extends StatelessWidget {
     );
   }
 }
-
-
-

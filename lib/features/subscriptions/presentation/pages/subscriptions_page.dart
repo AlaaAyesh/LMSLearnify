@@ -55,6 +55,9 @@ class _SubscriptionsPageContent extends StatefulWidget {
 
 class _SubscriptionsPageContentState extends State<_SubscriptionsPageContent> {
   final TextEditingController _promoController = TextEditingController();
+  bool _shouldShowPaymentAfterLogin = false;
+  int? _pendingSelectedIndex;
+  String? _pendingPromoCode;
 
   static const List<String> _benefits = [
     'الوصول الكامل لجميع الكورسات الحالية والمستقبلية',
@@ -95,6 +98,17 @@ class _SubscriptionsPageContentState extends State<_SubscriptionsPageContent> {
                     backgroundColor: Colors.green,
                   ),
                 );
+              } else if (state is SubscriptionsLoaded && _shouldShowPaymentAfterLogin) {
+                // After login, subscriptions reloaded - show payment sheet
+                final selectedSubscription = state.selectedSubscription;
+                if (selectedSubscription != null && mounted) {
+                  _shouldShowPaymentAfterLogin = false;
+                  Future.delayed(const Duration(milliseconds: 300), () {
+                    if (mounted) {
+                      _showPaymentBottomSheet(context, selectedSubscription, _pendingPromoCode);
+                    }
+                  });
+                }
               }
             },
             builder: (context, state) {
@@ -268,7 +282,14 @@ class _SubscriptionsPageContentState extends State<_SubscriptionsPageContent> {
           //   ),
           //   SizedBox(height: Responsive.spacing(context, 8)),
           // ],
-          PaymentButton(onPressed: () => _processPayment(state)),
+          PaymentButton(
+            onPressed: () {
+              print('Payment button pressed');
+              if (mounted) {
+                _processPayment(context, state);
+              }
+            },
+          ),
           SizedBox(height: Responsive.spacing(context, 10)),
           const PaymentMethodsRow(),
         ],
@@ -276,11 +297,12 @@ class _SubscriptionsPageContentState extends State<_SubscriptionsPageContent> {
     );
   }
 
-  void _processPayment(SubscriptionsLoaded state) async {
+  void _processPayment(BuildContext context, SubscriptionsLoaded state) async {
     final selectedSubscription = state.selectedSubscription;
+    
     if (selectedSubscription == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+        const SnackBar(
           content: Text('يرجى اختيار باقة أولاً'),
           backgroundColor: Colors.red,
         ),
@@ -299,6 +321,13 @@ class _SubscriptionsPageContentState extends State<_SubscriptionsPageContent> {
       final selectedIndex = state.selectedIndex;
       final promoCode = state.appliedPromoCode;
       
+      // Set flag to show payment sheet after login
+      setState(() {
+        _shouldShowPaymentAfterLogin = true;
+        _pendingSelectedIndex = selectedIndex;
+        _pendingPromoCode = promoCode;
+      });
+      
       // Navigate to login with return info
       final result = await Navigator.pushNamed(
         context,
@@ -315,21 +344,29 @@ class _SubscriptionsPageContentState extends State<_SubscriptionsPageContent> {
         context.read<SubscriptionBloc>().add(const LoadSubscriptionsEvent());
         // Restore selection after a brief delay for state to update
         Future.delayed(const Duration(milliseconds: 500), () {
-          if (mounted) {
+          if (mounted && _pendingSelectedIndex != null) {
             context.read<SubscriptionBloc>().add(
-              SelectSubscriptionEvent(index: selectedIndex),
+              SelectSubscriptionEvent(index: _pendingSelectedIndex!),
             );
           }
+        });
+      } else {
+        // Login cancelled or failed - reset flag
+        setState(() {
+          _shouldShowPaymentAfterLogin = false;
+          _pendingSelectedIndex = null;
+          _pendingPromoCode = null;
         });
       }
       return;
     }
 
     // User is authenticated - show compact payment sheet
-    _showPaymentBottomSheet(selectedSubscription, state.appliedPromoCode);
+    _showPaymentBottomSheet(context, selectedSubscription, state.appliedPromoCode);
   }
 
   void _showPaymentBottomSheet(
+    BuildContext context,
     Subscription selectedSubscription,
     String? promoCode,
   ) {

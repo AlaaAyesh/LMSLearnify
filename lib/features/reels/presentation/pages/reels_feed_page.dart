@@ -23,7 +23,8 @@ final RouteObserver<PageRoute> routeObserver = RouteObserver<PageRoute>();
 class ReelsFeedPage extends StatefulWidget {
   final int initialIndex;
   final bool showBackButton;
-  final int freeReelsLimit; // Number of free reels before paywall (0 = unlimited)
+  final int
+      freeReelsLimit; // Number of free reels before paywall (0 = unlimited)
   final bool isTabActive; // Whether the shorts tab is currently active
 
   const ReelsFeedPage({
@@ -38,14 +39,16 @@ class ReelsFeedPage extends StatefulWidget {
   State<ReelsFeedPage> createState() => _ReelsFeedPageState();
 }
 
-class _ReelsFeedPageState extends State<ReelsFeedPage> with RouteAware, WidgetsBindingObserver {
+class _ReelsFeedPageState extends State<ReelsFeedPage>
+    with RouteAware, WidgetsBindingObserver {
   late PageController _pageController;
   int _currentIndex = 0;
   int _selectedCategoryIndex = 0; // Default to first category (General)
   bool _showPaywall = false;
   bool _isSubscribed = false;
-  bool _isPageVisible = true; // Track if this page is visible (not covered by another page)
-  
+  bool _isPageVisible =
+      true; // Track if this page is visible (not covered by another page)
+
   List<ReelCategoryModel> _categories = []; // Categories loaded from API
 
   @override
@@ -55,7 +58,7 @@ class _ReelsFeedPageState extends State<ReelsFeedPage> with RouteAware, WidgetsB
     _currentIndex = widget.initialIndex;
     _pageController = PageController(initialPage: widget.initialIndex);
     _checkSubscriptionStatus();
-    
+
     // Load categories from API first, then load reels for default category
     context.read<ReelsBloc>().add(const LoadReelCategoriesEvent());
 
@@ -69,7 +72,7 @@ class _ReelsFeedPageState extends State<ReelsFeedPage> with RouteAware, WidgetsB
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
     // When app goes to background, mark page as not visible to stop videos
-    if (state == AppLifecycleState.paused || 
+    if (state == AppLifecycleState.paused ||
         state == AppLifecycleState.inactive ||
         state == AppLifecycleState.hidden) {
       if (_isPageVisible) {
@@ -99,7 +102,7 @@ class _ReelsFeedPageState extends State<ReelsFeedPage> with RouteAware, WidgetsB
   @override
   void didUpdateWidget(ReelsFeedPage oldWidget) {
     super.didUpdateWidget(oldWidget);
-    
+
     // Handle status bar and trigger rebuild when tab becomes active/inactive
     if (widget.isTabActive != oldWidget.isTabActive) {
       if (widget.isTabActive) {
@@ -163,7 +166,7 @@ class _ReelsFeedPageState extends State<ReelsFeedPage> with RouteAware, WidgetsB
   Future<void> _checkSubscriptionStatus() async {
     final authLocalDataSource = sl<AuthLocalDataSource>();
     final token = await authLocalDataSource.getAccessToken();
-    
+
     // For now, consider subscribed if user has token
     // In production, you'd check actual subscription status from API
     setState(() {
@@ -179,17 +182,17 @@ class _ReelsFeedPageState extends State<ReelsFeedPage> with RouteAware, WidgetsB
   void _handleSubscribe() async {
     // Pause videos before navigating
     setState(() => _isPageVisible = false);
-    
+
     // Wait for the frame to rebuild and pause the video
     await Future.delayed(const Duration(milliseconds: 100));
-    
+
     if (!mounted) return;
-    
+
     final authLocalDataSource = sl<AuthLocalDataSource>();
     final token = await authLocalDataSource.getAccessToken();
-    
+
     final isAuthenticated = token != null && token.isNotEmpty;
-    
+
     if (!isAuthenticated) {
       // Not logged in - go to login first, then subscriptions
       final result = await Navigator.pushNamed(
@@ -199,7 +202,7 @@ class _ReelsFeedPageState extends State<ReelsFeedPage> with RouteAware, WidgetsB
           'returnTo': 'subscriptions',
         },
       );
-      
+
       if (result == true && mounted) {
         // After login, navigate to subscriptions
         await Navigator.pushNamed(context, '/subscriptions');
@@ -208,7 +211,7 @@ class _ReelsFeedPageState extends State<ReelsFeedPage> with RouteAware, WidgetsB
       // Logged in - go directly to subscriptions/payment
       await Navigator.pushNamed(context, '/subscriptions');
     }
-    
+
     // Resume videos when returning
     if (mounted) {
       setState(() {
@@ -233,7 +236,7 @@ class _ReelsFeedPageState extends State<ReelsFeedPage> with RouteAware, WidgetsB
   @override
   Widget build(BuildContext context) {
     final topPadding = MediaQuery.of(context).padding.top;
-    
+
     return Scaffold(
       backgroundColor: Colors.black,
       extendBodyBehindAppBar: true,
@@ -245,29 +248,36 @@ class _ReelsFeedPageState extends State<ReelsFeedPage> with RouteAware, WidgetsB
               if (state is ReelsWithCategories) {
                 setState(() {
                   // Get active categories and reverse the order
-                  _categories = state.categories.where((c) => c.isActive).toList().reversed.toList();
-                  
+                  _categories = state.categories
+                      .where((c) => c.isActive)
+                      .toList()
+                      .reversed
+                      .toList();
+
                   // Find "General" category (slug: "general" or name contains "عام")
                   if (_categories.isNotEmpty) {
                     final generalCategory = _categories.firstWhere(
-                      (c) => c.slug.toLowerCase() == 'general' || 
-                             c.name.contains('عام'),
-                      orElse: () => _categories[0], // Fallback to first category
+                      (c) =>
+                          c.slug.toLowerCase() == 'general' ||
+                          c.name.contains('عام'),
+                      orElse: () =>
+                          _categories[0], // Fallback to first category
                     );
-                    
+
                     // Set selected index to General category
-                    _selectedCategoryIndex = _categories.indexOf(generalCategory);
+                    _selectedCategoryIndex =
+                        _categories.indexOf(generalCategory);
                     if (_selectedCategoryIndex == -1) {
                       _selectedCategoryIndex = 0; // Fallback to first category
                     }
-                    
+
                     // Load reels for General category
                     context.read<ReelsBloc>().add(
-                      LoadReelsFeedEvent(
-                        perPage: 10,
-                        categoryId: generalCategory.id,
-                      ),
-                    );
+                          LoadReelsFeedEvent(
+                            perPage: 10,
+                            categoryId: generalCategory.id,
+                          ),
+                        );
                   }
                 });
               }
@@ -304,7 +314,9 @@ class _ReelsFeedPageState extends State<ReelsFeedPage> with RouteAware, WidgetsB
                       SizedBox(height: Responsive.spacing(context, 24)),
                       ElevatedButton(
                         onPressed: () {
-                          context.read<ReelsBloc>().add(const LoadReelsFeedEvent());
+                          context
+                              .read<ReelsBloc>()
+                              .add(const LoadReelsFeedEvent());
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.primary,
@@ -314,7 +326,8 @@ class _ReelsFeedPageState extends State<ReelsFeedPage> with RouteAware, WidgetsB
                             vertical: 12,
                           ),
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(Responsive.radius(context, 24)),
+                            borderRadius: BorderRadius.circular(
+                                Responsive.radius(context, 24)),
                           ),
                         ),
                         child: Text(
@@ -332,25 +345,61 @@ class _ReelsFeedPageState extends State<ReelsFeedPage> with RouteAware, WidgetsB
               }
 
               if (state is ReelsEmpty) {
-                return Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.video_library_outlined,
-                        color: Colors.white54,
-                        size: Responsive.iconSize(context, 64),
-                      ),
-                      SizedBox(height: Responsive.spacing(context, 16)),
-                      Text(
-                        'لا توجد فيديوهات حالياً',
-                        style: TextStyle(
-                          fontFamily: 'Cairo',
-                          color: Colors.white70,
-                          fontSize: Responsive.fontSize(context, 16),
+                return Container(
+                  color:  AppColors.primary,
+                  child: Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.lock_outline,
+                          color: Colors.white,
+                          size: Responsive.iconSize(context, 90),
                         ),
-                      ),
-                    ],
+                        SizedBox(height: Responsive.spacing(context, 20)),
+                        Text(
+                          'اشترك لفتح باقي الفيديوهات',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontFamily: 'Cairo',
+                            color: Colors.white,
+                            fontSize: Responsive.fontSize(context, 18),
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        SizedBox(height: Responsive.spacing(context, 16)),
+                        SizedBox(
+                          width: Responsive.width(context, 160),
+                          height: Responsive.height(context, 44),
+                          child: ElevatedButton(
+                            onPressed: () {
+                              // TODO: navigate to subscription page
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.white,
+                              elevation: 0,
+                              padding: EdgeInsets.zero,
+                              tapTargetSize: MaterialTapTargetSize
+                                  .shrinkWrap,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            child: Center(
+                              child: Text(
+                                'اشترك من هنا',
+                                style: TextStyle(
+                                  fontFamily: 'Cairo',
+                                  color: AppColors.primary,
+                                  fontSize: Responsive.fontSize(context, 14),
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
+                            ),
+                          ),
+                        )
+                      ],
+                    ),
                   ),
                 );
               }
@@ -371,7 +420,7 @@ class _ReelsFeedPageState extends State<ReelsFeedPage> with RouteAware, WidgetsB
               return const SizedBox.shrink();
             },
           ),
-          
+
           // Top bar with back button and category filters
           if (!(_currentIndex == 0 && !_isSubscribed))
             Positioned(
@@ -415,7 +464,8 @@ class _ReelsFeedPageState extends State<ReelsFeedPage> with RouteAware, WidgetsB
         scrollDirection: Axis.horizontal,
         padding: Responsive.padding(context, horizontal: 20),
         itemCount: _categories.length,
-        separatorBuilder: (_, __) => SizedBox(width: Responsive.width(context, 10)),
+        separatorBuilder: (_, __) =>
+            SizedBox(width: Responsive.width(context, 10)),
         itemBuilder: (context, index) {
           final isSelected = index == _selectedCategoryIndex;
           final category = _categories[index];
@@ -437,7 +487,8 @@ class _ReelsFeedPageState extends State<ReelsFeedPage> with RouteAware, WidgetsB
                 color: isSelected
                     ? const Color(0xFF6A4BC3)
                     : const Color(0xFF2C2C36),
-                borderRadius: BorderRadius.circular(Responsive.radius(context, 18)),
+                borderRadius:
+                    BorderRadius.circular(Responsive.radius(context, 18)),
               ),
               child: Center(
                 child: Text(
@@ -469,13 +520,13 @@ class _ReelsFeedPageState extends State<ReelsFeedPage> with RouteAware, WidgetsB
       itemCount: itemCount,
       onPageChanged: (index) {
         setState(() => _currentIndex = index);
-        
+
         // Check if paywall should be shown
         _checkPaywall(index);
 
-        if (state.reels.isNotEmpty && 
-            index >= state.reels.length - 3 && 
-            state.hasMore && 
+        if (state.reels.isNotEmpty &&
+            index >= state.reels.length - 3 &&
+            state.hasMore &&
             !state.isLoadingMore) {
           context.read<ReelsBloc>().add(const LoadMoreReelsEvent());
         }
@@ -484,9 +535,8 @@ class _ReelsFeedPageState extends State<ReelsFeedPage> with RouteAware, WidgetsB
         // For non-subscribed users, show paywall for the first item (index 0)
         if (index == 0 && !_isSubscribed) {
           // If we have reels, use the first reel's thumbnail, otherwise use null
-          final thumbnailUrl = state.reels.isNotEmpty 
-              ? state.reels[0].thumbnailUrl 
-              : null;
+          final thumbnailUrl =
+              state.reels.isNotEmpty ? state.reels[0].thumbnailUrl : null;
           return ReelPaywallWidget(
             onSubscribe: _handleSubscribe,
             thumbnailUrl: thumbnailUrl,
@@ -509,7 +559,6 @@ class _ReelsFeedPageState extends State<ReelsFeedPage> with RouteAware, WidgetsB
               color: AppColors.primary,
             ),
           );
-
         }
 
         final reel = state.reels[index];
@@ -524,7 +573,8 @@ class _ReelsFeedPageState extends State<ReelsFeedPage> with RouteAware, WidgetsB
           viewCount: viewCount,
           likeCount: likeCount,
           // Video only plays when: current index + tab is active + page is visible (not covered)
-          isActive: index == _currentIndex && widget.isTabActive && _isPageVisible,
+          isActive:
+              index == _currentIndex && widget.isTabActive && _isPageVisible,
           onLike: () {
             context.read<ReelsBloc>().add(ToggleReelLikeEvent(reelId: reel.id));
           },
@@ -543,10 +593,10 @@ class _ReelsFeedPageState extends State<ReelsFeedPage> with RouteAware, WidgetsB
     // Create reel link (remove /api/ from baseUrl to get app URL)
     final baseAppUrl = ApiConstants.baseUrl.replaceAll('/api/', '');
     final reelLink = '$baseAppUrl/reels/${reel.id}';
-    
+
     // Copy to clipboard
     Clipboard.setData(ClipboardData(text: reelLink));
-    
+
     // Show success message
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -577,18 +627,18 @@ class _ReelsFeedPageState extends State<ReelsFeedPage> with RouteAware, WidgetsB
   void _navigateToCollectedReels(BuildContext context) async {
     // Pause videos before navigating
     setState(() => _isPageVisible = false);
-    
+
     // Wait for the frame to rebuild and pause the video
     await Future.delayed(const Duration(milliseconds: 100));
-    
+
     if (!mounted) return;
-    
+
     await Navigator.of(context, rootNavigator: true).push(
       MaterialPageRoute(
         builder: (_) => const CollectedReelsPage(),
       ),
     );
-    
+
     // Resume videos when returning
     if (mounted) {
       setState(() {
