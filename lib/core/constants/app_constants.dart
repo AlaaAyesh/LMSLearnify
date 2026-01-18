@@ -24,6 +24,9 @@ class AppConstants {
   static const String keyIsFirstTime = 'is_first_time';
   static const String keyLanguage = 'language';
   static const String keyContentPreferencesCompleted = 'content_preferences_completed';
+
+  // Remember Me (secure)
+  static const String keyRememberedPassword = 'remembered_password';
 }
 
 

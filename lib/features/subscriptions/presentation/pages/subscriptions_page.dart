@@ -317,23 +317,17 @@ class _SubscriptionsPageContentState extends State<_SubscriptionsPageContent> {
     
     final isAuthenticated = token != null && token.isNotEmpty;
     
-    print('Payment button pressed - isAuthenticated: $isAuthenticated, token: ${token != null ? "exists" : "null"}');
-    
     if (!isAuthenticated) {
-      print('User not authenticated - showing login dialog');
       // Show dialog and wait for user response
       final goToLogin = await _showLoginRequiredDialog(context);
-      print('Login dialog result: $goToLogin');
       
       // If user cancelled or dismissed dialog, return early
       if (goToLogin != true) {
-        print('User cancelled login - returning');
         return;
       }
 
       // User chose to login - navigate to login page
       if (!mounted) return;
-      print('Navigating to login page...');
       
       // Save selected plan index before redirecting to login
       final selectedIndex = state.selectedIndex;

@@ -45,6 +45,19 @@ class SecureStorageService {
   Future<void> delete(String key) async {
     await _storage.delete(key: key);
   }
+
+  // Remembered Password (secure)
+  Future<void> saveRememberedPassword(String password) async {
+    await _storage.write(key: AppConstants.keyRememberedPassword, value: password);
+  }
+
+  Future<String?> getRememberedPassword() async {
+    return await _storage.read(key: AppConstants.keyRememberedPassword);
+  }
+
+  Future<void> clearRememberedPassword() async {
+    await _storage.delete(key: AppConstants.keyRememberedPassword);
+  }
 }
 
 
