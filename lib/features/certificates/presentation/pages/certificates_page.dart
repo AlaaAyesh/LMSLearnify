@@ -12,6 +12,7 @@ import '../../domain/entities/certificate.dart';
 import '../bloc/certificate_bloc.dart';
 import '../bloc/certificate_event.dart';
 import '../bloc/certificate_state.dart';
+import '../../../../core/routing/app_router.dart';
 import 'widgets/certificate_plan_card.dart';
 
 class CertificatesPage extends StatefulWidget {
@@ -115,14 +116,19 @@ class _UnauthenticatedCertificatesPage extends StatelessWidget {
                   ),
                   child: ElevatedButton(
                     onPressed: () async {
-                      final result = await Navigator.pushNamed(
+                      // Go directly to login using the root navigator
+                      final result = await Navigator.of(
                         context,
-                        '/login',
-                        arguments: {'returnTo': 'profile'},
+                        rootNavigator: true,
+                      ).pushNamed(
+                        AppRouter.login,
+                        arguments: {'returnTo': 'certificates'},
                       );
+
                       if (result == true && context.mounted) {
-                        Navigator.of(context).pop();
-                        Navigator.of(context).pushNamed('/profile');
+                        // After successful login, reload the certificates page
+                        Navigator.of(context, rootNavigator: true)
+                            .pushReplacementNamed(AppRouter.certificates);
                       }
                     },
                     style: ElevatedButton.styleFrom(
@@ -163,14 +169,19 @@ class _UnauthenticatedCertificatesPage extends StatelessWidget {
                   ),
                   child: OutlinedButton(
                     onPressed: () async {
-                      final result = await Navigator.pushNamed(
+                      // Go directly to register using the root navigator
+                      final result = await Navigator.of(
                         context,
-                        '/register',
-                        arguments: {'returnTo': 'profile'},
+                        rootNavigator: true,
+                      ).pushNamed(
+                        AppRouter.register,
+                        arguments: {'returnTo': 'certificates'},
                       );
+
                       if (result == true && context.mounted) {
-                        Navigator.of(context).pop();
-                        Navigator.of(context).pushNamed('/profile');
+                        // After successful registration, reload the certificates page
+                        Navigator.of(context, rootNavigator: true)
+                            .pushReplacementNamed(AppRouter.certificates);
                       }
                     },
                     style: OutlinedButton.styleFrom(

@@ -19,28 +19,28 @@ class PriceSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isNarrow = Responsive.screenWidth(context) < 340;
+
     return SizedBox(
-      height: Responsive.height(context, 55),
-      width: Responsive.width(context, 80),
-      child: Stack(
-        clipBehavior: Clip.none,
+      width: Responsive.width(context, isNarrow ? 70 : 90),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Positioned(
-            top: 0,
-            right: 0,
-            child: StrikethroughPrice(price: originalPrice),
-          ),
-          Positioned(
-            bottom: Responsive.height(context, 8),
-            left: -20,
-            child: Text(
-              discountedPrice,
-              style: TextStyle(
-                fontFamily: 'Cairo',
-                fontSize: Responsive.fontSize(context, 16),
-                fontWeight: FontWeight.bold,
-                color: Colors.black,
-              ),
+          // Original price with strikethrough
+          StrikethroughPrice(price: originalPrice),
+          SizedBox(height: Responsive.spacing(context, 4)),
+
+          // Discounted price
+          Text(
+            discountedPrice,
+            textAlign: TextAlign.right,
+            style: TextStyle(
+              fontFamily: 'Cairo',
+              fontSize: Responsive.fontSize(context, isNarrow ? 13 : 15),
+              fontWeight: FontWeight.bold,
+              color: Colors.black,
+              height: 1.1,
             ),
           ),
         ],

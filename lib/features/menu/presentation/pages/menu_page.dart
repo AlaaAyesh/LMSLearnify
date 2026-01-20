@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:learnify_lms/core/theme/app_text_styles.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:learnify_lms/features/menu/presentation/pages/widgets/menu_button.dart';
 import 'package:learnify_lms/features/menu/presentation/pages/widgets/menu_outline_button.dart';
 import '../../../../core/di/injection_container.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/utils/responsive.dart';
 import '../../../../core/widgets/support_section.dart';
 import '../../../about/presentation/pages/about_page.dart';
 import '../../../authentication/presentation/bloc/auth_bloc.dart';
@@ -53,23 +53,23 @@ class _MenuPageContent extends StatelessWidget {
       backgroundColor: Colors.white,
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
+          padding: Responsive.padding(context, horizontal: 24, vertical: 16),
           child: Column(
             children: [
               /// LOGO
               Image.asset(
                 'assets/images/app_logo.png',
-                height: 180,
+                height: Responsive.height(context, 160),
                 fit: BoxFit.contain,
                 errorBuilder: (context, error, stackTrace) {
                   return Container(
-                    height: 180,
+                    height: Responsive.height(context, 160),
                     alignment: Alignment.center,
                     child: const Text(
                       'Learnify',
                       style: TextStyle(
                         fontFamily: 'Cairo',
-                        fontSize: 40,
+                        fontSize: 32,
                         fontWeight: FontWeight.bold,
                         color: AppColors.primary,
                       ),
@@ -122,7 +122,7 @@ class _MenuPageContent extends StatelessWidget {
                 },
               ),
 
-              const SizedBox(height: 10),
+              SizedBox(height: Responsive.spacing(context, 10)),
 
               /// CREATE ACCOUNT / LOGOUT
               BlocBuilder<AuthBloc, AuthState>(
@@ -148,12 +148,12 @@ class _MenuPageContent extends StatelessWidget {
                 },
               ),
 
-              const SizedBox(height: 24),
+              SizedBox(height: Responsive.spacing(context, 24)),
 
               /// SUPPORT
               const SupportSection(),
 
-              const SizedBox(height: 24),
+              SizedBox(height: Responsive.spacing(context, 24)),
             ],
           ),
         ),
