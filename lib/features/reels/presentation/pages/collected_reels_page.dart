@@ -4,9 +4,8 @@ import '../../../../core/di/injection_container.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/custom_app_bar.dart';
-import '../../../home/presentation/pages/main_navigation_page.dart';
-import '../../../shorts/presentation/pages/shorts_page.dart';
 import '../../../shorts/presentation/widgets/reels_grid.dart';
+import '../../domain/entities/reel.dart';
 import '../bloc/reels_bloc.dart';
 import '../bloc/reels_event.dart';
 import '../bloc/reels_state.dart';
@@ -211,7 +210,11 @@ class _CollectedReelsPageContentState extends State<_CollectedReelsPageContent>
     if (state is ReelsLoaded) {
       return ReelsGrid(
         reels: state.reels,
-        onReelTap: (reel, index) => _onReelTap(context, state, index),
+        onReelTap: (reel, index) => _openReelsViewer(
+          context,
+          reels: state.reels,
+          initialIndex: index,
+        ),
         onLoadMore: state.hasMore && !state.isLoadingMore
             ? () => context.read<ReelsBloc>().add(const LoadMoreReelsEvent())
             : null,
@@ -259,9 +262,11 @@ class _CollectedReelsPageContentState extends State<_CollectedReelsPageContent>
       return ReelsGrid(
         reels: likedReels,
         onReelTap: (reel, index) {
-          // Find the actual index in the full list
-          final actualIndex = state.reels.indexOf(reel);
-          _onReelTap(context, state, actualIndex >= 0 ? actualIndex : index);
+          _openReelsViewer(
+            context,
+            reels: likedReels,
+            initialIndex: index,
+          );
         },
         likedReels: state.likedReels,
         viewCounts: state.viewCounts,
@@ -368,36 +373,28 @@ class _CollectedReelsPageContentState extends State<_CollectedReelsPageContent>
     );
   }
 
-  void _onReelTap(BuildContext context, ReelsLoaded state, int index) {
-    // Set the initial index for ShortsPage
-    ShortsPage.setInitialIndex(index);
-    
-    // Try to get main navigation before popping
-    final mainNav = context.mainNavigation;
-    
-    // Pop back to the main navigation (root)
-    Navigator.of(context, rootNavigator: true).popUntil((route) {
-      // Keep popping until we reach the main navigation
-      return route.isFirst;
-    });
-    
-    // Switch to Shorts tab after navigation completes
-    if (mainNav != null) {
-      // Use post-frame callback to ensure navigation is complete
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) {
-          mainNav.switchToTab(1);
-          // Also update tab notifier if we can access it
-          try {
-            final tabNotifier = TabIndexProvider.of(context);
-            if (tabNotifier != null) {
-              tabNotifier.value = 1;
-            }
-          } catch (e) {
-            // Context might not be available, but mainNav.switchToTab should still work
-          }
-        }
-      });
-    }
+  void _openReelsViewer(
+    BuildContext context, {
+    required List<Reel> reels,
+    required int initialIndex,
+  }) {
+    final safeInitialIndex =
+        initialIndex.clamp(0, (reels.isEmpty ? 0 : reels.length - 1));
+
+    // Open viewer seeded with the chosen list, without category filters
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => BlocProvider(
+          create: (_) => sl<ReelsBloc>()..add(SeedReelsListEvent(reels: reels)),
+          child: ReelsFeedPage(
+            initialIndex: safeInitialIndex,
+            showBackButton: true,
+            freeReelsLimit: 0, // don't show paywall when opening from profile lists
+            isTabActive: true, // allow playback outside the Shorts tab
+            hideCategoryFilters: true,
+          ),
+        ),
+      ),
+    );
   }
 }

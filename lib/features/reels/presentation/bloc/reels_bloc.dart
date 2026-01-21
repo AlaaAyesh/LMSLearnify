@@ -25,10 +25,71 @@ class ReelsBloc extends Bloc<ReelsEvent, ReelsState> {
   }) : super(const ReelsInitial()) {
     on<LoadReelsFeedEvent>(_onLoadReelsFeed);
     on<LoadMoreReelsEvent>(_onLoadMoreReels);
+    on<LoadNextCategoryReelsEvent>(_onLoadNextCategoryReels);
     on<RefreshReelsFeedEvent>(_onRefreshReelsFeed);
     on<ToggleReelLikeEvent>(_onToggleReelLike);
     on<MarkReelViewedEvent>(_onMarkReelViewed);
     on<LoadReelCategoriesEvent>(_onLoadReelCategories);
+    on<SeedSingleReelEvent>(_onSeedSingleReel);
+    on<SeedReelsListEvent>(_onSeedReelsList);
+  }
+
+  void _onSeedReelsList(
+    SeedReelsListEvent event,
+    Emitter<ReelsState> emit,
+  ) {
+    _currentCategoryId = null; // clear category filter in seeded-list mode
+
+    final reels = event.reels;
+    if (reels.isEmpty) {
+      emit(const ReelsEmpty());
+      return;
+    }
+
+    final likedReels = <int, bool>{};
+    for (final reel in reels) {
+      likedReels[reel.id] = reel.liked;
+      if (reel.viewed) {
+        _viewedReelIds.add(reel.id);
+      }
+    }
+
+    emit(ReelsLoaded(
+      reels: reels,
+      nextCursor: null,
+      nextPageUrl: null,
+      hasMore: false,
+      isLoadingMore: false,
+      likedReels: likedReels,
+    ));
+  }
+
+  void _onSeedSingleReel(
+    SeedSingleReelEvent event,
+    Emitter<ReelsState> emit,
+  ) {
+    _currentCategoryId = null; // clear category filter in single-reel mode
+
+    final reel = event.reel;
+
+    final likedReels = <int, bool>{reel.id: reel.liked};
+    final viewCounts = <int, int>{};
+    final likeCounts = <int, int>{};
+
+    if (reel.viewed) {
+      _viewedReelIds.add(reel.id);
+    }
+
+    emit(ReelsLoaded(
+      reels: [reel],
+      nextCursor: null,
+      nextPageUrl: null,
+      hasMore: false,
+      isLoadingMore: false,
+      likedReels: likedReels,
+      viewCounts: viewCounts,
+      likeCounts: likeCounts,
+    ));
   }
 
   Future<void> _onLoadReelsFeed(
@@ -68,6 +129,55 @@ class ReelsBloc extends Bloc<ReelsEvent, ReelsState> {
             likedReels: likedReels,
           ));
         }
+      },
+    );
+  }
+
+  Future<void> _onLoadNextCategoryReels(
+    LoadNextCategoryReelsEvent event,
+    Emitter<ReelsState> emit,
+  ) async {
+    final currentState = state;
+    if (currentState is! ReelsLoaded) return;
+
+    emit(currentState.copyWith(isLoadingMore: true));
+
+    _currentCategoryId = event.categoryId;
+
+    final result = await getReelsFeedUseCase(
+      perPage: _perPage,
+      categoryId: _currentCategoryId,
+    );
+
+    result.fold(
+      (failure) => emit(currentState.copyWith(isLoadingMore: false)),
+      (response) {
+        if (response.reels.isEmpty) {
+          emit(currentState.copyWith(
+            hasMore: false,
+            isLoadingMore: false,
+            nextCursor: null,
+            nextPageUrl: null,
+          ));
+          return;
+        }
+
+        final newLikedReels = Map<int, bool>.from(currentState.likedReels);
+        for (final reel in response.reels) {
+          newLikedReels[reel.id] = reel.liked;
+          if (reel.viewed) {
+            _viewedReelIds.add(reel.id);
+          }
+        }
+
+        emit(currentState.copyWith(
+          reels: [...currentState.reels, ...response.reels],
+          nextCursor: response.meta.nextCursor,
+          nextPageUrl: response.meta.nextPageUrl,
+          hasMore: response.meta.hasMore,
+          isLoadingMore: false,
+          likedReels: newLikedReels,
+        ));
       },
     );
   }

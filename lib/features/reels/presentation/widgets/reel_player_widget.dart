@@ -397,7 +397,7 @@ class _ReelPlayerWidgetState extends State<ReelPlayerWidget> with WidgetsBinding
 
     return GestureDetector(
       onTap: _handleTap,
-      behavior: HitTestBehavior.opaque,
+      behavior: HitTestBehavior.deferToChild,
       child: Stack(
         fit: StackFit.expand,
         children: [

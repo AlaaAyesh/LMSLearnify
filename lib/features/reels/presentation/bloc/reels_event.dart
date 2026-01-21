@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import '../../domain/entities/reel.dart';
 
 abstract class ReelsEvent extends Equatable {
   const ReelsEvent();
@@ -51,6 +52,36 @@ class MarkReelViewedEvent extends ReelsEvent {
 /// Load reel categories
 class LoadReelCategoriesEvent extends ReelsEvent {
   const LoadReelCategoriesEvent();
+}
+
+/// Seed bloc with a single reel (used when opening one reel from grid/profile)
+class SeedSingleReelEvent extends ReelsEvent {
+  final Reel reel;
+
+  const SeedSingleReelEvent({required this.reel});
+
+  @override
+  List<Object?> get props => [reel];
+}
+
+/// Seed bloc with a list of reels (used when opening a list from grid/profile)
+class SeedReelsListEvent extends ReelsEvent {
+  final List<Reel> reels;
+
+  const SeedReelsListEvent({required this.reels});
+
+  @override
+  List<Object?> get props => [reels];
+}
+
+/// Load reels for the next category and append to current feed
+class LoadNextCategoryReelsEvent extends ReelsEvent {
+  final int categoryId;
+
+  const LoadNextCategoryReelsEvent({required this.categoryId});
+
+  @override
+  List<Object?> get props => [categoryId];
 }
 
 
