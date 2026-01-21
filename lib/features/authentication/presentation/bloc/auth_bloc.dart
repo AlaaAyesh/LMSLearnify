@@ -346,21 +346,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
       result.fold(
         (failure) => emit(AuthError(failure.message)),
-        (user) {
-          // Check if user profile is complete
-          if (user.isProfileComplete) {
-            // Existing user with complete profile - go to home
-            emit(AuthAuthenticated(user));
-          } else {
-            // New user or incomplete profile - show complete profile page
-            emit(SocialLoginNeedsCompletion(
-              email: account.email,
-              name: account.displayName,
-              providerId: 'google',
-              accessToken: tokenToSend,
-            ));
-          }
-        },
+        // Backend already returns the user and access token. Skip forcing
+        // a separate registration/complete-profile step for Google sign-in.
+        (user) => emit(AuthAuthenticated(user)),
       );
     } catch (e) {
       // Handle specific Google Sign-In errors

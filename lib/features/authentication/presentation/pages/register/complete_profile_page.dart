@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:learnify_lms/core/theme/app_text_styles.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:learnify_lms/features/authentication/presentation/pages/register/widgets/religion_field.dart';
 import '../../../../../core/utils/responsive.dart';
 
 import 'package:learnify_lms/features/authentication/presentation/pages/login/widgets/login_background.dart';
@@ -264,96 +265,7 @@ class _CompleteProfileViewState extends State<_CompleteProfileView> {
     );
   }
 
-  Widget _buildGenderSelector(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        border: Border.all(color: AppColors.inputBorder),
-        borderRadius: BorderRadius.circular(Responsive.radius(context, 12)),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: RadioListTile<String>(
-              title: Text('ذكر', style: TextStyle(fontSize: Responsive.fontSize(context, 14))),
-              value: 'male',
-              groupValue: selectedGender,
-              onChanged: (value) {
-                setState(() => selectedGender = value!);
-              },
-              activeColor: AppColors.primary,
-              contentPadding: EdgeInsets.zero,
-            ),
-          ),
-          Expanded(
-            child: RadioListTile<String>(
-              title: Text('أنثى', style: TextStyle(fontSize: Responsive.fontSize(context, 14))),
-              value: 'female',
-              groupValue: selectedGender,
-              onChanged: (value) {
-                setState(() => selectedGender = value!);
-              },
-              activeColor: AppColors.primary,
-              contentPadding: EdgeInsets.zero,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
-  Widget _buildReligionSelector(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        border: Border.all(color: AppColors.inputBorder),
-        borderRadius: BorderRadius.circular(Responsive.radius(context, 12)),
-      ),
-      padding: Responsive.padding(context, horizontal: 16),
-      child: DropdownButtonFormField<String>(
-        value: selectedReligion,
-        decoration: InputDecoration(
-          labelText: 'الدين',
-          labelStyle: TextStyle(
-            fontFamily: 'Cairo',
-            fontSize: Responsive.fontSize(context, 14),
-            color: AppColors.textSecondary,
-          ),
-          border: InputBorder.none,
-          contentPadding: EdgeInsets.zero,
-        ),
-        style: TextStyle(
-          fontFamily: 'Cairo',
-          fontSize: Responsive.fontSize(context, 16),
-          color: AppColors.textPrimary,
-        ),
-        hint: Text(
-          'اختر الدين',
-          style: TextStyle(
-            fontFamily: 'Cairo',
-            fontSize: Responsive.fontSize(context, 16),
-            color: AppColors.textHint,
-          ),
-        ),
-        items: [
-          DropdownMenuItem<String>(
-            value: 'muslim',
-            child: Text('مسلم', style: TextStyle(fontSize: Responsive.fontSize(context, 16))),
-          ),
-          DropdownMenuItem<String>(
-            value: 'christian',
-            child: Text('مسيحي', style: TextStyle(fontSize: Responsive.fontSize(context, 16))),
-          ),
-        ],
-        onChanged: (value) {
-          setState(() => selectedReligion = value);
-        },
-        icon: Icon(
-          Icons.arrow_drop_down,
-          color: AppColors.textSecondary,
-          size: Responsive.iconSize(context, 24),
-        ),
-      ),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -420,11 +332,34 @@ class _CompleteProfileViewState extends State<_CompleteProfileView> {
                         SizedBox(height: Responsive.spacing(context, 16)),
 
                         /// Gender
-                        _buildGenderSelector(context),
+                        GenderField(
+                          selectedValue: selectedGender,
+                          onChanged: (value) {
+                            setState(() => selectedGender = value!);
+                          },
+                          validator: (value) {
+                            if (value == null) {
+                              return 'يرجى اختيار النوع';
+                            }
+                            return null;
+                          },
+                        ),
                         SizedBox(height: Responsive.spacing(context, 16)),
 
                         /// Religion
-                        _buildReligionSelector(context),
+                        /// Religion
+                        ReligionField(
+                          selectedValue: selectedReligion,
+                          onChanged: (value) {
+                            setState(() => selectedReligion = value);
+                          },
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'من فضلك اختر الديانة';
+                            }
+                            return null;
+                          },
+                        ),
 
                         SizedBox(height: Responsive.spacing(context, 32)),
 
@@ -473,4 +408,125 @@ class _CompleteProfileViewState extends State<_CompleteProfileView> {
 }
 
 
+class GenderField extends StatelessWidget {
+  final String? selectedValue;
+  final ValueChanged<String?> onChanged;
+  final String? Function(String?)? validator;
+
+  const GenderField({
+    super.key,
+    required this.selectedValue,
+    required this.onChanged,
+    this.validator,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return FormField<String>(
+      initialValue: selectedValue,
+      validator: validator,
+      builder: (state) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SizedBox(
+              width: Responsive.width(context, 342),
+              height: Responsive.height(context, 52),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius:
+                  BorderRadius.circular(Responsive.radius(context, 24)),
+                  border: Border.all(
+                    color: state.hasError
+                        ? AppColors.error
+                        : const Color(0xFFDEE1E6),
+                    width: 1,
+                  ),
+                ),
+                padding: EdgeInsets.symmetric(
+                  horizontal: Responsive.spacing(context, 20),
+                ),
+                child: Row(
+                  children: [
+                    /// Icon
+                    Icon(
+                      Icons.person_outline,
+                      color: AppColors.primary,
+                      size: Responsive.iconSize(context, 24),
+                    ),
+                    SizedBox(width: Responsive.spacing(context, 20)),
+
+                    /// Male
+                    Expanded(
+                      child: RadioListTile<String>(
+                        value: 'male',
+                        groupValue: selectedValue,
+                        onChanged: (value) {
+                          state.didChange(value);
+                          onChanged(value);
+                        },
+                        title: Text(
+                          'ولد',
+                          style: TextStyle(
+                            fontFamily: 'Cairo',
+                            fontSize: Responsive.fontSize(context, 14),
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        activeColor: AppColors.primary,
+                        contentPadding: EdgeInsets.zero,
+                        dense: true,
+                      ),
+                    ),
+
+                    /// Female
+                    Expanded(
+                      child: RadioListTile<String>(
+                        value: 'female',
+                        groupValue: selectedValue,
+                        onChanged: (value) {
+                          state.didChange(value);
+                          onChanged(value);
+                        },
+                        title: Text(
+                          'بنت',
+                          style: TextStyle(
+                            fontFamily: 'Cairo',
+                            fontSize: Responsive.fontSize(context, 14),
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        activeColor: AppColors.primary,
+                        contentPadding: EdgeInsets.zero,
+                        dense: true,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            /// Error text
+            if (state.hasError)
+              Padding(
+                padding: EdgeInsets.only(
+                  left: Responsive.spacing(context, 20),
+                  top: Responsive.spacing(context, 4),
+                ),
+                child: Text(
+                  state.errorText ?? '',
+                  style: TextStyle(
+                    fontFamily: 'Cairo',
+                    fontSize: Responsive.fontSize(context, 12),
+                    color: AppColors.error,
+                  ),
+                ),
+              ),
+          ],
+        );
+      },
+    );
+  }
+}
 

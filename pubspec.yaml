@@ -36,7 +36,6 @@ dependencies:
   flutter_svg: ^2.0.9
   cached_network_image: ^3.3.1
   intl: ^0.19.0
-  google_fonts: ^6.1.0
 
   # Routing
   url_launcher: ^6.3.2
@@ -109,14 +108,3 @@ flutter:
           weight: 900
         - asset: assets/fonts/Cairo/Cairo-ExtraLight.ttf
           weight: 200
-
-# Cairo font is loaded via google_fonts package
-# To use local fonts, uncomment and add font files to assets/fonts/
-#  fonts:
-#    - family: Cairo
-#      fonts:
-#        - asset: assets/fonts/Cairo-Regular.ttf
-#        - asset: assets/fonts/Cairo-Bold.ttf
-#          weight: 700
-#        - asset: assets/fonts/Cairo-SemiBold.ttf
-#          weight: 600

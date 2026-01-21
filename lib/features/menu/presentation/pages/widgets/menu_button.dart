@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:learnify_lms/core/theme/app_text_styles.dart';
+import 'package:learnify_lms/core/utils/responsive.dart';
 
 import '../../../../../core/theme/app_colors.dart';
 
@@ -17,8 +17,12 @@ class MenuButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final buttonHeight = Responsive.height(context, 64).clamp(52.0, 78.0);
+    final fontSize = Responsive.fontSize(context, 19);
+    final badgeFontSize = Responsive.fontSize(context, 12);
+    final radius = Responsive.radius(context, 24);
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 12),
+      padding: EdgeInsets.symmetric(vertical: Responsive.spacing(context, 8)),
       child: Stack(
         clipBehavior: Clip.none,
         children: [
@@ -27,12 +31,12 @@ class MenuButton extends StatelessWidget {
               print('🟢 MenuButton tapped: $text');
               onTap();
             },
-            borderRadius: BorderRadius.circular(24),
+            borderRadius: BorderRadius.circular(radius),
             child: Ink(
-              height: 64,
+              height: buttonHeight,
               decoration: BoxDecoration(
                 color: AppColors.primary,
-                borderRadius: BorderRadius.circular(24),
+                borderRadius: BorderRadius.circular(radius),
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withOpacity(0.25),
@@ -46,7 +50,7 @@ class MenuButton extends StatelessWidget {
                   text,
                   style: TextStyle(
                     fontFamily: 'Cairo',
-                    fontSize: 20,
+                    fontSize: fontSize,
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
                   ),
@@ -61,13 +65,15 @@ class MenuButton extends StatelessWidget {
               right: -10,
               top: -8,
               child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 4,
+                padding: EdgeInsets.symmetric(
+                  horizontal: Responsive.width(context, 10),
+                  vertical: Responsive.spacing(context, 4),
                 ),
                 decoration: BoxDecoration(
                   color: const Color(0xFFA567E3),
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(
+                    Responsive.radius(context, 12),
+                  ),
                   boxShadow: [
                     BoxShadow(
                       color: Colors.black.withOpacity(0.15),
@@ -80,7 +86,7 @@ class MenuButton extends StatelessWidget {
                   badge!,
                   style: TextStyle(
                     color: Colors.white,
-                    fontSize: 12,
+                    fontSize: badgeFontSize,
                     fontFamily: 'Cairo',
                     fontWeight: FontWeight.bold,
                   ),

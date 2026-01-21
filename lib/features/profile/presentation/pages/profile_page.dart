@@ -16,6 +16,7 @@ import '../../../authentication/presentation/widgets/PasswordField.dart';
 import '../../../authentication/presentation/widgets/name_field.dart';
 import '../../../authentication/presentation/widgets/phone_field.dart';
 import '../../../authentication/presentation/widgets/primary_button.dart';
+import '../../../../core/routing/app_router.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -59,7 +60,17 @@ class _ProfilePageContentState extends State<_ProfilePageContent> {
   @override
   void initState() {
     super.initState();
-    _checkAuthentication();
+    // Try to use the in-memory auth state first to avoid showing the
+    // placeholder/loading every time the page is opened.
+    final authState = context.read<AuthBloc>().state;
+    if (authState is AuthAuthenticated) {
+      _isAuthenticated = true;
+      _isCheckingAuth = false;
+    } else {
+      // Fallback to checking the stored token when we don't have an
+      // authenticated state yet (e.g. first app open).
+      _checkAuthentication();
+    }
   }
 
   Future<void> _checkAuthentication() async {
@@ -151,16 +162,11 @@ class _UnauthenticatedProfilePage extends StatelessWidget {
                     ],
                   ),
                   child: ElevatedButton(
-                    onPressed: () async {
-                      final result = await Navigator.pushNamed(
-                        context,
-                        '/login',
+                    onPressed: () {
+                      Navigator.of(context, rootNavigator: true).pushNamed(
+                        AppRouter.login,
                         arguments: {'returnTo': 'profile'},
                       );
-                      if (result == true && context.mounted) {
-                        Navigator.of(context).pop();
-                        Navigator.of(context).pushNamed('/profile');
-                      }
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,
@@ -199,16 +205,11 @@ class _UnauthenticatedProfilePage extends StatelessWidget {
                     ],
                   ),
                   child: OutlinedButton(
-                    onPressed: () async {
-                      final result = await Navigator.pushNamed(
-                        context,
-                        '/register',
+                    onPressed: () {
+                      Navigator.of(context, rootNavigator: true).pushNamed(
+                        AppRouter.register,
                         arguments: {'returnTo': 'profile'},
                       );
-                      if (result == true && context.mounted) {
-                        Navigator.of(context).pop();
-                        Navigator.of(context).pushNamed('/profile');
-                      }
                     },
                     style: OutlinedButton.styleFrom(
                       padding: EdgeInsets.zero, // إزالة margin الداخلي

@@ -53,108 +53,115 @@ class _MenuPageContent extends StatelessWidget {
       backgroundColor: Colors.white,
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: Responsive.padding(context, horizontal: 24, vertical: 16),
-          child: Column(
-            children: [
-              /// LOGO
-              Image.asset(
-                'assets/images/app_logo.png',
-                height: Responsive.height(context, 160),
-                fit: BoxFit.contain,
-                errorBuilder: (context, error, stackTrace) {
-                  return Container(
-                    height: Responsive.height(context, 160),
-                    alignment: Alignment.center,
-                    child: const Text(
-                      'Learnify',
-                      style: TextStyle(
-                        fontFamily: 'Cairo',
-                        fontSize: 32,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.primary,
-                      ),
-                    ),
-                  );
-                },
-              ),
-
-              // const SizedBox(height: 20),
-
-              /// MENU BUTTONS
-              MenuButton(
-                text: 'عن التطبيق',
-                onTap: () {
-                  print('🔵 About button tapped');
-                  context.pushWithNav(const AboutPage());
-                },
-              ),
-
-              MenuButton(
-                text: 'الحساب',
-                onTap: () {
-                  print('🔵 Profile button tapped');
-                  context.pushWithNav(const ProfilePage());
-                },
-              ),
-
-              MenuButton(
-                text: 'اختر باقتك',
-                badge: 'عروض',
-                onTap: () {
-                  print('🔵 Subscriptions button tapped');
-                  context.pushWithNav(const SubscriptionsPage());
-                },
-              ),
-
-              MenuButton(
-                text: 'جميع الكورسات',
-                onTap: () {
-                  print('🔵 All courses button tapped');
-                  context.pushWithNav(const AllCoursesPage());
-                },
-              ),
-
-              MenuButton(
-                text: 'شهاداتي',
-                onTap: () {
-                  print('🔵 Certificates button tapped');
-                  context.pushWithNav(const CertificatesPage());
-                },
-              ),
-
-              SizedBox(height: Responsive.spacing(context, 10)),
-
-              /// CREATE ACCOUNT / LOGOUT
-              BlocBuilder<AuthBloc, AuthState>(
-                builder: (context, state) {
-                  if (state is AuthAuthenticated) {
-                    return MenuOutlineButton(
-                      text: 'تسجيل الخروج',
-                      onTap: () {
-                        print('🔵 Logout button tapped');
-                        _showLogoutDialog(context);
+          padding: Responsive.padding(context, horizontal: 24, vertical: 12),
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 540),
+              child: Column(
+                children: [
+                  /// LOGO
+                  Builder(builder: (context) {
+                    final logoHeight =
+                        Responsive.height(context, 160).clamp(120.0, 220.0);
+                    return Image.asset(
+                      'assets/images/app_logo.png',
+                      height: logoHeight,
+                      fit: BoxFit.contain,
+                      errorBuilder: (context, error, stackTrace) {
+                        return Container(
+                          height: logoHeight,
+                          alignment: Alignment.center,
+                          child: Text(
+                            'Learnify',
+                            style: TextStyle(
+                              fontFamily: 'Cairo',
+                              fontSize: Responsive.fontSize(context, 30),
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.primary,
+                            ),
+                          ),
+                        );
                       },
                     );
-                  } else {
-                    return MenuOutlineButton(
-                      text: 'إنشاء حساب جديد',
-                      onTap: () {
-                        print('🔵 Login button tapped');
-                        Navigator.of(context, rootNavigator: true)
-                            .pushNamed('/login');
-                      },
-                    );
-                  }
-                },
+                  }),
+
+                  /// MENU BUTTONS
+                  MenuButton(
+                    text: 'عن التطبيق',
+                    onTap: () {
+                      print('🔵 About button tapped');
+                      context.pushWithNav(const AboutPage());
+                    },
+                  ),
+
+                  MenuButton(
+                    text: 'الحساب',
+                    onTap: () {
+                      print('🔵 Profile button tapped');
+                      context.pushWithNav(const ProfilePage());
+                    },
+                  ),
+
+                  MenuButton(
+                    text: 'اختر باقتك',
+                    badge: 'عروض',
+                    onTap: () {
+                      print('🔵 Subscriptions button tapped');
+                      context.pushWithNav(const SubscriptionsPage());
+                    },
+                  ),
+
+                  MenuButton(
+                    text: 'جميع الكورسات',
+                    onTap: () {
+                      print('🔵 All courses button tapped');
+                      context.pushWithNav(const AllCoursesPage());
+                    },
+                  ),
+
+                  MenuButton(
+                    text: 'شهاداتي',
+                    onTap: () {
+                      print('🔵 Certificates button tapped');
+                      context.pushWithNav(const CertificatesPage());
+                    },
+                  ),
+
+                  SizedBox(height: Responsive.spacing(context, 10)),
+
+                  /// CREATE ACCOUNT / LOGOUT
+                  BlocBuilder<AuthBloc, AuthState>(
+                    builder: (context, state) {
+                      if (state is AuthAuthenticated) {
+                        return MenuOutlineButton(
+                          text: 'تسجيل الخروج',
+                          onTap: () {
+                            print('🔵 Logout button tapped');
+                            _showLogoutDialog(context);
+                          },
+                        );
+                      } else {
+                        return MenuOutlineButton(
+                          text: 'إنشاء حساب جديد',
+                          onTap: () {
+                            print('🔵 Login button tapped');
+                            Navigator.of(context, rootNavigator: true)
+                                .pushNamed('/login');
+                          },
+                        );
+                      }
+                    },
+                  ),
+
+                  SizedBox(height: Responsive.spacing(context, 24)),
+
+                  /// SUPPORT
+                  const SupportSection(),
+
+                  SizedBox(height: Responsive.spacing(context, 24)),
+                ],
               ),
-
-              SizedBox(height: Responsive.spacing(context, 24)),
-
-              /// SUPPORT
-              const SupportSection(),
-
-              SizedBox(height: Responsive.spacing(context, 24)),
-            ],
+            ),
           ),
         ),
       ),

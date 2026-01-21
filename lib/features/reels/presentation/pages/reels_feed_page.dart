@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -55,6 +56,13 @@ class _ReelsFeedPageState extends State<ReelsFeedPage>
       true; // Track if this page is visible (not covered by another page)
 
   List<ReelCategoryModel> _categories = []; // Categories loaded from API
+  bool _isFiltering = false; // Track if filtering is in progress
+  int? _lastFilteredCategoryId; // Track last filtered category ID for PageView key
+  int? _activeCategoryId; // Track currently selected category
+  int _pageViewResetToken = 0; // Force PageView rebuilds on category reloads
+  
+  // Debounce timer for category filtering
+  Timer? _filterDebounceTimer;
 
   @override
   void initState() {
@@ -111,6 +119,9 @@ class _ReelsFeedPageState extends State<ReelsFeedPage>
     }
   }
 
+  // Track if we need to reset page when reels reload
+  bool _shouldResetOnNextLoad = false;
+
   @override
   void didUpdateWidget(ReelsFeedPage oldWidget) {
     super.didUpdateWidget(oldWidget);
@@ -119,6 +130,96 @@ class _ReelsFeedPageState extends State<ReelsFeedPage>
     if (widget.isTabActive != oldWidget.isTabActive) {
       if (widget.isTabActive) {
         _setDarkStatusBar();
+        // When tab becomes active, reset to initial state like first time
+        if (widget.initialReel == null &&
+            !widget.hideCategoryFilters &&
+            mounted) {
+          // Mark that we should reset when new reels load
+          _shouldResetOnNextLoad = true;
+          
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (!mounted) return;
+            try {
+              final bloc = context.read<ReelsBloc>();
+              // Check if bloc already has categories in its state
+              final currentState = bloc.state;
+              if (currentState is ReelsWithCategories) {
+                // Restore categories and reset to default category
+                setState(() {
+                  _categories = currentState.categories
+                      .where((c) => c.isActive)
+                      .toList()
+                      .reversed
+                      .toList();
+                  
+                  // Reset to default category (General or first)
+                  if (_categories.isNotEmpty) {
+                    final generalCategory = _categories.firstWhere(
+                      (c) =>
+                          c.slug.toLowerCase() == 'general' ||
+                          c.name.contains('عام'),
+                      orElse: () => _categories[0],
+                    );
+                    _selectedCategoryIndex = _categories.indexOf(generalCategory);
+                    if (_selectedCategoryIndex == -1) {
+                      _selectedCategoryIndex = 0;
+                    }
+                    _activeCategoryId = generalCategory.id;
+                    _lastFilteredCategoryId = generalCategory.id;
+                    _pageViewResetToken++;
+                    
+                    // Reload reels for the default category with smaller page for faster first response
+                    bloc.add(
+                      LoadReelsFeedEvent(
+                        perPage: 5,
+                        categoryId: generalCategory.id,
+                      ),
+                    );
+                  }
+                });
+              } else if (currentState is ReelsLoaded && currentState.categories.isNotEmpty) {
+                // Restore categories from ReelsLoaded state and reset
+                setState(() {
+                  _categories = currentState.categories
+                      .where((c) => c.isActive)
+                      .toList()
+                      .reversed
+                      .toList();
+                  
+                  if (_categories.isNotEmpty) {
+                    final generalCategory = _categories.firstWhere(
+                      (c) =>
+                          c.slug.toLowerCase() == 'general' ||
+                          c.name.contains('عام'),
+                      orElse: () => _categories[0],
+                    );
+                    _selectedCategoryIndex = _categories.indexOf(generalCategory);
+                    if (_selectedCategoryIndex == -1) {
+                      _selectedCategoryIndex = 0;
+                    }
+                    _activeCategoryId = generalCategory.id;
+                    _lastFilteredCategoryId = generalCategory.id;
+                    _pageViewResetToken++;
+                    
+                    // Reload reels for the default category with smaller page for faster first response
+                    bloc.add(
+                      LoadReelsFeedEvent(
+                        perPage: 5,
+                        categoryId: generalCategory.id,
+                      ),
+                    );
+                  }
+                });
+              } else if (_categories.isEmpty) {
+                // No categories loaded, load them
+                bloc.add(const LoadReelCategoriesEvent());
+              }
+            } catch (e) {
+              // Bloc might be closed, ignore the error
+              debugPrint('ReelsFeedPage: Could not restore/load categories: $e');
+            }
+          });
+        }
       } else {
         _setLightStatusBar();
       }
@@ -237,6 +338,7 @@ class _ReelsFeedPageState extends State<ReelsFeedPage>
 
   @override
   void dispose() {
+    _filterDebounceTimer?.cancel();
     WidgetsBinding.instance.removeObserver(this);
     routeObserver.unsubscribe(this);
     _pageController.dispose();
@@ -260,6 +362,8 @@ class _ReelsFeedPageState extends State<ReelsFeedPage>
               if (widget.hideCategoryFilters || widget.initialReel != null) {
                 return; // Don't override feed when showing a single reel
               }
+              
+              // Handle ReelsWithCategories state - initial category load
               if (state is ReelsWithCategories) {
                 setState(() {
                   // Get active categories and reverse the order
@@ -285,6 +389,9 @@ class _ReelsFeedPageState extends State<ReelsFeedPage>
                     if (_selectedCategoryIndex == -1) {
                       _selectedCategoryIndex = 0; // Fallback to first category
                     }
+                    _activeCategoryId = generalCategory.id;
+                    _lastFilteredCategoryId = generalCategory.id;
+                    _pageViewResetToken++;
 
                     // Load reels for General category
                     context.read<ReelsBloc>().add(
@@ -296,9 +403,93 @@ class _ReelsFeedPageState extends State<ReelsFeedPage>
                   }
                 });
               }
+              
+              // Restore categories from ReelsLoaded state if they exist
+              if (state is ReelsLoaded && state.categories.isNotEmpty && _categories.isEmpty) {
+                setState(() {
+                  _categories = state.categories
+                      .where((c) => c.isActive)
+                      .toList()
+                      .reversed
+                      .toList();
+                  // Reset selected index if out of bounds
+                  if (_categories.isNotEmpty && _selectedCategoryIndex >= _categories.length) {
+                    _selectedCategoryIndex = 0;
+                  }
+                  if (_categories.isNotEmpty) {
+                    _activeCategoryId = _categories[_selectedCategoryIndex].id;
+                    _lastFilteredCategoryId ??= _activeCategoryId;
+                  }
+                });
+              }
+              
+              // Reset page controller when reels are loaded after tab reactivation
+              // Only reset on fresh loads (not pagination) and only if flag is set
+              if (state is ReelsLoaded && 
+                  _shouldResetOnNextLoad && 
+                  state.reels.isNotEmpty &&
+                  !state.isLoadingMore &&
+                  !_isFiltering) {
+                _shouldResetOnNextLoad = false;
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (mounted && _pageController.hasClients) {
+                    setState(() {
+                      _currentIndex = 0;
+                    });
+                    _pageController.jumpToPage(0);
+                  }
+                });
+              }
+              
+              // Reset filtering state and page controller when filtering completes
+              if (state is ReelsLoaded && _isFiltering && state.reels.isNotEmpty) {
+                final categoryId = _categories.isNotEmpty && _selectedCategoryIndex < _categories.length
+                    ? _categories[_selectedCategoryIndex].id
+                    : null;
+                
+                // Update last filtered category
+                if (categoryId != null && categoryId != _lastFilteredCategoryId) {
+                  _lastFilteredCategoryId = categoryId;
+                }
+                
+                _isFiltering = false;
+                _pageViewResetToken++;
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (mounted) {
+                    setState(() {
+                      // Ensure current index is valid
+                      if (_currentIndex >= state.reels.length) {
+                        _currentIndex = 0;
+                      }
+                    });
+                    // Reset to first video when filtering completes
+                    if (_pageController.hasClients) {
+                      if (_currentIndex != 0) {
+                        _pageController.jumpToPage(0);
+                      }
+                    }
+                  }
+                });
+              }
+
+              if (state is ReelsEmpty && _isFiltering) {
+                setState(() {
+                  _isFiltering = false;
+                  _pageViewResetToken++;
+                  _currentIndex = 0;
+                });
+              }
+
+              if (state is ReelsError && _isFiltering) {
+                setState(() {
+                  _isFiltering = false;
+                });
+              }
             },
             builder: (context, state) {
-              if (state is ReelsLoading) {
+              // Show loading only on initial load (no categories yet)
+              // The bloc now handles keeping existing reels during filtering
+              if (state is ReelsLoading && _categories.isEmpty) {
                 return Center(
                   child: CircularProgressIndicator(
                     color: AppColors.primary,
@@ -420,6 +611,38 @@ class _ReelsFeedPageState extends State<ReelsFeedPage>
               }
 
               if (state is ReelsLoaded) {
+                // Restore categories from state if available
+                if (state.categories.isNotEmpty && _categories.isEmpty) {
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    if (mounted) {
+                      setState(() {
+                        _categories = state.categories
+                            .where((c) => c.isActive)
+                            .toList()
+                            .reversed
+                            .toList();
+                        if (_categories.isNotEmpty && _selectedCategoryIndex >= _categories.length) {
+                          _selectedCategoryIndex = 0;
+                        }
+                      });
+                    }
+                  });
+                }
+                // If categories are still empty and we're not in single-reel mode, reload them
+                else if (_categories.isEmpty &&
+                    widget.initialReel == null &&
+                    !widget.hideCategoryFilters &&
+                    widget.isTabActive) {
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    if (mounted) {
+                      try {
+                        context.read<ReelsBloc>().add(const LoadReelCategoriesEvent());
+                      } catch (e) {
+                        debugPrint('ReelsFeedPage: Could not reload categories: $e');
+                      }
+                    }
+                  });
+                }
                 return _buildReelsFeed(context, state);
               }
 
@@ -488,14 +711,47 @@ class _ReelsFeedPageState extends State<ReelsFeedPage>
 
           return GestureDetector(
             onTap: () {
-              setState(() => _selectedCategoryIndex = index);
-              // Filter reels by category
-              context.read<ReelsBloc>().add(
+              if (!mounted) return;
+              
+              setState(() {
+                _selectedCategoryIndex = index;
+                _isFiltering = true;
+                _activeCategoryId = category.id;
+                _lastFilteredCategoryId = category.id;
+                _pageViewResetToken++;
+                // Clear reset flag when user manually filters
+                _shouldResetOnNextLoad = false;
+                // Reset to first video when filtering
+                _currentIndex = 0;
+              });
+              
+              // Reset page controller to first item when filtering
+              if (_pageController.hasClients) {
+                _pageController.jumpToPage(0);
+              }
+              
+              // Cancel previous debounce timer
+              _filterDebounceTimer?.cancel();
+              
+              // Debounce the filter request to prevent rapid API calls
+              _filterDebounceTimer = Timer(const Duration(milliseconds: 250), () {
+                if (!mounted) return;
+                
+                try {
+                  final bloc = context.read<ReelsBloc>();
+                  bloc.add(
                     LoadReelsFeedEvent(
                       perPage: 10,
                       categoryId: category.id,
                     ),
                   );
+                } catch (e) {
+                  debugPrint('ReelsFeedPage: Could not filter by category: $e');
+                  if (mounted) {
+                    setState(() => _isFiltering = false);
+                  }
+                }
+              });
             },
             child: Container(
               padding: Responsive.padding(context, horizontal: 18, vertical: 6),
@@ -507,13 +763,29 @@ class _ReelsFeedPageState extends State<ReelsFeedPage>
                     BorderRadius.circular(Responsive.radius(context, 18)),
               ),
               child: Center(
-                child: Text(
-                  category.name,
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: Responsive.fontSize(context, 13),
-                    fontWeight: FontWeight.w600,
-                  ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      category.name,
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: Responsive.fontSize(context, 13),
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    if (isSelected && _isFiltering) ...[
+                      SizedBox(width: Responsive.width(context, 8)),
+                      SizedBox(
+                        width: Responsive.width(context, 12),
+                        height: Responsive.height(context, 12),
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
               ),
             ),
@@ -535,7 +807,17 @@ class _ReelsFeedPageState extends State<ReelsFeedPage>
                 ? 1
                 : 0);
 
+    // Use category ID + reset token for key to force rebuilds on category reloads
+    final categoryKey = _activeCategoryId ??
+        (_categories.isNotEmpty && _selectedCategoryIndex < _categories.length
+            ? _categories[_selectedCategoryIndex].id
+            : null);
+    final pageViewKey = ValueKey(
+      'reels_feed_category_${categoryKey ?? "all"}_$_pageViewResetToken',
+    );
+    
     return PageView.builder(
+      key: pageViewKey,
       controller: _pageController,
       scrollDirection: Axis.vertical,
       allowImplicitScrolling: true,
@@ -556,7 +838,11 @@ class _ReelsFeedPageState extends State<ReelsFeedPage>
         if (isAtPaginationThreshold &&
             state.hasMore &&
             !state.isLoadingMore) {
-          context.read<ReelsBloc>().add(const LoadMoreReelsEvent());
+          try {
+            context.read<ReelsBloc>().add(const LoadMoreReelsEvent());
+          } catch (e) {
+            debugPrint('ReelsFeedPage: Could not load more reels: $e');
+          }
           return;
         }
 
@@ -602,22 +888,53 @@ class _ReelsFeedPageState extends State<ReelsFeedPage>
         final viewCount = state.getViewCount(reel);
         final likeCount = state.getLikeCount(reel);
 
+        // Determine if this reel belongs to the currently selected (visible) category.
+        // In single-reel mode or when filters are hidden we always allow playback.
+        bool isCategoryAllowed = true;
+        if (!widget.hideCategoryFilters &&
+            widget.initialReel == null &&
+            _categories.isNotEmpty &&
+            _selectedCategoryIndex < _categories.length) {
+          final selectedCategoryId = _categories[_selectedCategoryIndex].id;
+          // If reel has category data, require that it matches the selected category.
+          if (reel.categories.isNotEmpty) {
+            isCategoryAllowed =
+                reel.categories.any((c) => c.id == selectedCategoryId);
+          }
+        }
+
         return ReelPlayerWidget(
           key: ValueKey('reel_${reel.id}'),
           reel: reel,
           isLiked: isLiked,
           viewCount: viewCount,
           likeCount: likeCount,
-          // Video only plays when: current index + tab is active + page is visible (not covered)
-          isActive:
-              index == _currentIndex && widget.isTabActive && _isPageVisible,
+          // Video only plays when:
+          // - it's the current page
+          // - the Shorts/Reels tab is active
+          // - this page is visible (not covered by another route)
+          // - the reel belongs to the currently selected category (if filters are shown)
+          isActive: index == _currentIndex &&
+              widget.isTabActive &&
+              _isPageVisible &&
+              isCategoryAllowed,
           onLike: () {
-            context.read<ReelsBloc>().add(ToggleReelLikeEvent(reelId: reel.id));
+            if (!mounted) return;
+            try {
+              context.read<ReelsBloc>().add(ToggleReelLikeEvent(reelId: reel.id));
+            } catch (e) {
+              debugPrint('ReelsFeedPage: Could not toggle like: $e');
+            }
           },
           onShare: () => _shareReel(reel),
           onRedirect: () => _handleRedirect(reel),
           onViewed: () {
-            context.read<ReelsBloc>().add(MarkReelViewedEvent(reelId: reel.id));
+            if (!mounted) return;
+            try {
+              context.read<ReelsBloc>().add(MarkReelViewedEvent(reelId: reel.id));
+            } catch (e) {
+              debugPrint('ReelsFeedPage: Could not mark viewed: $e');
+            }
           },
           // In "opened from profile/list" mode we want the logo to behave like back
           // (not open another page).
@@ -652,13 +969,18 @@ class _ReelsFeedPageState extends State<ReelsFeedPage>
   }
 
   void _loadNextCategoryIfAvailable() {
+    if (!mounted) return;
     final nextCategoryIndex = _getNextCategoryIndex();
     if (nextCategoryIndex == null) return;
     final nextCategory = _categories[nextCategoryIndex];
     setState(() => _selectedCategoryIndex = nextCategoryIndex);
-    context
-        .read<ReelsBloc>()
-        .add(LoadNextCategoryReelsEvent(categoryId: nextCategory.id));
+    try {
+      context
+          .read<ReelsBloc>()
+          .add(LoadNextCategoryReelsEvent(categoryId: nextCategory.id));
+    } catch (e) {
+      debugPrint('ReelsFeedPage: Could not load next category: $e');
+    }
   }
 
   void _shareReel(Reel reel) {

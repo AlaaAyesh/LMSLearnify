@@ -29,6 +29,7 @@ class ReelsLoaded extends ReelsState {
   final Map<int, bool> likedReels;
   final Map<int, int> viewCounts;  // Track updated view counts
   final Map<int, int> likeCounts;  // Track updated like counts
+  final List<ReelCategoryModel> categories; // Categories for filtering
 
   const ReelsLoaded({
     required this.reels,
@@ -39,6 +40,7 @@ class ReelsLoaded extends ReelsState {
     this.likedReels = const {},
     this.viewCounts = const {},
     this.likeCounts = const {},
+    this.categories = const [],
   });
 
   /// Get view count for a reel (local update or original)
@@ -60,6 +62,7 @@ class ReelsLoaded extends ReelsState {
     Map<int, bool>? likedReels,
     Map<int, int>? viewCounts,
     Map<int, int>? likeCounts,
+    List<ReelCategoryModel>? categories,
   }) {
     return ReelsLoaded(
       reels: reels ?? this.reels,
@@ -70,11 +73,12 @@ class ReelsLoaded extends ReelsState {
       likedReels: likedReels ?? this.likedReels,
       viewCounts: viewCounts ?? this.viewCounts,
       likeCounts: likeCounts ?? this.likeCounts,
+      categories: categories ?? this.categories,
     );
   }
 
   @override
-  List<Object?> get props => [reels, nextCursor, nextPageUrl, hasMore, isLoadingMore, likedReels, viewCounts, likeCounts];
+  List<Object?> get props => [reels, nextCursor, nextPageUrl, hasMore, isLoadingMore, likedReels, viewCounts, likeCounts, categories];
 }
 
 /// No reels available

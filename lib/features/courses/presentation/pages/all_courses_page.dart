@@ -29,10 +29,8 @@ class AllCoursesPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (context) => sl<CoursesBloc>()
-        ..add(LoadCoursesEvent(
-          categoryId: categoryId,
-          specialtyId: specialtyId,
-        )),
+        // Load the authenticated user's courses directly
+        ..add(const LoadMyCoursesEvent()),
       child: _AllCoursesPageContent(title: title ?? 'جميع الكورسات'),
     );
   }
@@ -107,7 +105,8 @@ class _AllCoursesPageContent extends StatelessWidget {
       },
       child: RefreshIndicator(
         onRefresh: () async {
-          context.read<CoursesBloc>().add(const LoadCoursesEvent(refresh: true));
+          // Refresh "my courses" list
+          context.read<CoursesBloc>().add(const LoadMyCoursesEvent());
         },
         color: AppColors.primary,
         child: CustomScrollView(

@@ -487,7 +487,8 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> {
           crossAxisCount: 2,
           crossAxisSpacing: 12,
           mainAxisSpacing: 12,
-          childAspectRatio: 0.85,
+          // Slightly taller cards to prevent bottom overflow on small screens
+          childAspectRatio: 0.8,
         ),
         itemCount: allLessons.length,
         itemBuilder: (context, index) {

@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../data/models/reel_category_model.dart';
 import '../../domain/usecases/get_reels_feed_usecase.dart';
 import '../../domain/usecases/record_reel_view_usecase.dart';
 import '../../domain/usecases/toggle_reel_like_usecase.dart';
@@ -15,7 +16,9 @@ class ReelsBloc extends Bloc<ReelsEvent, ReelsState> {
 
   int _perPage = 10;
   int? _currentCategoryId; // Track current category filter
+  int _loadRequestId = 0; // Track latest load request to ignore stale responses
   final Set<int> _viewedReelIds = {}; // Track viewed reels to avoid duplicate API calls
+  List<ReelCategoryModel> _categories = []; // Store categories to persist across state changes
 
   ReelsBloc({
     required this.getReelsFeedUseCase,
@@ -61,6 +64,7 @@ class ReelsBloc extends Bloc<ReelsEvent, ReelsState> {
       hasMore: false,
       isLoadingMore: false,
       likedReels: likedReels,
+      categories: _categories,
     ));
   }
 
@@ -89,6 +93,7 @@ class ReelsBloc extends Bloc<ReelsEvent, ReelsState> {
       likedReels: likedReels,
       viewCounts: viewCounts,
       likeCounts: likeCounts,
+      categories: _categories,
     ));
   }
 
@@ -96,9 +101,27 @@ class ReelsBloc extends Bloc<ReelsEvent, ReelsState> {
     LoadReelsFeedEvent event,
     Emitter<ReelsState> emit,
   ) async {
-    emit(const ReelsLoading());
+    final requestedCategoryId = event.categoryId;
+    final currentState = state;
+
+    // Skip duplicate in-flight requests for the same category
+    if (currentState is ReelsLoading && _currentCategoryId == requestedCategoryId) {
+      return;
+    }
+
+    final requestId = ++_loadRequestId;
     _perPage = event.perPage;
-    _currentCategoryId = event.categoryId;
+    final previousCategoryId = _currentCategoryId;
+    _currentCategoryId = requestedCategoryId;
+
+    // Always show loading state when changing category or initial load
+    final isCategoryChange = previousCategoryId != event.categoryId;
+    final isInitialLoad = currentState is! ReelsLoaded || currentState.reels.isEmpty;
+    
+    // Show loading state for initial loads and category changes
+    if (isInitialLoad || isCategoryChange) {
+      emit(const ReelsLoading());
+    }
 
     final result = await getReelsFeedUseCase(
       perPage: _perPage,
@@ -106,8 +129,15 @@ class ReelsBloc extends Bloc<ReelsEvent, ReelsState> {
     );
 
     result.fold(
-      (failure) => emit(ReelsError(failure.message)),
+      (failure) {
+        emit(ReelsError(failure.message));
+      },
       (response) {
+        // Ignore stale responses if a newer request was issued
+        if (requestId != _loadRequestId || _currentCategoryId != requestedCategoryId) {
+          return;
+        }
+
         if (response.reels.isEmpty) {
           emit(const ReelsEmpty());
         } else {
@@ -127,6 +157,7 @@ class ReelsBloc extends Bloc<ReelsEvent, ReelsState> {
             nextPageUrl: response.meta.nextPageUrl,
             hasMore: response.meta.hasMore,
             likedReels: likedReels,
+            categories: _categories,
           ));
         }
       },
@@ -256,6 +287,7 @@ class ReelsBloc extends Bloc<ReelsEvent, ReelsState> {
             nextPageUrl: response.meta.nextPageUrl,
             hasMore: response.meta.hasMore,
             likedReels: likedReels,
+            categories: _categories,
           ));
         }
       },
@@ -397,6 +429,8 @@ class ReelsBloc extends Bloc<ReelsEvent, ReelsState> {
         debugPrint('ReelsBloc: Failed to load categories - ${failure.message}');
       },
       (categories) {
+        // Store categories for later use
+        _categories = categories;
         emit(ReelsWithCategories(categories: categories));
       },
     );

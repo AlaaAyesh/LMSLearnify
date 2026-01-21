@@ -133,7 +133,12 @@ class CoursesBloc extends Bloc<CoursesEvent, CoursesState> {
         if (courses.isEmpty) {
           emit(CoursesEmpty());
         } else {
-          emit(MyCoursesLoaded(courses: courses));
+          // Reuse the common loaded state; pagination is disabled for "my courses".
+          emit(const CoursesLoaded(
+            courses: [],
+            hasMorePages: false,
+            currentPage: 1,
+          ).copyWith(courses: courses));
         }
       },
     );

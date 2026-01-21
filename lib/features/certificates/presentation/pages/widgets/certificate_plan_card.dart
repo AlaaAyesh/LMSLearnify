@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:learnify_lms/core/utils/responsive.dart';
 
 class CertificatePlanCard extends StatelessWidget {
   final String courseName;
@@ -16,9 +17,14 @@ class CertificatePlanCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final titleSize = Responsive.fontSize(context, 22);
+    final descriptionSize = Responsive.fontSize(context, 16);
+    final actionHeight = Responsive.height(context, 44);
+    final horizontalPadding = Responsive.width(context, 16);
+
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(Responsive.width(context, 16)),
       decoration: BoxDecoration(
         color: Colors.transparent,
         borderRadius: BorderRadius.circular(22),
@@ -26,110 +32,135 @@ class CertificatePlanCard extends StatelessWidget {
           color: Colors.black,
           width: 1.5,
         ),
-
       ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              ' .$courseName ',
-              style: const TextStyle(
-                color: Colors.black,
-                fontWeight: FontWeight.bold,
-                fontSize: 24
-              )
-            ),
-
-            SizedBox(height: 4),
-            Text(
-              description,
-              style:  const TextStyle(
-                  color: Colors.black,
-                  fontSize: 18
-              )
-            ),
-
-            SizedBox(height: 16),
-
-      Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-        SizedBox(
-        height: 44,
-        child: ElevatedButton(
-          onPressed: onView,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFFE4E7EB),
-            foregroundColor: Colors.black,
-            elevation: 0,
-            padding: const EdgeInsets.symmetric(horizontal: 22),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
+          Text(
+            ' $courseName ',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: Colors.black,
+              fontWeight: FontWeight.bold,
+              fontSize: titleSize,
+              height: 1.25,
             ),
           ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                'مشاهدة',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              SizedBox(width: 8),
-              Icon(
-                Icons.visibility_outlined,
-                size: 20,
-              ),
-            ],
+          SizedBox(height: Responsive.spacing(context, 6)),
+          Text(
+            description,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: Colors.black,
+              fontSize: descriptionSize,
+              height: 1.4,
+            ),
           ),
-        ),
-      ),
+          SizedBox(height: Responsive.spacing(context, 14)),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final isCompact = constraints.maxWidth < 360;
+              final spacing = Responsive.width(context, 10);
 
-          SizedBox(
-            height: 44,
-            child: ElevatedButton(
-              onPressed: onDownload,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFFFC107),
-                foregroundColor: Colors.white,
-                elevation: 0,
-                padding: const EdgeInsets.symmetric(horizontal: 22),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
+              Widget buildButton({
+                required Color background,
+                required Color foreground,
+                required String label,
+                required IconData icon,
+                required VoidCallback onTap,
+                required FontWeight fontWeight,
+              }) {
+                return SizedBox(
+                  height: actionHeight,
+                  child: ElevatedButton(
+                    onPressed: onTap,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: background,
+                      foregroundColor: foreground,
+                      elevation: 0,
+                      padding: EdgeInsets.symmetric(
+                        horizontal: horizontalPadding,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          label,
+                          style: TextStyle(
+                            fontSize: Responsive.fontSize(context, 15),
+                            fontWeight: fontWeight,
+                          ),
+                        ),
+                        SizedBox(width: Responsive.width(context, 6)),
+                        Icon(
+                          icon,
+                          size: Responsive.iconSize(context, 20),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }
+
+              if (isCompact) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    buildButton(
+                      background: const Color(0xFFE4E7EB),
+                      foreground: Colors.black,
+                      label: 'مشاهدة',
+                      icon: Icons.visibility_outlined,
+                      onTap: onView,
+                      fontWeight: FontWeight.w500,
+                    ),
+                    SizedBox(height: Responsive.spacing(context, 10)),
+                    buildButton(
+                      background: const Color(0xFFFFC107),
+                      foreground: Colors.white,
+                      label: 'تحميل',
+                      icon: Icons.download_outlined,
+                      onTap: onDownload,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ],
+                );
+              }
+
+              return Row(
                 children: [
-                  Text(
-                    'تحميل',
-                    style: TextStyle(
-                      fontSize: 16,
+                  Expanded(
+                    child: buildButton(
+                      background: const Color(0xFFE4E7EB),
+                      foreground: Colors.black,
+                      label: 'مشاهدة',
+                      icon: Icons.visibility_outlined,
+                      onTap: onView,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  SizedBox(width: spacing),
+                  Expanded(
+                    child: buildButton(
+                      background: const Color(0xFFFFC107),
+                      foreground: Colors.white,
+                      label: 'تحميل',
+                      icon: Icons.download_outlined,
+                      onTap: onDownload,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
-                  SizedBox(width: 8),
-                  Icon(
-                    Icons.download_outlined,
-                    size: 20,
-                  ),
                 ],
-              ),
-            ),
+              );
+            },
           ),
-
-
         ],
       ),
-
-          ],
-        ),
     );
-
   }
 }
-
-

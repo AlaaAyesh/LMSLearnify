@@ -69,6 +69,16 @@ class _ShortsPageState extends State<ShortsPage> {
     if (_tabNotifier != null && mounted) {
       final newIsActive = _tabNotifier!.value == 1;
       if (_isActive != newIsActive) {
+        // If we are leaving the Shorts tab, reset state so next enter is fresh
+        if (_isActive && !newIsActive) {
+          // Close and clear existing bloc so everything rebuilds from scratch
+          _reelsBloc?.close();
+          _reelsBloc = null;
+          _hasLoadedOnce = false;
+          // Reset initial index so we start from the first reel again
+          _initialIndex = null;
+        }
+
         setState(() {
           _isActive = newIsActive;
         });
@@ -79,6 +89,8 @@ class _ShortsPageState extends State<ShortsPage> {
   @override
   void dispose() {
     _tabNotifier?.removeListener(_onTabChanged);
+    // Ensure bloc is properly closed when page is disposed
+    _reelsBloc?.close();
     super.dispose();
   }
 
@@ -122,7 +134,8 @@ class _ShortsPageState extends State<ShortsPage> {
     return BlocProvider(
       key: const ValueKey('shorts_reels_bloc_provider_new'),
       create: (_) {
-        _reelsBloc = sl<ReelsBloc>()..add(const LoadReelsFeedEvent(perPage: 10));
+      // Use smaller page size for faster initial response, then paginate
+      _reelsBloc = sl<ReelsBloc>()..add(const LoadReelsFeedEvent(perPage: 5));
         return _reelsBloc!;
       },
       child: ReelsFeedPage(

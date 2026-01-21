@@ -29,7 +29,8 @@ class ApiConstants {
   static const String courses = 'courses';
   static const String courseDetails = 'courses/';
   static const String enrollCourse = 'courses/{id}/enroll';
-  static const String myCourses = 'courses/my-courses';
+  // Backend endpoint for authenticated user's courses
+  static const String myCourses = 'myCourses';
 
   // Lessons Endpoints
   static const String lessons = 'lessons';
