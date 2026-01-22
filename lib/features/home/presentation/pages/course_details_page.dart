@@ -288,6 +288,16 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> {
   }
 
   Widget _buildCourseInfoCard() {
+    // Parse what_you_will_learn by splitting on "/"
+    List<String> learnItems = [];
+    if (course.whatYouWillLearn != null && course.whatYouWillLearn!.isNotEmpty) {
+      learnItems = course.whatYouWillLearn!
+          .split('/')
+          .map((item) => item.trim())
+          .where((item) => item.isNotEmpty)
+          .toList();
+    }
+
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
       padding: const EdgeInsets.all(20),
@@ -308,6 +318,13 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> {
             ),
             textAlign: TextAlign.center,
           ),
+          
+          // What You Will Learn Section
+          if (learnItems.isNotEmpty) ...[
+            const SizedBox(height: 20),
+            _buildWhatYouWillLearnList(learnItems),
+          ],
+          
           const SizedBox(height: 20),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -320,6 +337,62 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildWhatYouWillLearnList(List<String> items) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'ما سوف تتعلمه',
+          style: const TextStyle(
+            fontFamily: 'Cairo',
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: Colors.black,
+          ),
+        ),
+        const SizedBox(height: 12),
+        ...items.asMap().entries.map((entry) {
+          final index = entry.key;
+          final item = entry.value;
+          return Padding(
+            padding: EdgeInsets.only(
+              bottom: index < items.length - 1 ? 8 : 0,
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              textDirection: TextDirection.rtl,
+              children: [
+                // Bullet point
+                Container(
+                  margin: const EdgeInsets.only(left: 8, top: 6),
+                  width: 6,
+                  height: 6,
+                  decoration: const BoxDecoration(
+                    color: AppColors.primary,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+                // Text
+                Expanded(
+                  child: Text(
+                    item,
+                    style: const TextStyle(
+                      fontFamily: 'Cairo',
+                      fontSize: 14,
+                      color: Colors.black,
+                      height: 1.6,
+                    ),
+                    textAlign: TextAlign.right,
+                  ),
+                ),
+              ],
+            ),
+          );
+        }).toList(),
+      ],
     );
   }
 
