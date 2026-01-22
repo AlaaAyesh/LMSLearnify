@@ -7,6 +7,7 @@ import '../datasources/auth_local_datasource.dart';
 import '../datasources/auth_remote_datasource.dart';
 import '../models/login_request_model.dart';
 import '../models/register_request_model.dart';
+import '../models/user_model.dart';
 
 class AuthRepositoryImpl implements AuthRepository {
   final AuthRemoteDataSource remoteDataSource;
@@ -282,6 +283,46 @@ class AuthRepositoryImpl implements AuthRepository {
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
     } catch (e) {
+      return Left(ServerFailure('حدث خطأ غير متوقع: $e'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, User>> updateProfile({
+    String? name,
+    String? email,
+    String? phone,
+    String? gender,
+    String? religion,
+    String? about,
+    String? birthday,
+  }) async {
+    try {
+      final updatedUser = await remoteDataSource.updateProfile(
+        name: name,
+        email: email,
+        phone: phone,
+        gender: gender,
+        religion: religion,
+        about: about,
+        birthday: birthday,
+      );
+
+      // Cache updated user data
+      // updatedUser is actually a UserModel (since UserModel.fromJson returns UserModel)
+      // Convert to UserModel if needed
+      final userModel = updatedUser is UserModel 
+          ? updatedUser 
+          : UserModel.fromEntity(updatedUser);
+      await localDataSource.cacheUser(userModel);
+
+      return Right(updatedUser);
+    } on UnauthorizedException catch (e) {
+      return Left(AuthenticationFailure(e.message));
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    } catch (e) {
+      print('UpdateProfile Error: $e');
       return Left(ServerFailure('حدث خطأ غير متوقع: $e'));
     }
   }

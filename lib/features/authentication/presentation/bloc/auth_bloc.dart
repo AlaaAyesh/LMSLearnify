@@ -5,6 +5,7 @@ import 'package:crypto/crypto.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
+import '../../../../core/error/failures.dart';
 import '../../domain/repositories/auth_repository.dart';
 import '../../domain/usecases/login_usecase.dart';
 import '../../domain/usecases/register_usecase.dart';
@@ -41,6 +42,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<MobileOAuthLoginEvent>(_onMobileOAuthLogin);
     on<NativeGoogleSignInEvent>(_onNativeGoogleSignIn);
     on<NativeAppleSignInEvent>(_onNativeAppleSignIn);
+    on<UpdateProfileEvent>(_onUpdateProfile);
   }
 
   // Google Sign-In instance
@@ -489,6 +491,42 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       default:
         return 'خطأ غير معروف. يرجى المحاولة مرة أخرى.';
     }
+  }
+
+  Future<void> _onUpdateProfile(
+    UpdateProfileEvent event,
+    Emitter<AuthState> emit,
+  ) async {
+    emit(AuthLoading());
+
+    final result = await authRepository.updateProfile(
+      name: event.name,
+      email: event.email,
+      phone: event.phone,
+      gender: event.gender,
+      religion: event.religion,
+      about: event.about,
+      birthday: event.birthday,
+    );
+
+    result.fold(
+      (failure) {
+        // If 401 Unauthorized, automatically logout the user
+        if (failure is AuthenticationFailure) {
+          // Trigger logout by adding LogoutEvent
+          // This will be handled by the _onLogout handler
+          add(LogoutEvent());
+          emit(AuthError('انتهت صلاحية الجلسة. تم تسجيل الخروج تلقائياً'));
+        } else {
+          emit(AuthError(failure.message));
+        }
+      },
+      (user) {
+        // Emit both ProfileUpdated for UI feedback and AuthAuthenticated to update the state
+        emit(ProfileUpdated(user));
+        emit(AuthAuthenticated(user));
+      },
+    );
   }
 }
 

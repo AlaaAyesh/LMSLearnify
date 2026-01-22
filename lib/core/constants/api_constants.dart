@@ -23,7 +23,7 @@ class ApiConstants {
 
   // User Endpoints
   static const String profile = 'user/profile';
-  static const String updateProfile = 'user/profile/update';
+  static const String updateProfile = 'auth/update-profile';
 
   // Courses Endpoints
   static const String courses = 'courses';

@@ -177,4 +177,28 @@ class NativeGoogleSignInEvent extends AuthEvent {}
 // Native Apple Sign-In event
 class NativeAppleSignInEvent extends AuthEvent {}
 
+// Update profile event
+class UpdateProfileEvent extends AuthEvent {
+  final String? name;
+  final String? email;
+  final String? phone;
+  final String? gender;
+  final String? religion;
+  final String? about;
+  final String? birthday;
+
+  const UpdateProfileEvent({
+    this.name,
+    this.email,
+    this.phone,
+    this.gender,
+    this.religion,
+    this.about,
+    this.birthday,
+  });
+
+  @override
+  List<Object?> get props => [name, email, phone, gender, religion, about, birthday];
+}
+
 

@@ -308,11 +308,44 @@ class _AuthenticatedProfilePageState extends State<_AuthenticatedProfilePage> {
     };
   }
 
+  /// Normalize phone number to international format
+  /// Handles numbers with or without leading 0
+  /// Example: 01098018628 or 1098018628 -> +201098018628
+  String _normalizePhoneNumber(String localNumber, String countryCode) {
+    // Remove any whitespace
+    localNumber = localNumber.trim();
+    
+    // If number already has country code, return as is
+    if (localNumber.startsWith('+')) {
+      return localNumber;
+    }
+    
+    // Remove leading 0 if present (common in Egypt and other countries)
+    if (localNumber.startsWith('0')) {
+      localNumber = localNumber.substring(1);
+    }
+    
+    // Combine country code with local number
+    return '$countryCode$localNumber';
+  }
+
   void onSave() {
     if (formKey.currentState!.validate()) {
-      // TODO: Implement update profile API
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('تم حفظ التعديلات')),
+      // Normalize phone number
+      String? normalizedPhone;
+      if (phoneController.text.isNotEmpty) {
+        normalizedPhone = _normalizePhoneNumber(
+          phoneController.text,
+          countryCode ?? '+20',
+        );
+      }
+
+      // Dispatch update profile event
+      context.read<AuthBloc>().add(
+        UpdateProfileEvent(
+          name: nameController.text.isNotEmpty ? nameController.text : null,
+          phone: normalizedPhone,
+        ),
       );
     }
   }
@@ -337,6 +370,16 @@ class _AuthenticatedProfilePageState extends State<_AuthenticatedProfilePage> {
               SnackBar(
                 content: Text(state.message),
                 backgroundColor: AppColors.error,
+              ),
+            );
+          } else if (state is ProfileUpdated) {
+            // Update local user data
+            _populateUserData(state.user);
+            // Show success message
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('تم حفظ التعديلات بنجاح'),
+                backgroundColor: AppColors.success,
               ),
             );
           }

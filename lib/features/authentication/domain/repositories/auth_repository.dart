@@ -66,6 +66,17 @@ abstract class AuthRepository {
     String? religion,
     String? birthday,
   });
+  
+  /// Update user profile
+  Future<Either<Failure, User>> updateProfile({
+    String? name,
+    String? email,
+    String? phone,
+    String? gender,
+    String? religion,
+    String? about,
+    String? birthday,
+  });
 }
 
 

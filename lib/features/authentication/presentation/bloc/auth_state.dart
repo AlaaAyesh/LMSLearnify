@@ -89,4 +89,14 @@ class GoogleAuthUrlLoaded extends AuthState {
   List<Object?> get props => [url];
 }
 
+// Profile update states
+class ProfileUpdated extends AuthState {
+  final User user;
+
+  const ProfileUpdated(this.user);
+
+  @override
+  List<Object?> get props => [user];
+}
+
 

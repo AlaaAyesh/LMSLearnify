@@ -2,9 +2,11 @@ import 'package:dio/dio.dart';
 import '../../../../core/constants/api_constants.dart';
 import '../../../../core/error/exceptions.dart';
 import '../../../../core/network/dio_client.dart';
+import '../../domain/entities/user.dart';
 import '../models/login_request_model.dart';
 import '../models/login_response_model.dart';
 import '../models/register_request_model.dart';
+import '../models/user_model.dart';
 
 abstract class AuthRemoteDataSource {
   Future<LoginResponseModel> login(LoginRequestModel request);
@@ -44,6 +46,17 @@ abstract class AuthRemoteDataSource {
     int? specialtyId,
     String? gender,
     String? religion,
+    String? birthday,
+  });
+  
+  /// Update user profile
+  Future<User> updateProfile({
+    String? name,
+    String? email,
+    String? phone,
+    String? gender,
+    String? religion,
+    String? about,
     String? birthday,
   });
 }
@@ -411,6 +424,69 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       
       throw ServerException(
         message: errorMessage,
+        statusCode: e.response?.statusCode,
+      );
+    }
+  }
+
+  @override
+  Future<User> updateProfile({
+    String? name,
+    String? email,
+    String? phone,
+    String? gender,
+    String? religion,
+    String? about,
+    String? birthday,
+  }) async {
+    try {
+      // Build form data with _method override for PUT
+      final Map<String, dynamic> formFields = {
+        '_method': 'PUT',
+      };
+
+      // Add optional fields if provided
+      if (name != null && name.isNotEmpty) formFields['name'] = name;
+      if (email != null && email.isNotEmpty) formFields['email'] = email;
+      if (phone != null && phone.isNotEmpty) formFields['phone'] = phone;
+      if (gender != null && gender.isNotEmpty) formFields['gender'] = gender;
+      if (religion != null && religion.isNotEmpty) formFields['religion'] = religion;
+      if (about != null && about.isNotEmpty) formFields['about'] = about;
+      if (birthday != null && birthday.isNotEmpty) formFields['birthday'] = birthday;
+
+      final response = await dioClient.post(
+        ApiConstants.updateProfile,
+        data: FormData.fromMap(formFields),
+        options: Options(
+          contentType: 'multipart/form-data',
+        ),
+      );
+
+      if (response.statusCode == 200) {
+        // Response format: { "status": "success", "message": "...", "data": {...} }
+        final data = response.data['data'] as Map<String, dynamic>?;
+        if (data != null) {
+          return UserModel.fromJson(data);
+        }
+        throw ServerException(
+          message: 'فشل في تحديث الملف الشخصي',
+          statusCode: response.statusCode,
+        );
+      }
+
+      throw ServerException(
+        message: response.data['message'] ?? 'خطأ في تحديث الملف الشخصي',
+        statusCode: response.statusCode,
+      );
+    } on DioException catch (e) {
+      // Handle 401 Unauthorized - token expired or invalid
+      if (e.response?.statusCode == 401) {
+        throw UnauthorizedException(
+          message: e.response?.data['message'] ?? 'انتهت صلاحية الجلسة. يرجى تسجيل الدخول مرة أخرى',
+        );
+      }
+      throw ServerException(
+        message: e.response?.data['message'] ?? 'خطأ في الاتصال بالخادم',
         statusCode: e.response?.statusCode,
       );
     }
