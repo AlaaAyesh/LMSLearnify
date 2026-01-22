@@ -26,6 +26,13 @@ abstract class SubscriptionRepository {
   Future<Either<Failure, PaymentResponseModel>> processPayment({
     required ProcessPaymentRequest request,
   });
+
+  /// Validate a coupon code for a subscription
+  Future<Either<Failure, Map<String, dynamic>>> validateCoupon({
+    required String code,
+    required String type,
+    required int id,
+  });
 }
 
 

@@ -25,6 +25,14 @@ abstract class SubscriptionRemoteDataSource {
   /// Process a payment for a subscription or course
   /// Throws [ServerException] on failure
   Future<PaymentResponseModel> processPayment(ProcessPaymentRequest request);
+
+  /// Validate a coupon code for a subscription
+  /// Throws [ServerException] on failure
+  Future<Map<String, dynamic>> validateCoupon({
+    required String code,
+    required String type,
+    required int id,
+  });
 }
 
 class SubscriptionRemoteDataSourceImpl implements SubscriptionRemoteDataSource {
@@ -196,6 +204,63 @@ class SubscriptionRemoteDataSourceImpl implements SubscriptionRemoteDataSource {
       );
     } on DioException catch (e) {
       throw _handleDioError(e, 'فشل في معالجة الدفع');
+    }
+  }
+
+  @override
+  Future<Map<String, dynamic>> validateCoupon({
+    required String code,
+    required String type,
+    required int id,
+  }) async {
+    try {
+      final response = await dioClient.post(
+        ApiConstants.validateCoupon,
+        data: FormData.fromMap({
+          'code': code,
+          'type': type,
+          'id': id.toString(),
+        }),
+        options: Options(
+          contentType: 'multipart/form-data',
+        ),
+      );
+
+      if (response.statusCode == 200) {
+        // Return the response data which may contain discount info
+        return response.data is Map<String, dynamic>
+            ? response.data as Map<String, dynamic>
+            : {'valid': true};
+      }
+
+      throw ServerException(
+        message: response.data['message'] ?? 'فشل في التحقق من الكوبون',
+        statusCode: response.statusCode,
+      );
+    } on DioException catch (e) {
+      // Handle 422 validation errors specifically
+      if (e.response?.statusCode == 422) {
+        final errors = e.response?.data['errors'];
+        String errorMessage = 'الكوبون غير صالح';
+        
+        if (errors != null && errors is Map) {
+          final codeErrors = errors['code'];
+          if (codeErrors is List && codeErrors.isNotEmpty) {
+            errorMessage = codeErrors.first.toString();
+          } else if (e.response?.data['message'] != null) {
+            errorMessage = e.response!.data['message'];
+          }
+        } else if (e.response?.data['message'] != null) {
+          errorMessage = e.response!.data['message'];
+        }
+        
+        throw ServerException(
+          message: errorMessage,
+          statusCode: 422,
+        );
+      }
+      
+      throw _handleDioError(e, 'فشل في التحقق من الكوبون');
     }
   }
 

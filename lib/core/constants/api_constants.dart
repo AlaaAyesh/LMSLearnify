@@ -48,6 +48,9 @@ class ApiConstants {
   // Subscription Endpoints
   static const String subscriptions = 'subscriptions';
 
+  // Coupon Endpoints
+  static const String validateCoupon = 'coupons/validate';
+
   // Payment Endpoints
   static const String processPayment = 'payments/process';
 

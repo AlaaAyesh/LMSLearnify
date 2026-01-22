@@ -82,6 +82,26 @@ class SubscriptionRepositoryImpl implements SubscriptionRepository {
       return Left(ServerFailure('حدث خطأ غير متوقع: $e'));
     }
   }
+
+  @override
+  Future<Either<Failure, Map<String, dynamic>>> validateCoupon({
+    required String code,
+    required String type,
+    required int id,
+  }) async {
+    try {
+      final result = await remoteDataSource.validateCoupon(
+        code: code,
+        type: type,
+        id: id,
+      );
+      return Right(result);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    } catch (e) {
+      return Left(ServerFailure('حدث خطأ غير متوقع: $e'));
+    }
+  }
 }
 
 

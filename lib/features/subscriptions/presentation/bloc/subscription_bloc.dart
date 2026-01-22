@@ -94,15 +94,51 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
   ) async {
     final currentState = state;
     if (currentState is SubscriptionsLoaded) {
-      // TODO: Implement promo code validation via API
-      // For now, just store the promo code
-      if (event.promoCode.isNotEmpty) {
-        emit(currentState.copyWith(
-          appliedPromoCode: event.promoCode,
-          // Mock discount - replace with actual API call
-          discountAmount: 0.0,
-        ));
+      final selectedSubscription = currentState.selectedSubscription;
+      
+      if (selectedSubscription == null) {
+        emit(SubscriptionError('يرجى اختيار باقة أولاً'));
+        return;
       }
+
+      if (event.promoCode.isEmpty) {
+        emit(SubscriptionError('يرجى إدخال كود الخصم'));
+        return;
+      }
+
+      // Validate coupon via API
+      final result = await subscriptionRepository.validateCoupon(
+        code: event.promoCode,
+        type: 'subscription',
+        id: selectedSubscription.id,
+      );
+
+      result.fold(
+        (failure) {
+          emit(SubscriptionError(failure.message));
+          // Return to loaded state after error
+          if (state is SubscriptionError) {
+            emit(currentState);
+          }
+        },
+        (validationResult) {
+          // Coupon is valid - store it in state
+          // The discount amount will be calculated on the backend during payment
+          final updatedState = currentState.copyWith(
+            appliedPromoCode: event.promoCode,
+            discountAmount: 0.0, // Will be calculated by backend
+          );
+          emit(updatedState);
+          // Emit success state for UI feedback
+          emit(PromoCodeApplied(
+            promoCode: event.promoCode,
+            discountAmount: 0.0,
+            message: 'تم تطبيق كود الخصم بنجاح',
+          ));
+          // Return to loaded state after showing success message
+          emit(updatedState);
+        },
+      );
     }
   }
 
