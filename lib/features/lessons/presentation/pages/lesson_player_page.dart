@@ -129,35 +129,17 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
   void dispose() {
     _progressTimer?.cancel();
     
-    // Before disposing, check if lesson should be marked as viewed
-    if (widget.lessonId > 0 && _videoStartTime != null && _videoDurationSeconds != null && _videoDurationSeconds! > 0) {
-      final elapsed = DateTime.now().difference(_videoStartTime!).inSeconds;
-      final finalProgress = (elapsed / _videoDurationSeconds!).clamp(0.0, 1.0);
-      
-      print('LessonPlayerPage: Disposing - final progress: ${(finalProgress * 100).toStringAsFixed(1)}%');
-      
-      // If watched more than 90%, mark as viewed
-      if (finalProgress > 0.9 && !_hasMarkedAsViewed) {
-        print('LessonPlayerPage: Marking lesson ${widget.lessonId} as viewed on dispose (progress: ${(finalProgress * 100).toStringAsFixed(1)}%)');
-        if (mounted) {
-          context.read<LessonBloc>().add(MarkLessonViewedEvent(lessonId: widget.lessonId));
-        }
-        // Update parent callback
-        if (widget.onProgressUpdate != null) {
-          widget.onProgressUpdate!(finalProgress);
-        }
-      } else if (finalProgress > 0.9) {
-        // Already marked, but update parent callback
-        if (widget.onProgressUpdate != null) {
-          widget.onProgressUpdate!(finalProgress);
-        }
-      } else if (widget.onProgressUpdate != null && _currentProgress > 0) {
-        // Update with current progress even if not viewed
-        widget.onProgressUpdate!(_currentProgress);
+    // Lesson should already be marked as viewed when video loaded
+    // But as a fallback, mark it if it wasn't marked yet
+    if (widget.lessonId > 0 && !_hasMarkedAsViewed) {
+      print('LessonPlayerPage: Marking lesson ${widget.lessonId} as viewed on dispose (fallback)');
+      if (mounted) {
+        context.read<LessonBloc>().add(MarkLessonViewedEvent(lessonId: widget.lessonId));
       }
-    } else if (widget.onProgressUpdate != null && _currentProgress > 0) {
-      // Update with current progress if available
-      widget.onProgressUpdate!(_currentProgress);
+      // Update parent callback
+      if (widget.onProgressUpdate != null) {
+        widget.onProgressUpdate!(1.0); // Set to 100% to indicate viewed
+      }
     }
     
     // Restore portrait orientation when leaving
@@ -231,20 +213,6 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
           widget.onProgressUpdate!(newProgress);
           print('LessonPlayerPage: Progress update - lesson ${widget.lessonId}, progress: ${(newProgress * 100).toStringAsFixed(1)}%');
         }
-        
-        // Mark as viewed when >90% watched
-        if (newProgress > 0.9 && !_hasMarkedAsViewed && widget.lessonId > 0) {
-          _hasMarkedAsViewed = true;
-          print('LessonPlayerPage: Marking lesson ${widget.lessonId} as viewed (progress: ${(newProgress * 100).toStringAsFixed(1)}%)');
-          if (mounted) {
-            // Mark via API
-            context.read<LessonBloc>().add(MarkLessonViewedEvent(lessonId: widget.lessonId));
-            // Also update parent callback to ensure UI updates
-            if (widget.onProgressUpdate != null) {
-              widget.onProgressUpdate!(newProgress);
-            }
-          }
-        }
       } else {
         timer.cancel();
       }
@@ -252,8 +220,19 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
   }
 
   void _onVideoLoaded() {
-    // Don't mark as viewed immediately - wait for >90% progress
-    // Progress tracking will handle marking as viewed
+    // Mark as viewed immediately when video loads
+    if (widget.lessonId > 0 && !_hasMarkedAsViewed) {
+      _hasMarkedAsViewed = true;
+      print('LessonPlayerPage: Marking lesson ${widget.lessonId} as viewed (video loaded)');
+      if (mounted) {
+        // Mark via API
+        context.read<LessonBloc>().add(MarkLessonViewedEvent(lessonId: widget.lessonId));
+        // Also notify parent to update UI
+        if (widget.onProgressUpdate != null) {
+          widget.onProgressUpdate!(1.0); // Set progress to 100% to indicate viewed
+        }
+      }
+    }
   }
 
   WebViewController _getVideoController(String videoUrl) {
@@ -643,9 +622,10 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
                             
                             print('LessonPlayerPage: Back button pressed (landscape) - final progress: ${(finalProgress * 100).toStringAsFixed(1)}%');
                             
-                            // If watched more than 90%, mark as viewed
-                            if (finalProgress > 0.9 && !_hasMarkedAsViewed) {
-                              print('LessonPlayerPage: Marking lesson ${widget.lessonId} as viewed on back (landscape) (progress: ${(finalProgress * 100).toStringAsFixed(1)}%)');
+                            // Lesson should already be marked as viewed when video loaded
+                            // But as a fallback, mark it if it wasn't marked yet
+                            if (!_hasMarkedAsViewed) {
+                              print('LessonPlayerPage: Marking lesson ${widget.lessonId} as viewed on back (landscape) (fallback)');
                               _hasMarkedAsViewed = true;
                               context.read<LessonBloc>().add(MarkLessonViewedEvent(lessonId: widget.lessonId));
                             }
@@ -707,9 +687,10 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
                               
                               print('LessonPlayerPage: Back button pressed - final progress: ${(finalProgress * 100).toStringAsFixed(1)}%');
                               
-                              // If watched more than 90%, mark as viewed
-                              if (finalProgress > 0.9 && !_hasMarkedAsViewed) {
-                                print('LessonPlayerPage: Marking lesson ${widget.lessonId} as viewed on back (progress: ${(finalProgress * 100).toStringAsFixed(1)}%)');
+                              // Lesson should already be marked as viewed when video loaded
+                              // But as a fallback, mark it if it wasn't marked yet
+                              if (!_hasMarkedAsViewed) {
+                                print('LessonPlayerPage: Marking lesson ${widget.lessonId} as viewed on back (fallback)');
                                 _hasMarkedAsViewed = true;
                                 context.read<LessonBloc>().add(MarkLessonViewedEvent(lessonId: widget.lessonId));
                               }
