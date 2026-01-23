@@ -29,17 +29,31 @@ class AllCoursesPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (context) => sl<CoursesBloc>()
-        // Load the authenticated user's courses directly
-        ..add(const LoadMyCoursesEvent()),
-      child: _AllCoursesPageContent(title: title ?? 'جميع الكورسات'),
+        // Load all available courses
+        ..add(LoadCoursesEvent(
+          refresh: true,
+          categoryId: categoryId,
+          specialtyId: specialtyId,
+        )),
+      child: _AllCoursesPageContent(
+        title: title ?? 'جميع الكورسات',
+        categoryId: categoryId,
+        specialtyId: specialtyId,
+      ),
     );
   }
 }
 
 class _AllCoursesPageContent extends StatelessWidget {
   final String title;
+  final int? categoryId;
+  final int? specialtyId;
 
-  const _AllCoursesPageContent({required this.title});
+  const _AllCoursesPageContent({
+    required this.title,
+    this.categoryId,
+    this.specialtyId,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -105,8 +119,12 @@ class _AllCoursesPageContent extends StatelessWidget {
       },
       child: RefreshIndicator(
         onRefresh: () async {
-          // Refresh "my courses" list
-          context.read<CoursesBloc>().add(const LoadMyCoursesEvent());
+          // Refresh all courses list
+          context.read<CoursesBloc>().add(LoadCoursesEvent(
+            refresh: true,
+            categoryId: categoryId,
+            specialtyId: specialtyId,
+          ));
         },
         color: AppColors.primary,
         child: CustomScrollView(
@@ -181,7 +199,11 @@ class _AllCoursesPageContent extends StatelessWidget {
           SizedBox(height: Responsive.spacing(context, 24)),
           ElevatedButton.icon(
             onPressed: () {
-              context.read<CoursesBloc>().add(const LoadCoursesEvent(refresh: true));
+              context.read<CoursesBloc>().add(LoadCoursesEvent(
+                refresh: true,
+                categoryId: categoryId,
+                specialtyId: specialtyId,
+              ));
             },
             icon: Icon(Icons.refresh, size: Responsive.iconSize(context, 20)),
             label: const Text('تحديث'),
@@ -235,7 +257,11 @@ class _AllCoursesPageContent extends StatelessWidget {
           SizedBox(height: Responsive.spacing(context, 24)),
           ElevatedButton.icon(
             onPressed: () {
-              context.read<CoursesBloc>().add(const LoadCoursesEvent(refresh: true));
+              context.read<CoursesBloc>().add(LoadCoursesEvent(
+                refresh: true,
+                categoryId: categoryId,
+                specialtyId: specialtyId,
+              ));
             },
             icon: Icon(Icons.refresh, size: Responsive.iconSize(context, 20)),
             label: const Text('إعادة المحاولة'),
