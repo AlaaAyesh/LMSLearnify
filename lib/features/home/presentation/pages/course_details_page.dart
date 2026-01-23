@@ -466,22 +466,38 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> {
             ),
           ),
           const Spacer(),
-          // Free course banner (only show if free and user is not logged in)
-          if (_isFreeCourse && !_isAuthenticated)
+          // Free course banner (show if free and user doesn't have access)
+          if (_isFreeCourse && !course.hasAccess)
             GestureDetector(
-              onTap: () => Navigator.pushNamed(context, '/login'),
+              onTap: () {
+                if (!_isAuthenticated) {
+                  Navigator.pushNamed(context, '/login');
+                } else {
+                  Navigator.pushNamed(context, '/subscriptions');
+                }
+              },
               child: Container(
                 padding:
                 const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 decoration: BoxDecoration(
-                  color: AppColors.primary,
+                  color: const Color(0xFF9B59D0), // Light purple as in image
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     const Text(
-                      'الكورس مجاني سجل دخولك للمشاهدة',
+                      'الكورس مجاني سجل دخولك',
+                      style: TextStyle(
+                        fontFamily: 'Cairo',
+                        fontSize: 10,
+                        color: Colors.white,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    const Text(
+                      'للمشاهدة',
                       style: TextStyle(
                         fontFamily: 'Cairo',
                         fontSize: 10,
@@ -763,7 +779,7 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> {
     final isAuthenticated = token != null && token.isNotEmpty;
 
     if (_isFreeCourse) {
-      // Free course - only require login
+      // Free course - show subscription message
       if (!isAuthenticated) {
         // Not logged in - show message and redirect to login
         ScaffoldMessenger.of(context).showSnackBar(
@@ -793,19 +809,26 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> {
           ),
         );
       } else {
-        // Logged in but no access - this shouldn't happen for free courses
-        // Show a refresh message
+        // Logged in but not subscribed - show subscription message
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('يرجى تحديث الصفحة للوصول إلى الدروس'),
-            backgroundColor: AppColors.warning,
+          SnackBar(
+            content: const Text('الكورس مجاني! اشترك من هنا للمشاهدة'),
+            backgroundColor: AppColors.primary,
+            action: SnackBarAction(
+              label: 'الاشتراك',
+              textColor: Colors.white,
+              onPressed: () {
+                // Navigate to subscriptions page
+                Navigator.pushNamed(context, '/subscriptions');
+              },
+            ),
           ),
         );
       }
     } else {
-      // Paid course - redirect to payment
+      // Paid course - show subscription required message
       if (!isAuthenticated) {
-        // Not logged in - go to login first, then payment
+        // Not logged in - go to login first
         final result = await Navigator.pushNamed(
           context,
           '/login',
@@ -1063,6 +1086,8 @@ class _LessonCard extends StatelessWidget {
   Widget build(BuildContext context) {
     // If user has access (subscribed), all lessons are available
     final bool canAccess = hasAccess || isAvailable;
+    // Show lock if user doesn't have access (regardless of course being free or paid)
+    final bool shouldShowLock = !canAccess;
 
     return Padding(
       padding: const EdgeInsets.all(4),
@@ -1103,8 +1128,8 @@ class _LessonCard extends StatelessWidget {
                         child: _buildLessonThumbnail(),
                       ),
                     ),
-                    // Lock overlay for unavailable lessons (only for non-subscribers)
-                    if (!canAccess)
+                    // Lock overlay for unavailable lessons (when user doesn't have access)
+                    if (shouldShowLock)
                       Positioned.fill(
                         child: Container(
                           decoration: BoxDecoration(
