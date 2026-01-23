@@ -66,7 +66,10 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> {
   bool _isLessonViewed(int lessonId) {
     // Only consider viewed if progress > 90%
     final progress = _lessonProgress[lessonId] ?? 0.0;
-    return progress > 0.9 || _viewedLessonIds.contains(lessonId);
+    final isInViewedList = _viewedLessonIds.contains(lessonId);
+    final result = progress > 0.9 || isInViewedList;
+    print('CourseDetailsPage: _isLessonViewed - lessonId: $lessonId, progress: ${(progress * 100).toStringAsFixed(1)}%, inViewedList: $isInViewedList, result: $result');
+    return result;
   }
 
   void _markLessonAsViewed(int lessonId) {
@@ -79,16 +82,38 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> {
 
   void _updateLessonProgress(int lessonId, double progress) {
     if (lessonId > 0) {
+      final wasViewed = _viewedLessonIds.contains(lessonId);
+      final shouldBeViewed = progress > 0.9;
+      
+      print('CourseDetailsPage: _updateLessonProgress - lessonId: $lessonId, progress: ${(progress * 100).toStringAsFixed(1)}%, wasViewed: $wasViewed, shouldBeViewed: $shouldBeViewed');
+      
       setState(() {
         _lessonProgress[lessonId] = progress;
         // Mark as viewed if progress > 90%
-        if (progress > 0.9) {
-          _viewedLessonIds.add(lessonId);
+        if (shouldBeViewed) {
+          if (!_viewedLessonIds.contains(lessonId)) {
+            _viewedLessonIds.add(lessonId);
+            print('CourseDetailsPage: Added lesson $lessonId to viewed list');
+          }
         } else {
           // Remove from viewed if progress drops below 90%
-          _viewedLessonIds.remove(lessonId);
+          if (_viewedLessonIds.contains(lessonId)) {
+            _viewedLessonIds.remove(lessonId);
+            print('CourseDetailsPage: Removed lesson $lessonId from viewed list');
+          }
         }
       });
+      
+      // If lesson just became viewed, ensure UI updates
+      if (shouldBeViewed && !wasViewed) {
+        print('CourseDetailsPage: Lesson $lessonId marked as viewed (progress: ${(progress * 100).toStringAsFixed(1)}%)');
+        // Force a rebuild to update the badge
+        if (mounted) {
+          setState(() {
+            print('CourseDetailsPage: Forced setState after marking lesson $lessonId as viewed');
+          });
+        }
+      }
     }
   }
 
@@ -584,11 +609,13 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> {
           final item = allLessons[index];
           final isFirstLesson =
               index == 0; // First lesson always available for preview
+          final isViewed = _isLessonViewed(item.lesson.id);
           return _LessonCard(
+            key: ValueKey('lesson_${item.lesson.id}_viewed_$isViewed'), // Force rebuild when viewed status changes
             lesson: item.lesson,
             isAvailable: isFirstLesson,
             hasAccess: course.hasAccess,
-            isViewed: _isLessonViewed(item.lesson.id),
+            isViewed: isViewed,
             onTap: () => _onLessonTap(context, item.lesson, item.chapter),
           );
         },
@@ -733,13 +760,27 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> {
             lesson: lesson,
             course: course,
             chapter: chapter,
-            onProgressUpdate: (progress) => _updateLessonProgress(lesson.id, progress),
+            onProgressUpdate: (progress) {
+              // Update progress in real-time
+              _updateLessonProgress(lesson.id, progress);
+            },
           ),
         ),
       );
-      // Update progress from result if available
+      
+      // Update progress from result if available (final progress when leaving)
       if (result != null && result is double) {
         _updateLessonProgress(lesson.id, result);
+      }
+      
+      // Check if lesson should be marked as viewed
+      if (mounted) {
+        final finalProgress = _lessonProgress[lesson.id] ?? (result as double? ?? 0.0);
+        if (finalProgress > 0.9) {
+          _markLessonAsViewed(lesson.id);
+        }
+        // Force UI update to refresh badges
+        setState(() {});
       }
       return;
     }
@@ -762,13 +803,27 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> {
           lesson: lesson,
           course: course,
           chapter: chapter,
-          onProgressUpdate: (progress) => _updateLessonProgress(lesson.id, progress),
+          onProgressUpdate: (progress) {
+            // Update progress in real-time
+            _updateLessonProgress(lesson.id, progress);
+          },
         ),
       ),
     );
-    // Update progress from result if available
+    
+    // Update progress from result if available (final progress when leaving)
     if (result != null && result is double) {
       _updateLessonProgress(lesson.id, result);
+    }
+    
+    // Check if lesson should be marked as viewed
+    if (mounted) {
+      final finalProgress = _lessonProgress[lesson.id] ?? (result as double? ?? 0.0);
+      if (finalProgress > 0.9) {
+        _markLessonAsViewed(lesson.id);
+      }
+      // Force UI update to refresh badges
+      setState(() {});
     }
   }
 
@@ -1075,6 +1130,7 @@ class _LessonCard extends StatelessWidget {
   final VoidCallback onTap;
 
   const _LessonCard({
+    super.key,
     required this.lesson,
     required this.isAvailable,
     required this.hasAccess,

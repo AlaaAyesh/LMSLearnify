@@ -52,9 +52,13 @@ class LessonRemoteDataSourceImpl implements LessonRemoteDataSource {
   @override
   Future<void> markLessonAsViewed(int id) async {
     try {
+      print('LessonRemoteDataSource: Marking lesson $id as viewed');
       final response = await dioClient.post(
         '${ApiConstants.lessons}/$id/view',
       );
+
+      print('LessonRemoteDataSource: Response status: ${response.statusCode}');
+      print('LessonRemoteDataSource: Response data: ${response.data}');
 
       if (response.statusCode != 200 && response.statusCode != 201) {
         throw ServerException(
@@ -62,8 +66,14 @@ class LessonRemoteDataSourceImpl implements LessonRemoteDataSource {
           statusCode: response.statusCode,
         );
       }
+      print('LessonRemoteDataSource: Successfully marked lesson $id as viewed');
     } on DioException catch (e) {
+      print('LessonRemoteDataSource: Error marking lesson $id as viewed: ${e.message}');
+      print('LessonRemoteDataSource: Error response: ${e.response?.data}');
       throw _handleDioError(e, 'فشل في تحديث حالة المشاهدة');
+    } catch (e) {
+      print('LessonRemoteDataSource: Unexpected error: $e');
+      rethrow;
     }
   }
 
