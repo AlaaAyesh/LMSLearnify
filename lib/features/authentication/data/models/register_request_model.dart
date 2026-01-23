@@ -38,9 +38,11 @@ class RegisterRequestModel {
       'gender': gender,
     };
 
-    // Religion is required by the API, always include it if provided
+    // Religion is required by the API, default to 'muslim' if not provided
     if (religion != null && religion!.isNotEmpty) {
       map['religion'] = religion;
+    } else {
+      map['religion'] = 'muslim'; // Default to Muslim
     }
 
     if (birthday != null && birthday!.isNotEmpty) {

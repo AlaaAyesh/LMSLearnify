@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:learnify_lms/core/theme/app_text_styles.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:learnify_lms/features/authentication/presentation/pages/register/widgets/religion_field.dart';
 import '../../../../../core/utils/responsive.dart';
 
 import 'package:learnify_lms/features/authentication/presentation/pages/login/widgets/login_background.dart';
@@ -77,7 +76,7 @@ class _CompleteProfileViewState extends State<_CompleteProfileView> {
   String? countryCode = '+20'; // Default to Egypt
   String selectedRole = 'student';
   String selectedGender = 'male';
-  String? selectedReligion;
+  String selectedReligion = 'muslim'; // Default to Muslim, hidden from user
 
   // Calculated from birthday
   int? calculatedAge;
@@ -344,23 +343,6 @@ class _CompleteProfileViewState extends State<_CompleteProfileView> {
                             return null;
                           },
                         ),
-                        SizedBox(height: Responsive.spacing(context, 16)),
-
-                        /// Religion
-                        /// Religion
-                        ReligionField(
-                          selectedValue: selectedReligion,
-                          onChanged: (value) {
-                            setState(() => selectedReligion = value);
-                          },
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'من فضلك اختر الديانة';
-                            }
-                            return null;
-                          },
-                        ),
-
                         SizedBox(height: Responsive.spacing(context, 32)),
 
                         /// Button (same register button)

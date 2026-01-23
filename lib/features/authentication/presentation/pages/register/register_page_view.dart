@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:learnify_lms/core/theme/app_text_styles.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:learnify_lms/features/authentication/presentation/pages/register/widgets/religion_field.dart';
 import '../../../../../core/utils/responsive.dart';
 import 'package:learnify_lms/features/authentication/presentation/pages/register/widgets/have_account_row.dart';
 import 'package:learnify_lms/features/authentication/presentation/widgets/name_field.dart';
@@ -45,7 +44,7 @@ class RegisterPageViewState extends State<RegisterPageView> {
   String? countryCode; // Default to Egypt
   String selectedRole = 'student';
   String selectedGender = 'male';
-  String? selectedReligion;
+  String selectedReligion = 'muslim'; // Default to Muslim, hidden from user
 
   // Calculated from birthday
   int? calculatedAge;
@@ -149,17 +148,6 @@ class RegisterPageViewState extends State<RegisterPageView> {
         return;
       }
 
-      // Check religion is selected (required field)
-      if (selectedReligion == null || selectedReligion!.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('من فضلك اختر الدين'),
-            backgroundColor: AppColors.error,
-          ),
-        );
-        return;
-      }
-
       context.read<AuthBloc>().add(
             RegisterEvent(
               name: nameController.text.trim(),
@@ -218,20 +206,6 @@ class RegisterPageViewState extends State<RegisterPageView> {
                       SizedBox(height: Responsive.spacing(context, 16)),
                       EmailField(controller: emailController),
 
-                      SizedBox(height: Responsive.spacing(context, 16)),
-
-                      ReligionField(
-                        selectedValue: selectedReligion,
-                        onChanged: (value) {
-                          setState(() {
-                            selectedReligion = value;
-                          });
-                        },
-                        validator: (value) {
-                          if (value == null) return 'من فضلك اختر الدين';
-                          return null;
-                        },
-                      ),
                       SizedBox(height: Responsive.spacing(context, 16)),
                       PasswordField(
                         controller: passwordController,

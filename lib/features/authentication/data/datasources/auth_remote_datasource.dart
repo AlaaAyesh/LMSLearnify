@@ -391,7 +391,12 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       if (phone != null) formFields['phone'] = phone;
       if (specialtyId != null) formFields['specialty_id'] = specialtyId;
       if (gender != null) formFields['gender'] = gender;
-      if (religion != null) formFields['religion'] = religion;
+      // Religion is required by the API, default to 'muslim' if not provided
+      if (religion != null && religion.isNotEmpty) {
+        formFields['religion'] = religion;
+      } else {
+        formFields['religion'] = 'muslim'; // Default to Muslim
+      }
       if (birthday != null) formFields['birthday'] = birthday;
 
       final response = await dioClient.post(
