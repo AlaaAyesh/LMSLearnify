@@ -17,6 +17,7 @@ class SocialLoginButtons extends StatelessWidget {
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
         if (state is SocialLoginNeedsCompletion) {
+          // مستخدم جديد → يكمل البروفايل
           Navigator.of(context).push(
             MaterialPageRoute(
               builder: (_) => CompleteProfilePage(
@@ -27,19 +28,20 @@ class SocialLoginButtons extends StatelessWidget {
               ),
             ),
           );
-        } else if (state is AuthAuthenticated) {
-          // Existing user logging in via social - go to home
-          // New users will go through CompleteProfilePage which handles content-preferences navigation
+        }
+        else if (state is AuthAuthenticated) {
+          // مستخدم قديم → يروح مباشرة للهوم
           Navigator.of(context).pushNamedAndRemoveUntil(
             '/home',
-            (route) => false,
+                (route) => false,
           );
-        } else if (state is AuthError) {
+        }
+        else if (state is AuthError) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
                 state.message,
-                style: TextStyle(fontFamily: 'Cairo'),
+                style: const TextStyle(fontFamily: 'Cairo'),
               ),
               backgroundColor: Colors.red,
             ),
@@ -52,7 +54,6 @@ class SocialLoginButtons extends StatelessWidget {
           SocialButton(
             asset: 'assets/icons/apple.svg',
             onTap: () {
-              // Use native Apple Sign-In
               context.read<AuthBloc>().add(NativeAppleSignInEvent());
             },
           ),
@@ -60,7 +61,6 @@ class SocialLoginButtons extends StatelessWidget {
           SocialButton(
             asset: 'assets/icons/google.svg',
             onTap: () {
-              // Use native Google Sign-In
               context.read<AuthBloc>().add(NativeGoogleSignInEvent());
             },
           ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:learnify_lms/core/theme/app_colors.dart';
 import 'package:learnify_lms/core/utils/responsive.dart';
 
 class CertificatePlanCard extends StatelessWidget {
@@ -20,11 +21,11 @@ class CertificatePlanCard extends StatelessWidget {
     final titleSize = Responsive.fontSize(context, 22);
     final descriptionSize = Responsive.fontSize(context, 16);
     final actionHeight = Responsive.height(context, 44);
-    final horizontalPadding = Responsive.width(context, 16);
+    final horizontalPadding = Responsive.width(context, 24);
 
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.all(Responsive.width(context, 16)),
+      padding: EdgeInsets.all(Responsive.width(context, 20)),
       decoration: BoxDecoration(
         color: Colors.transparent,
         borderRadius: BorderRadius.circular(22),
@@ -38,7 +39,7 @@ class CertificatePlanCard extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Text(
-            ' $courseName ',
+            '• $courseName',
             textAlign: TextAlign.center,
             style: TextStyle(
               color: Colors.black,
@@ -108,52 +109,48 @@ class CertificatePlanCard extends StatelessWidget {
               }
 
               if (isCompact) {
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                return Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     buildButton(
-                      background: const Color(0xFFE4E7EB),
+                      background: AppColors.greyLight,
                       foreground: Colors.black,
                       label: 'مشاهدة',
                       icon: Icons.visibility_outlined,
                       onTap: onView,
-                      fontWeight: FontWeight.w500,
+                      fontWeight: FontWeight.w700,
+
                     ),
-                    SizedBox(height: Responsive.spacing(context, 10)),
                     buildButton(
-                      background: const Color(0xFFFFC107),
+                      background: AppColors.primary,
                       foreground: Colors.white,
                       label: 'تحميل',
                       icon: Icons.download_outlined,
                       onTap: onDownload,
-                      fontWeight: FontWeight.w600,
+                      fontWeight: FontWeight.w700,
                     ),
                   ],
                 );
               }
 
-              return Row(
+              return   Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Expanded(
-                    child: buildButton(
-                      background: const Color(0xFFE4E7EB),
-                      foreground: Colors.black,
-                      label: 'مشاهدة',
-                      icon: Icons.visibility_outlined,
-                      onTap: onView,
-                      fontWeight: FontWeight.w500,
-                    ),
+                  buildButton(
+                    background: AppColors.greyLight,
+                    foreground: Colors.black,
+                    label: 'مشاهدة',
+                    icon: Icons.visibility_outlined,
+                    onTap: onView,
+                    fontWeight: FontWeight.w700,
                   ),
-                  SizedBox(width: spacing),
-                  Expanded(
-                    child: buildButton(
-                      background: const Color(0xFFFFC107),
-                      foreground: Colors.white,
-                      label: 'تحميل',
-                      icon: Icons.download_outlined,
-                      onTap: onDownload,
-                      fontWeight: FontWeight.w600,
-                    ),
+                  buildButton(
+                    background: AppColors.primary,
+                    foreground: Colors.white,
+                    label: 'تحميل',
+                    icon: Icons.download_outlined,
+                    onTap: onDownload,
+                    fontWeight: FontWeight.w700,
                   ),
                 ],
               );

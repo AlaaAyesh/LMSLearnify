@@ -3,7 +3,9 @@ import 'package:learnify_lms/core/theme/app_text_styles.dart';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:learnify_lms/features/home/presentation/pages/main_navigation_page.dart';
 import '../../../../core/di/injection_container.dart';
+import '../../../../core/routing/app_router.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/responsive.dart';
 import '../../../../core/widgets/custom_app_bar.dart';
@@ -479,13 +481,17 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> {
           // Free course banner
           if (_isFreeCourse && !course.hasAccess)
             GestureDetector(
-              onTap: () {
-                if (!_isAuthenticated) {
-                  Navigator.pushNamed(context, '/login');
-                } else {
-                  Navigator.pushNamed(context, '/subscriptions');
-                }
-              },
+                onTap: () {
+                  if (!_isAuthenticated) {
+                    Navigator.of(context, rootNavigator: true).pushNamed(
+                      AppRouter.login,
+                      arguments: {'returnTo': 'subscriptions'},
+                    );
+                  } else {
+                    // يرجع لصفحة الاشتراكات + الـ bottom nav ظاهر
+                    context.mainNavigation?.switchToTab(2);
+                  }
+                },
               child: Container(
                 constraints: BoxConstraints(
                   maxWidth: context.isTablet
