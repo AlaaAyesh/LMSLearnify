@@ -4,6 +4,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/di/injection_container.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/utils/responsive.dart';
 import '../../../../core/widgets/custom_app_bar.dart';
 import '../../../../core/widgets/custom_background.dart';
 import '../../domain/entities/category.dart';
@@ -223,16 +224,27 @@ class _CourseGridItem extends StatelessWidget {
                   // Coming Soon overlay
                   if (isComingSoon)
                     Container(
-                      color: Colors.black.withOpacity(0.5),
-                      child: const Center(
-                        child: Text(
-                          'قريباً',
-                          style: TextStyle(
-                            fontFamily: 'Cairo',
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
+                      width: Responsive.width(context, 120),
+                      height: Responsive.width(context, 120),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.65),
+                        shape: BoxShape.circle,
+                      ),
+                      alignment: Alignment.center,
+                      child: Text(
+                        'قريبآ',
+                        style: TextStyle(
+                          fontFamily: 'Cairo',
+                          shadows: [
+                            Shadow(
+                              offset: const Offset(3, 3),
+                              blurRadius: 0,
+                              color: Colors.black.withOpacity(0.6),
+                            ),
+                          ],
+                          fontSize: Responsive.fontSize(context, 34),
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.soonText,
                         ),
                       ),
                     ),

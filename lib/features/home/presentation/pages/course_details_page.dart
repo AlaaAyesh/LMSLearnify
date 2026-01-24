@@ -5,6 +5,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/di/injection_container.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/utils/responsive.dart';
 import '../../../../core/widgets/custom_app_bar.dart';
 import '../../../../core/widgets/custom_background.dart';
 import '../../../authentication/data/datasources/auth_local_datasource.dart';
@@ -453,21 +454,29 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> {
 
   Widget _buildLessonsTitleSection(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: Responsive.padding(
+        context,
+        horizontal: 16,
+      ),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           // Title
-          const Text(
+          Text(
             'دروس الدورة',
             style: TextStyle(
               fontFamily: 'Cairo',
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
+              fontSize: Responsive.fontSize(context, 18),
+              fontWeight: FontWeight.w800,
               color: AppColors.textPrimary,
             ),
           ),
+
+          SizedBox(width: context.rs(8)),
+
           const Spacer(),
-          // Free course banner (show if free and user doesn't have access)
+
+          // Free course banner
           if (_isFreeCourse && !course.hasAccess)
             GestureDetector(
               onTap: () {
@@ -478,51 +487,60 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> {
                 }
               },
               child: Container(
-                padding:
-                const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF9B59D0), // Light purple as in image
-                  borderRadius: BorderRadius.circular(20),
+                constraints: BoxConstraints(
+                  maxWidth: context.isTablet
+                      ? context.rw(260)
+                      : context.rw(210),
                 ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
+                padding: Responsive.padding(
+                  context,
+                  horizontal: 24,
+                  vertical: 6,
+                ),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFEDE4FF),
+                  borderRadius: BorderRadius.circular(
+                    Responsive.radius(context, 22),
+                  ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text(
                       'الكورس مجاني سجل دخولك',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                         fontFamily: 'Cairo',
-                        fontSize: 10,
-                        color: Colors.white,
-                        fontWeight: FontWeight.w500,
+                        fontSize: Responsive.fontSize(context, 12),
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textPrimary,
                       ),
                     ),
-                    const SizedBox(width: 4),
-                    const Text(
-                      'للمشاهدة',
-                      style: TextStyle(
-                        fontFamily: 'Cairo',
-                        fontSize: 10,
-                        color: Colors.white,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    const SizedBox(width: 4),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 6, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: const Text(
-                        'من هنا',
-                        style: TextStyle(
-                          fontFamily: 'Cairo',
-                          fontSize: 10,
-                          color: AppColors.primary,
-                          fontWeight: FontWeight.bold,
+                    SizedBox(height: context.rs(4)),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          'للمشاهدة ',
+                          style: TextStyle(
+                            fontFamily: 'Cairo',
+                            fontSize: Responsive.fontSize(context, 12),
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.textPrimary,
+                          ),
                         ),
-                      ),
+                        Text(
+                          'من هنا',
+                          style: TextStyle(
+                            fontFamily: 'Cairo',
+                            fontSize: Responsive.fontSize(context, 14),
+                            fontWeight: FontWeight.w800,
+                            color: AppColors.textPrimary,
+                            decoration: TextDecoration.underline,
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
