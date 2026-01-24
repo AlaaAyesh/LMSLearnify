@@ -68,8 +68,48 @@ class _ReelPlayerWidgetState extends State<ReelPlayerWidget> with WidgetsBinding
     return widget.isActive; // Fallback to widget prop
   }
 
-  /// Combined check: widget says active AND shorts tab is active
+  /// Check if we're currently on a page that should pause videos (like Profile)
+  bool get _isOnPausePage {
+    if (!mounted) return false;
+    
+    try {
+      // Check the current route
+      final route = ModalRoute.of(context);
+      if (route == null) return false;
+      
+      // Get the current route's settings name
+      final routeName = route.settings.name;
+      if (routeName != null) {
+        // List of routes that should pause videos
+        const pauseRoutes = ['/profile', '/subscriptions', '/certificates', '/courses', '/about'];
+        if (pauseRoutes.contains(routeName)) {
+          return true;
+        }
+      }
+      
+      // Also check if there are any routes on top of the current route
+      // This handles cases where pages are pushed without named routes (like Profile from Menu)
+      // Only check this if we're on the Shorts tab, because if we're on another tab,
+      // _isShortsTabActive will already be false
+      if (_isShortsTabActive) {
+        final navigator = Navigator.of(context, rootNavigator: false);
+        if (navigator.canPop()) {
+          // There's a route on top of the Shorts page, pause videos
+          return true;
+        }
+      }
+      
+      return false;
+    } catch (e) {
+      // If we can't determine, err on the side of caution and don't pause
+      return false;
+    }
+  }
+
+  /// Combined check: widget says active AND shorts tab is active AND not on a pause page
   bool get _shouldPlay {
+    // Don't play if we're on a page that should pause videos
+    if (_isOnPausePage) return false;
     return widget.isActive && _isShortsTabActive;
   }
 
