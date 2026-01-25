@@ -134,13 +134,18 @@ class CourseRemoteDataSourceImpl implements CourseRemoteDataSource {
         List<dynamic> coursesJson;
         final responseData = response.data;
 
+        // Handle the response structure: { status, message, data: { data: [...], meta: {...} } }
         if (responseData['data'] is Map && responseData['data']['data'] is List) {
+          // Nested structure: { data: { data: [...] } }
           coursesJson = responseData['data']['data'];
         } else if (responseData['data'] is List) {
+          // Direct structure: { data: [...] }
           coursesJson = responseData['data'];
         } else if (responseData['courses'] is List) {
+          // Alternative structure: { courses: [...] }
           coursesJson = responseData['courses'];
         } else if (responseData is List) {
+          // Raw list response
           coursesJson = responseData;
         } else {
           coursesJson = [];

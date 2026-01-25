@@ -29,12 +29,8 @@ class AllCoursesPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (context) => sl<CoursesBloc>()
-        // Load all available courses
-        ..add(LoadCoursesEvent(
-          refresh: true,
-          categoryId: categoryId,
-          specialtyId: specialtyId,
-        )),
+        // Load user's owned courses from myCourses endpoint
+        ..add(const LoadMyCoursesEvent()),
       child: _AllCoursesPageContent(
         title: title ?? 'جميع الكورسات',
         categoryId: categoryId,
@@ -119,12 +115,8 @@ class _AllCoursesPageContent extends StatelessWidget {
       },
       child: RefreshIndicator(
         onRefresh: () async {
-          // Refresh all courses list
-          context.read<CoursesBloc>().add(LoadCoursesEvent(
-            refresh: true,
-            categoryId: categoryId,
-            specialtyId: specialtyId,
-          ));
+          // Refresh user's courses list
+          context.read<CoursesBloc>().add(const LoadMyCoursesEvent());
         },
         color: AppColors.primary,
         child: CustomScrollView(
@@ -199,11 +191,7 @@ class _AllCoursesPageContent extends StatelessWidget {
           SizedBox(height: Responsive.spacing(context, 24)),
           ElevatedButton.icon(
             onPressed: () {
-              context.read<CoursesBloc>().add(LoadCoursesEvent(
-                refresh: true,
-                categoryId: categoryId,
-                specialtyId: specialtyId,
-              ));
+              context.read<CoursesBloc>().add(const LoadMyCoursesEvent());
             },
             icon: Icon(Icons.refresh, size: Responsive.iconSize(context, 20)),
             label: const Text('تحديث'),
@@ -257,11 +245,7 @@ class _AllCoursesPageContent extends StatelessWidget {
           SizedBox(height: Responsive.spacing(context, 24)),
           ElevatedButton.icon(
             onPressed: () {
-              context.read<CoursesBloc>().add(LoadCoursesEvent(
-                refresh: true,
-                categoryId: categoryId,
-                specialtyId: specialtyId,
-              ));
+              context.read<CoursesBloc>().add(const LoadMyCoursesEvent());
             },
             icon: Icon(Icons.refresh, size: Responsive.iconSize(context, 20)),
             label: const Text('إعادة المحاولة'),

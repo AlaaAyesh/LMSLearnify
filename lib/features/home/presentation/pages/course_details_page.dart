@@ -558,15 +558,10 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> {
   }
 
   Widget _buildLessonsGrid(BuildContext context) {
-    // Flatten all lessons from all chapters
-    final allLessons = <_LessonWithChapter>[];
-    for (final chapter in course.chapters) {
-      for (final lesson in chapter.lessons) {
-        allLessons.add(_LessonWithChapter(lesson: lesson, chapter: chapter));
-      }
-    }
-
-    if (allLessons.isEmpty) {
+    // Check if there are any lessons at all
+    final hasAnyLessons = course.chapters.any((chapter) => chapter.lessons.isNotEmpty);
+    
+    if (!hasAnyLessons) {
       return Padding(
         padding: const EdgeInsets.all(24),
         child: Center(
@@ -592,33 +587,34 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> {
       );
     }
 
+    // Find the first lesson in the entire course (for preview)
+    Lesson? firstLessonInCourse;
+    if (course.chapters.isNotEmpty && course.chapters.first.lessons.isNotEmpty) {
+      firstLessonInCourse = course.chapters.first.lessons.first;
+    }
+
+    // Build chapters with their lessons
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: GridView.builder(
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2,
-          crossAxisSpacing: 12,
-          mainAxisSpacing: 12,
-          // Slightly taller cards to prevent bottom overflow on small screens
-          childAspectRatio: 0.8,
-        ),
-        itemCount: allLessons.length,
-        itemBuilder: (context, index) {
-          final item = allLessons[index];
-          final isFirstLesson =
-              index == 0; // First lesson always available for preview
-          final isViewed = _isLessonViewed(item.lesson.id);
-          return _LessonCard(
-            key: ValueKey('lesson_${item.lesson.id}_viewed_$isViewed'), // Force rebuild when viewed status changes
-            lesson: item.lesson,
-            isAvailable: isFirstLesson,
-            hasAccess: course.hasAccess,
-            isViewed: isViewed,
-            onTap: () => _onLessonTap(context, item.lesson, item.chapter),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: course.chapters.asMap().entries.map((entry) {
+          final chapterIndex = entry.key;
+          final chapter = entry.value;
+          
+          if (chapter.lessons.isEmpty) {
+            return const SizedBox.shrink();
+          }
+          
+          return _ChapterSection(
+            chapter: chapter,
+            chapterIndex: chapterIndex,
+            course: course,
+            firstLessonInCourse: firstLessonInCourse,
+            isLessonViewed: _isLessonViewed,
+            onLessonTap: (lesson) => _onLessonTap(context, lesson, chapter),
           );
-        },
+        }).toList(),
       ),
     );
   }
@@ -1113,6 +1109,82 @@ class _LessonWithChapter {
   final Chapter chapter;
 
   _LessonWithChapter({required this.lesson, required this.chapter});
+}
+
+/// Widget to display a chapter with its lessons
+class _ChapterSection extends StatelessWidget {
+  final Chapter chapter;
+  final int chapterIndex;
+  final Course course;
+  final Lesson? firstLessonInCourse;
+  final bool Function(int lessonId) isLessonViewed;
+  final void Function(Lesson lesson) onLessonTap;
+
+  const _ChapterSection({
+    required this.chapter,
+    required this.chapterIndex,
+    required this.course,
+    required this.firstLessonInCourse,
+    required this.isLessonViewed,
+    required this.onLessonTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Chapter Title
+        Padding(
+          padding: EdgeInsets.only(
+            bottom: 16,
+            top: chapterIndex > 0 ? 24 : 8, // More space if not first chapter
+          ),
+          child: Text(
+            'دروس ${chapter.nameAr}',
+            style: TextStyle(
+              fontFamily: 'Cairo',
+              fontSize: Responsive.fontSize(context, 18),
+              fontWeight: FontWeight.bold,
+              color: AppColors.textPrimary,
+            ),
+          ),
+        ),
+        // Lessons Grid for this chapter
+        GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            crossAxisSpacing: 12,
+            mainAxisSpacing: 12,
+            childAspectRatio: 0.8,
+          ),
+          itemCount: chapter.lessons.length,
+          itemBuilder: (context, index) {
+            final lesson = chapter.lessons[index];
+            
+            // First lesson in the entire course is always available for preview
+            final isFirstLessonInCourse = firstLessonInCourse != null && 
+                firstLessonInCourse!.id == lesson.id;
+            
+            // If user has access, all lessons are available
+            final isAvailable = course.hasAccess || isFirstLessonInCourse;
+            final isViewed = isLessonViewed(lesson.id);
+            
+            return _LessonCard(
+              key: ValueKey('lesson_${lesson.id}_viewed_$isViewed'),
+              lesson: lesson,
+              isAvailable: isAvailable,
+              hasAccess: course.hasAccess,
+              isViewed: isViewed,
+              onTap: () => onLessonTap(lesson),
+            );
+          },
+        ),
+      ],
+    );
+  }
 }
 
 class _LessonCard extends StatelessWidget {
