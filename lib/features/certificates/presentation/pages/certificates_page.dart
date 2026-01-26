@@ -48,8 +48,13 @@ class _CertificatesPageState extends State<CertificatesPage> {
       return Scaffold(
         backgroundColor: Colors.white,
         appBar: const CustomAppBar(title: 'شهاداتي'),
-        body: Center(
-          child: CircularProgressIndicator(color: AppColors.primary),
+        body: Stack(
+          children: [
+            const CustomBackground(),
+            Center(
+              child: CircularProgressIndicator(color: AppColors.primary),
+            ),
+          ],
         ),
       );
     }
@@ -73,152 +78,154 @@ class _UnauthenticatedCertificatesPage extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: const CustomAppBar(title: 'شهاداتي'),
-      body: Center(
-        child: Padding(
-          padding: Responsive.padding(
-            context,
-            horizontal: 24,
-            vertical: 16,
-          ),
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 560),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.lock_outline,
-                  size: Responsive.iconSize(context, 80),
-                  color: AppColors.primary,
-                ),
-                SizedBox(height: Responsive.spacing(context, 24)),
-                Text(
-                  'تسجيل الدخول مطلوب',
-                  style: AppTextStyles.displayMedium.copyWith(
-                    fontSize: Responsive.fontSize(context, 24),
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                SizedBox(height: Responsive.spacing(context, 12)),
-                Text(
-                  'للوصول إلى شهاداتك، يرجى تسجيل الدخول أو إنشاء حساب جديد',
-                  style: AppTextStyles.bodyLarge.copyWith(
-                    fontSize: Responsive.fontSize(context, 16),
-                    height: 1.4,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-
-                SizedBox(height: Responsive.spacing(context, 28)),
-
-                // Login Button
-                SizedBox(
-                  width: double.infinity,
-                  height: Responsive.height(context, 56),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(22),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.primary.withOpacity(0.2),
-                          blurRadius: 10,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
+      body: Stack(
+        children: [
+          const CustomBackground(),
+          Center(
+            child: Padding(
+              padding: Responsive.padding(
+                context,
+                horizontal: 24,
+                vertical: 16,
+              ),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 560),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.lock_outline,
+                      size: Responsive.iconSize(context, 80),
+                      color: AppColors.primary,
                     ),
-                    child: ElevatedButton(
-                      onPressed: () async {
-                        // Go directly to login using the root navigator
-                        final result = await Navigator.of(
-                          context,
-                          rootNavigator: true,
-                        ).pushNamed(
-                          AppRouter.login,
-                          arguments: {'returnTo': 'certificates'},
-                        );
-
-                        if (result == true && context.mounted) {
-                          // After successful login, reload the certificates page
-                          Navigator.of(context, rootNavigator: true)
-                              .pushReplacementNamed(AppRouter.certificates);
-                        }
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
-                        elevation: 0, // مهم: نشيل elevation الافتراضي
-                        padding: EdgeInsets.zero, // إزالة أي padding
-                        shape: RoundedRectangleBorder(
+                    SizedBox(height: Responsive.spacing(context, 24)),
+                    Text(
+                      'تسجيل الدخول مطلوب',
+                      style: AppTextStyles.displayMedium.copyWith(
+                        fontSize: Responsive.fontSize(context, 24),
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    SizedBox(height: Responsive.spacing(context, 12)),
+                    Text(
+                      'للوصول إلى شهاداتك، يرجى تسجيل الدخول أو إنشاء حساب جديد',
+                      style: AppTextStyles.bodyLarge.copyWith(
+                        fontSize: Responsive.fontSize(context, 16),
+                        height: 1.4,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    SizedBox(height: Responsive.spacing(context, 28)),
+                    // Login Button
+                    SizedBox(
+                      width: double.infinity,
+                      height: Responsive.height(context, 56),
+                      child: Container(
+                        decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(22),
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppColors.primary.withOpacity(0.2),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
                         ),
-                      ),
-                      child: Text(
-                        'تسجيل الدخول',
-                        style: TextStyle(
-                          fontFamily: 'Cairo',
-                          fontSize: Responsive.fontSize(context, 18),
-                          fontWeight: FontWeight.bold,
+                        child: ElevatedButton(
+                          onPressed: () async {
+                            // Go directly to login using the root navigator
+                            final result = await Navigator.of(
+                              context,
+                              rootNavigator: true,
+                            ).pushNamed(
+                              AppRouter.login,
+                              arguments: {'returnTo': 'certificates'},
+                            );
+
+                            if (result == true && context.mounted) {
+                              // After successful login, reload the certificates page
+                              Navigator.of(context, rootNavigator: true)
+                                  .pushReplacementNamed(AppRouter.certificates);
+                            }
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primary,
+                            elevation: 0, // مهم: نشيل elevation الافتراضي
+                            padding: EdgeInsets.zero, // إزالة أي padding
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(22),
+                            ),
+                          ),
+                          child: Text(
+                            'تسجيل الدخول',
+                            style: TextStyle(
+                              fontFamily: 'Cairo',
+                              fontSize: Responsive.fontSize(context, 18),
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                ),
-                SizedBox(height: Responsive.spacing(context, 24)),
-
-                // Register Button
-                SizedBox(
-                  width: double.infinity,
-                  height: Responsive.height(context, 56),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(22),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.primary.withOpacity(0.15),
-                          blurRadius: 8,
-                          offset: const Offset(0, 3),
-                        ),
-                      ],
-                    ),
-                    child: OutlinedButton(
-                      onPressed: () async {
-                        // Go directly to register using the root navigator
-                        final result = await Navigator.of(
-                          context,
-                          rootNavigator: true,
-                        ).pushNamed(
-                          AppRouter.register,
-                          arguments: {'returnTo': 'certificates'},
-                        );
-
-                        if (result == true && context.mounted) {
-                          // After successful registration, reload the certificates page
-                          Navigator.of(context, rootNavigator: true)
-                              .pushReplacementNamed(AppRouter.certificates);
-                        }
-                      },
-                      style: OutlinedButton.styleFrom(
-                        padding: EdgeInsets.zero, // إزالة margin الداخلي
-                        side: const BorderSide(color: AppColors.primary),
-                        backgroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
+                    SizedBox(height: Responsive.spacing(context, 24)),
+                    // Register Button
+                    SizedBox(
+                      width: double.infinity,
+                      height: Responsive.height(context, 56),
+                      child: Container(
+                        decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(22),
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppColors.primary.withOpacity(0.15),
+                              blurRadius: 8,
+                              offset: const Offset(0, 3),
+                            ),
+                          ],
                         ),
-                      ),
-                      child: Text(
-                        'إنشاء حساب جديد',
-                        style: TextStyle(
-                          fontFamily: 'Cairo',
-                          fontSize: Responsive.fontSize(context, 18),
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.primary,
+                        child: OutlinedButton(
+                          onPressed: () async {
+                            // Go directly to register using the root navigator
+                            final result = await Navigator.of(
+                              context,
+                              rootNavigator: true,
+                            ).pushNamed(
+                              AppRouter.register,
+                              arguments: {'returnTo': 'certificates'},
+                            );
+
+                            if (result == true && context.mounted) {
+                              // After successful registration, reload the certificates page
+                              Navigator.of(context, rootNavigator: true)
+                                  .pushReplacementNamed(AppRouter.certificates);
+                            }
+                          },
+                          style: OutlinedButton.styleFrom(
+                            padding: EdgeInsets.zero, // إزالة margin الداخلي
+                            side: const BorderSide(color: AppColors.primary),
+                            backgroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(22),
+                            ),
+                          ),
+                          child: Text(
+                            'إنشاء حساب جديد',
+                            style: TextStyle(
+                              fontFamily: 'Cairo',
+                              fontSize: Responsive.fontSize(context, 18),
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.primary,
+                            ),
+                          ),
                         ),
                       ),
                     ),
-                  ),
+                  ],
                 ),
-              ],
+              ),
             ),
           ),
-        ),
+        ],
       ),
     );
   }

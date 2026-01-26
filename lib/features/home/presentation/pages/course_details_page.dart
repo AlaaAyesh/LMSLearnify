@@ -468,7 +468,7 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> {
             'دروس الدورة',
             style: TextStyle(
               fontFamily: 'Cairo',
-              fontSize: Responsive.fontSize(context, 18),
+              fontSize: Responsive.fontSize(context, 20),
               fontWeight: FontWeight.w800,
               color: AppColors.textPrimary,
             ),
@@ -1141,12 +1141,13 @@ class _ChapterSection extends StatelessWidget {
             top: chapterIndex > 0 ? 24 : 8, // More space if not first chapter
           ),
           child: Text(
-            'دروس ${chapter.nameAr}',
+            ' ${chapter.nameAr}',
             style: TextStyle(
               fontFamily: 'Cairo',
               fontSize: Responsive.fontSize(context, 18),
               fontWeight: FontWeight.bold,
               color: AppColors.textPrimary,
+              height: 1.5
             ),
           ),
         ),

@@ -8,6 +8,9 @@ import '../../../../core/constants/api_constants.dart';
 import '../../../../core/di/injection_container.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/responsive.dart';
+import '../../../../core/widgets/custom_app_bar.dart';
+import '../../../../core/widgets/custom_background.dart';
+import '../../../../core/routing/app_router.dart';
 import '../../../authentication/data/datasources/auth_local_datasource.dart';
 import '../../../home/presentation/pages/main_navigation_page.dart';
 import '../../domain/entities/reel.dart';
@@ -54,6 +57,8 @@ class _ReelsFeedPageState extends State<ReelsFeedPage>
   bool _isSubscribed = false;
   bool _isPageVisible =
       true; // Track if this page is visible (not covered by another page)
+  bool _isCheckingAuth = true;
+  bool _isAuthenticated = false;
 
   List<ReelCategoryModel> _categories = []; // Categories loaded from API
   bool _isFiltering = false; // Track if filtering is in progress
@@ -72,6 +77,7 @@ class _ReelsFeedPageState extends State<ReelsFeedPage>
     _pageController = PageController(
       initialPage: widget.initialReel != null ? 0 : widget.initialIndex,
     );
+    _checkAuthentication();
     _checkSubscriptionStatus();
 
     if (widget.initialReel != null) {
@@ -276,6 +282,15 @@ class _ReelsFeedPageState extends State<ReelsFeedPage>
     );
   }
 
+  Future<void> _checkAuthentication() async {
+    final authLocalDataSource = sl<AuthLocalDataSource>();
+    final token = await authLocalDataSource.getAccessToken();
+    setState(() {
+      _isAuthenticated = token != null && token.isNotEmpty;
+      _isCheckingAuth = false;
+    });
+  }
+
   Future<void> _checkSubscriptionStatus() async {
     final authLocalDataSource = sl<AuthLocalDataSource>();
     final token = await authLocalDataSource.getAccessToken();
@@ -349,6 +364,26 @@ class _ReelsFeedPageState extends State<ReelsFeedPage>
 
   @override
   Widget build(BuildContext context) {
+    // Check authentication first
+    if (_isCheckingAuth) {
+      return Scaffold(
+        backgroundColor: Colors.white,
+        appBar: const CustomAppBar(title: 'شورتس'),
+        body: Stack(
+          children: [
+            const CustomBackground(),
+            Center(
+              child: CircularProgressIndicator(color: AppColors.primary),
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (!_isAuthenticated) {
+      return _UnauthenticatedReelsPage();
+    }
+
     final topPadding = MediaQuery.of(context).padding.top;
 
     return Scaffold(
@@ -1048,5 +1083,165 @@ class _ReelsFeedPageState extends State<ReelsFeedPage>
         }
       });
     }
+  }
+}
+
+// Unauthenticated Reels Page
+class _UnauthenticatedReelsPage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.white,
+      appBar: const CustomAppBar(title: 'شورتس', showBackButton: false),
+      body: Stack(
+        children: [
+          const CustomBackground(),
+          Center(
+            child: Padding(
+              padding: Responsive.padding(
+                context,
+                horizontal: 24,
+                vertical: 16,
+              ),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 560),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.lock_outline,
+                      size: Responsive.iconSize(context, 80),
+                      color: AppColors.primary,
+                    ),
+                    SizedBox(height: Responsive.spacing(context, 24)),
+                    Text(
+                      'تسجيل الدخول مطلوب',
+                      style: AppTextStyles.displayMedium.copyWith(
+                        fontSize: Responsive.fontSize(context, 24),
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    SizedBox(height: Responsive.spacing(context, 12)),
+                    Text(
+                      'للوصول إلى الشورتس، يرجى تسجيل الدخول أو إنشاء حساب جديد',
+                      style: AppTextStyles.bodyLarge.copyWith(
+                        fontSize: Responsive.fontSize(context, 16),
+                        height: 1.4,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    SizedBox(height: Responsive.spacing(context, 28)),
+                    // Login Button
+                    SizedBox(
+                      width: double.infinity,
+                      height: Responsive.height(context, 56),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(22),
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppColors.primary.withOpacity(0.2),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: ElevatedButton(
+                          onPressed: () async {
+                            // Go directly to login using the root navigator
+                            final result = await Navigator.of(
+                              context,
+                              rootNavigator: true,
+                            ).pushNamed(
+                              AppRouter.login,
+                              arguments: {'returnTo': 'reels'},
+                            );
+
+                            if (result == true && context.mounted) {
+                              // After successful login, reload the reels page
+                              Navigator.of(context, rootNavigator: true)
+                                  .pushReplacementNamed(AppRouter.reelsFeed);
+                            }
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primary,
+                            elevation: 0,
+                            padding: EdgeInsets.zero,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(22),
+                            ),
+                          ),
+                          child: Text(
+                            'تسجيل الدخول',
+                            style: TextStyle(
+                              fontFamily: 'Cairo',
+                              fontSize: Responsive.fontSize(context, 18),
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: Responsive.spacing(context, 24)),
+                    // Register Button
+                    SizedBox(
+                      width: double.infinity,
+                      height: Responsive.height(context, 56),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(22),
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppColors.primary.withOpacity(0.15),
+                              blurRadius: 8,
+                              offset: const Offset(0, 3),
+                            ),
+                          ],
+                        ),
+                        child: OutlinedButton(
+                          onPressed: () async {
+                            // Go directly to register using the root navigator
+                            final result = await Navigator.of(
+                              context,
+                              rootNavigator: true,
+                            ).pushNamed(
+                              AppRouter.register,
+                              arguments: {'returnTo': 'reels'},
+                            );
+
+                            if (result == true && context.mounted) {
+                              // After successful registration, reload the reels page
+                              Navigator.of(context, rootNavigator: true)
+                                  .pushReplacementNamed(AppRouter.reelsFeed);
+                            }
+                          },
+                          style: OutlinedButton.styleFrom(
+                            padding: EdgeInsets.zero,
+                            side: const BorderSide(color: AppColors.primary),
+                            backgroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(22),
+                            ),
+                          ),
+                          child: Text(
+                            'إنشاء حساب جديد',
+                            style: TextStyle(
+                              fontFamily: 'Cairo',
+                              fontSize: Responsive.fontSize(context, 18),
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.primary,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

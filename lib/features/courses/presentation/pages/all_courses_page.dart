@@ -6,6 +6,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/responsive.dart';
 import '../../../../core/widgets/custom_app_bar.dart';
 import '../../../../core/widgets/custom_background.dart';
+import '../../../../core/routing/app_router.dart';
 import '../../../home/domain/entities/course.dart';
 import '../../../home/presentation/pages/course_details_page.dart';
 import '../bloc/courses_bloc.dart';
@@ -210,6 +211,158 @@ class _AllCoursesPageContent extends StatelessWidget {
   }
 
   Widget _buildErrorState(BuildContext context, String message) {
+    // Check if error is due to unauthorized access
+    final isAuthError = message.contains('يجب تسجيل الدخول أولاً') || 
+                        message.contains('تسجيل الدخول') ||
+                        message.toLowerCase().contains('unauthorized');
+
+    if (isAuthError) {
+      // Show same design as certificates page for unauthorized users
+      return Center(
+        child: Padding(
+          padding: Responsive.padding(
+            context,
+            horizontal: 24,
+            vertical: 16,
+          ),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 560),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.lock_outline,
+                  size: Responsive.iconSize(context, 80),
+                  color: AppColors.primary,
+                ),
+                SizedBox(height: Responsive.spacing(context, 24)),
+                Text(
+                  'تسجيل الدخول مطلوب',
+                  style: AppTextStyles.displayMedium.copyWith(
+                    fontSize: Responsive.fontSize(context, 24),
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                SizedBox(height: Responsive.spacing(context, 12)),
+                Text(
+                  'للوصول إلى الكورسات، يرجى تسجيل الدخول أو إنشاء حساب جديد',
+                  style: AppTextStyles.bodyLarge.copyWith(
+                    fontSize: Responsive.fontSize(context, 16),
+                    height: 1.4,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                SizedBox(height: Responsive.spacing(context, 28)),
+                // Login Button
+                SizedBox(
+                  width: double.infinity,
+                  height: Responsive.height(context, 56),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(22),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.primary.withOpacity(0.2),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: ElevatedButton(
+                      onPressed: () async {
+                        // Go directly to login using the root navigator
+                        final result = await Navigator.of(
+                          context,
+                          rootNavigator: true,
+                        ).pushNamed(
+                          AppRouter.login,
+                          arguments: {'returnTo': 'courses'},
+                        );
+
+                        if (result == true && context.mounted) {
+                          // After successful login, reload the courses page
+                          context.read<CoursesBloc>().add(const LoadMyCoursesEvent());
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        elevation: 0,
+                        padding: EdgeInsets.zero,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(22),
+                        ),
+                      ),
+                      child: Text(
+                        'تسجيل الدخول',
+                        style: TextStyle(
+                          fontFamily: 'Cairo',
+                          fontSize: Responsive.fontSize(context, 18),
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                SizedBox(height: Responsive.spacing(context, 24)),
+                // Register Button
+                SizedBox(
+                  width: double.infinity,
+                  height: Responsive.height(context, 56),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(22),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.primary.withOpacity(0.15),
+                          blurRadius: 8,
+                          offset: const Offset(0, 3),
+                        ),
+                      ],
+                    ),
+                    child: OutlinedButton(
+                      onPressed: () async {
+                        // Go directly to register using the root navigator
+                        final result = await Navigator.of(
+                          context,
+                          rootNavigator: true,
+                        ).pushNamed(
+                          AppRouter.register,
+                          arguments: {'returnTo': 'courses'},
+                        );
+
+                        if (result == true && context.mounted) {
+                          // After successful registration, reload the courses page
+                          context.read<CoursesBloc>().add(const LoadMyCoursesEvent());
+                        }
+                      },
+                      style: OutlinedButton.styleFrom(
+                        padding: EdgeInsets.zero,
+                        side: const BorderSide(color: AppColors.primary),
+                        backgroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(22),
+                        ),
+                      ),
+                      child: Text(
+                        'إنشاء حساب جديد',
+                        style: TextStyle(
+                          fontFamily: 'Cairo',
+                          fontSize: Responsive.fontSize(context, 18),
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.primary,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    // Default error state for other errors
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
