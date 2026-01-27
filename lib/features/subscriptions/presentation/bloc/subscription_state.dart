@@ -21,12 +21,16 @@ class SubscriptionsLoaded extends SubscriptionState {
   final int selectedIndex;
   final String? appliedPromoCode;
   final double? discountAmount;
+  final double? discountPercentage;
+  final String? finalPriceAfterCoupon;
 
   const SubscriptionsLoaded({
     required this.subscriptions,
     this.selectedIndex = 0,
     this.appliedPromoCode,
     this.discountAmount,
+    this.discountPercentage,
+    this.finalPriceAfterCoupon,
   });
 
   SubscriptionsLoaded copyWith({
@@ -34,12 +38,16 @@ class SubscriptionsLoaded extends SubscriptionState {
     int? selectedIndex,
     String? appliedPromoCode,
     double? discountAmount,
+    double? discountPercentage,
+    String? finalPriceAfterCoupon,
   }) {
     return SubscriptionsLoaded(
       subscriptions: subscriptions ?? this.subscriptions,
       selectedIndex: selectedIndex ?? this.selectedIndex,
       appliedPromoCode: appliedPromoCode ?? this.appliedPromoCode,
       discountAmount: discountAmount ?? this.discountAmount,
+      discountPercentage: discountPercentage ?? this.discountPercentage,
+      finalPriceAfterCoupon: finalPriceAfterCoupon ?? this.finalPriceAfterCoupon,
     );
   }
 
@@ -57,6 +65,8 @@ class SubscriptionsLoaded extends SubscriptionState {
         selectedIndex,
         appliedPromoCode,
         discountAmount,
+        discountPercentage,
+        finalPriceAfterCoupon,
       ];
 }
 
@@ -105,16 +115,18 @@ class SubscriptionUpdated extends SubscriptionState {
 class PromoCodeApplied extends SubscriptionState {
   final String promoCode;
   final double discountAmount;
+  final double? discountPercentage;
   final String message;
 
   const PromoCodeApplied({
     required this.promoCode,
     required this.discountAmount,
+    this.discountPercentage,
     this.message = 'تم تطبيق كود الخصم بنجاح',
   });
 
   @override
-  List<Object?> get props => [promoCode, discountAmount, message];
+  List<Object?> get props => [promoCode, discountAmount, discountPercentage, message];
 }
 
 /// Error state
@@ -160,11 +172,11 @@ class PaymentCheckoutReady extends SubscriptionState {
 
 /// Payment completed successfully
 class PaymentCompleted extends SubscriptionState {
-  final PurchaseModel purchase;
+  final PurchaseModel? purchase; // Nullable for free subscriptions (100% coupon)
   final String message;
 
   const PaymentCompleted({
-    required this.purchase,
+    this.purchase,
     this.message = 'تمت عملية الدفع بنجاح',
   });
 

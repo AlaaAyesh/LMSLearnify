@@ -19,11 +19,15 @@ import 'widgets/payment_success_dialog.dart';
 class PaymentPage extends StatelessWidget {
   final Subscription subscription;
   final String? promoCode;
+  final double? discountPercentage;
+  final String? finalPriceAfterCoupon;
 
   const PaymentPage({
     super.key,
     required this.subscription,
     this.promoCode,
+    this.discountPercentage,
+    this.finalPriceAfterCoupon,
   });
 
   @override
@@ -33,6 +37,8 @@ class PaymentPage extends StatelessWidget {
       child: _PaymentPageContent(
         subscription: subscription,
         promoCode: promoCode,
+        discountPercentage: discountPercentage,
+        finalPriceAfterCoupon: finalPriceAfterCoupon,
       ),
     );
   }
@@ -41,10 +47,14 @@ class PaymentPage extends StatelessWidget {
 class _PaymentPageContent extends StatefulWidget {
   final Subscription subscription;
   final String? promoCode;
+  final double? discountPercentage;
+  final String? finalPriceAfterCoupon;
 
   const _PaymentPageContent({
     required this.subscription,
     this.promoCode,
+    this.discountPercentage,
+    this.finalPriceAfterCoupon,
   });
 
   @override
@@ -141,6 +151,14 @@ class _PaymentPageContentState extends State<_PaymentPageContent> {
   }
 
   Widget _buildOrderSummary() {
+    final hasCouponDiscount = widget.discountPercentage != null && 
+                              widget.discountPercentage! > 0 && 
+                              widget.finalPriceAfterCoupon != null;
+    final displayPrice = hasCouponDiscount 
+        ? widget.finalPriceAfterCoupon! 
+        : widget.subscription.price;
+    final originalPrice = widget.subscription.price;
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -172,30 +190,96 @@ class _PaymentPageContentState extends State<_PaymentPageContent> {
             _getDurationTitle(widget.subscription.duration),
           ),
           SizedBox(height: 12),
+          // Show original subscription price (before any discounts)
           if (widget.subscription.priceBeforeDiscount != widget.subscription.price &&
               widget.subscription.priceBeforeDiscount.isNotEmpty)
             _buildSummaryRow(
-              'السعر الأصلي',
+              'السعر الأصلي للباقة',
               '${widget.subscription.priceBeforeDiscount} $_currencySymbol',
               isStrikethrough: true,
             ),
           if (widget.subscription.priceBeforeDiscount != widget.subscription.price &&
               widget.subscription.priceBeforeDiscount.isNotEmpty)
             SizedBox(height: 12),
-          if (widget.promoCode != null && widget.promoCode!.isNotEmpty)
+          // Show current subscription price (before coupon)
+          _buildSummaryRow(
+            'سعر الباقة',
+            '$originalPrice $_currencySymbol',
+          ),
+          SizedBox(height: 12),
+          // Show coupon code if applied
+          if (widget.promoCode != null && widget.promoCode!.isNotEmpty) ...[
             _buildSummaryRow(
               'كود الخصم',
               widget.promoCode!,
               valueColor: AppColors.success,
             ),
-          if (widget.promoCode != null && widget.promoCode!.isNotEmpty)
+            SizedBox(height: 8),
+          ],
+          // Show coupon discount if applied
+          if (hasCouponDiscount) ...[
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'الخصم',
+                  style: TextStyle(
+                    fontFamily: 'Cairo',
+                    fontSize: 14,
+                    fontWeight: FontWeight.normal,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+                Row(
+                  children: [
+                    Container(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF4CAF50).withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        'خصم ${widget.discountPercentage!.toStringAsFixed(0)}%',
+                        style: TextStyle(
+                          fontFamily: 'Cairo',
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: const Color(0xFF4CAF50),
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: 8),
+                    Text(
+                      '-${(double.tryParse(originalPrice) ?? 0) - (double.tryParse(displayPrice) ?? 0)} $_currencySymbol',
+                      style: TextStyle(
+                        fontFamily: 'Cairo',
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: const Color(0xFF4CAF50),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            SizedBox(height: 8),
+            // Show original price with strikethrough if coupon applied
+            _buildSummaryRow(
+              'السعر قبل الخصم',
+              '$originalPrice $_currencySymbol',
+              isStrikethrough: true,
+            ),
             SizedBox(height: 12),
+          ],
           const Divider(height: 24),
           _buildSummaryRow(
             'المجموع',
-            '${widget.subscription.price} $_currencySymbol',
+            '$displayPrice $_currencySymbol',
             isBold: true,
-            valueColor: AppColors.primary,
+            valueColor: hasCouponDiscount ? const Color(0xFF4CAF50) : AppColors.primary,
           ),
         ],
       ),
@@ -347,6 +431,13 @@ class _PaymentPageContentState extends State<_PaymentPageContent> {
   }
 
   Widget _buildPayButton() {
+    final hasCouponDiscount = widget.discountPercentage != null && 
+                              widget.discountPercentage! > 0 && 
+                              widget.finalPriceAfterCoupon != null;
+    final displayPrice = hasCouponDiscount 
+        ? widget.finalPriceAfterCoupon! 
+        : widget.subscription.price;
+
     return ElevatedButton(
       onPressed: _isLoading ? null : _processPayment,
       style: ElevatedButton.styleFrom(
@@ -368,7 +459,7 @@ class _PaymentPageContentState extends State<_PaymentPageContent> {
               ),
             )
           : Text(
-              'ادفع ${widget.subscription.price} $_currencySymbol',
+              'ادفع $displayPrice $_currencySymbol',
               style: TextStyle(
                 fontFamily: 'Cairo',
                 fontSize: 18,

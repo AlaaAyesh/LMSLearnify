@@ -190,6 +190,7 @@ class PaymentResponseModel {
   final String? dataMessage;
   final PurchaseModel? purchase;
   final String? checkoutUrl;
+  final Map<String, dynamic>? subscriptionData; // For free subscriptions (100% coupon)
 
   PaymentResponseModel({
     required this.status,
@@ -197,6 +198,7 @@ class PaymentResponseModel {
     this.dataMessage,
     this.purchase,
     this.checkoutUrl,
+    this.subscriptionData,
   });
 
   factory PaymentResponseModel.fromJson(Map<String, dynamic> json) {
@@ -212,12 +214,22 @@ class PaymentResponseModel {
       }
     }
     
+    // Parse subscription if available (for free subscriptions with 100% coupon)
+    Map<String, dynamic>? subscriptionData;
+    if (data?['subscription'] != null && data!['subscription'] is Map) {
+      subscriptionData = data['subscription'] as Map<String, dynamic>;
+    } else if (data != null && data.containsKey('id') && !data.containsKey('checkout_url') && purchaseModel == null) {
+      // If data itself is subscription object (no checkout_url, no purchase)
+      subscriptionData = data;
+    }
+    
     return PaymentResponseModel(
       status: json['status'] as String? ?? 'success',
       message: json['message'] as String? ?? '',
       dataMessage: data?['message'] as String?,
       purchase: purchaseModel,
       checkoutUrl: data?['checkout_url']?.toString(),
+      subscriptionData: subscriptionData,
     );
   }
 
@@ -226,6 +238,9 @@ class PaymentResponseModel {
   
   /// Check if checkout URL is available (for redirecting to payment gateway)
   bool get hasCheckoutUrl => checkoutUrl != null && checkoutUrl!.isNotEmpty;
+  
+  /// Check if this is a free subscription (100% coupon) - no payment needed
+  bool get isFreeSubscription => subscriptionData != null && !hasCheckoutUrl && purchase == null;
 }
 
 

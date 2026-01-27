@@ -110,6 +110,17 @@ class _SubscriptionsPageContentState extends State<_SubscriptionsPageContent> {
                     }
                   });
                 }
+              } else if (state is PaymentCompleted) {
+                // Payment completed (including free subscriptions with 100% coupon)
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(state.message),
+                    backgroundColor: Colors.green,
+                    duration: const Duration(seconds: 3),
+                  ),
+                );
+                // Reload subscriptions to reflect the new subscription
+                context.read<SubscriptionBloc>().add(const LoadSubscriptionsEvent());
               }
             },
             builder: (context, state) {
@@ -171,6 +182,11 @@ class _SubscriptionsPageContentState extends State<_SubscriptionsPageContent> {
 
   Widget _buildPlansList(BuildContext context, SubscriptionsLoaded state) {
     final currencySymbol = CurrencyService.getCurrencySymbol();
+    final isSelectedPlan = state.selectedIndex;
+    final hasCouponApplied = state.appliedPromoCode != null && 
+                             state.appliedPromoCode!.isNotEmpty &&
+                             state.discountPercentage != null &&
+                             state.discountPercentage! > 0;
     
     return Column(
       children: List.generate(
@@ -182,6 +198,9 @@ class _SubscriptionsPageContentState extends State<_SubscriptionsPageContent> {
               .map((s) => s.duration)
               .reduce((a, b) => a > b ? a : b);
           final isRecommended = subscription.duration == maxDuration;
+          
+          // Only show coupon discount on selected plan
+          final shouldShowCouponDiscount = hasCouponApplied && index == isSelectedPlan;
 
           return Padding(
             padding: Responsive.padding(
@@ -198,6 +217,8 @@ class _SubscriptionsPageContentState extends State<_SubscriptionsPageContent> {
                 isRecommended: isRecommended,
               ),
               isSelected: state.selectedIndex == index,
+              couponDiscountPercentage: shouldShowCouponDiscount ? state.discountPercentage : null,
+              finalPriceAfterCoupon: shouldShowCouponDiscount ? state.finalPriceAfterCoupon : null,
               onTap: () {
                 context.read<SubscriptionBloc>().add(
                       SelectSubscriptionEvent(index: index),
@@ -374,8 +395,27 @@ class _SubscriptionsPageContentState extends State<_SubscriptionsPageContent> {
       return;
     }
 
-    // User is authenticated - show compact payment sheet
-    _showPaymentBottomSheet(context, selectedSubscription, state.appliedPromoCode);
+    // User is authenticated - check if price is 0 (100% coupon)
+    final finalPrice = state.finalPriceAfterCoupon != null
+        ? double.tryParse(state.finalPriceAfterCoupon!) ?? double.tryParse(selectedSubscription.price) ?? 0.0
+        : double.tryParse(selectedSubscription.price) ?? 0.0;
+    
+    if (finalPrice == 0 && state.appliedPromoCode != null && state.appliedPromoCode!.isNotEmpty) {
+      // Free subscription (100% coupon) - process payment directly without showing payment sheet
+      final currencyCode = CurrencyService.getCurrencyCode();
+      context.read<SubscriptionBloc>().add(
+        ProcessPaymentEvent(
+          service: PaymentService.kashier,
+          currency: currencyCode,
+          subscriptionId: selectedSubscription.id,
+          phone: '',
+          couponCode: state.appliedPromoCode,
+        ),
+      );
+    } else {
+      // Show payment sheet for paid subscriptions
+      _showPaymentBottomSheet(context, selectedSubscription, state.appliedPromoCode);
+    }
   }
 
   Future<bool?> _showLoginRequiredDialog(BuildContext context) async {
@@ -430,7 +470,6 @@ class _SubscriptionsPageContentState extends State<_SubscriptionsPageContent> {
     String? promoCode,
   ) {
     final bloc = context.read<SubscriptionBloc>();
-    final amount = selectedSubscription.price;
     final currencySymbol = CurrencyService.getCurrencySymbol();
     final currencyCode = CurrencyService.getCurrencyCode();
 
@@ -446,133 +485,221 @@ class _SubscriptionsPageContentState extends State<_SubscriptionsPageContent> {
       builder: (ctx) {
         return BlocProvider.value(
           value: bloc,
-          child: BlocListener<SubscriptionBloc, SubscriptionState>(
-            listener: (context, state) async {
-              if (state is PaymentProcessing) {
-                // nothing extra, button shows loader outside
-              } else if (state is PaymentCheckoutReady) {
-                final uri = Uri.parse(state.checkoutUrl);
-                if (await canLaunchUrl(uri)) {
-                  await launchUrl(
-                    uri,
-                    mode: LaunchMode.externalApplication,
-                  );
-                } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('لا يمكن فتح رابط الدفع'),
-                      backgroundColor: Colors.red,
-                    ),
-                  );
-                }
-                if (Navigator.of(context).canPop()) {
-                  Navigator.of(context).pop();
-                }
-              } else if (state is PaymentFailed) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(state.message),
-                    backgroundColor: Colors.red,
-                  ),
-                );
-              } else if (state is PaymentCompleted || state is PaymentInitiated) {
-                if (Navigator.of(context).canPop()) {
-                  Navigator.of(context).pop();
-                }
+          child: BlocBuilder<SubscriptionBloc, SubscriptionState>(
+            builder: (context, state) {
+              // Get the final amount - use coupon price if available, otherwise use subscription price
+              String amount;
+              double? discountPercentage;
+              String? appliedCouponCode = promoCode;
+              
+              if (state is SubscriptionsLoaded && 
+                  state.appliedPromoCode != null && 
+                  state.finalPriceAfterCoupon != null &&
+                  state.discountPercentage != null &&
+                  state.discountPercentage! > 0) {
+                amount = state.finalPriceAfterCoupon!;
+                discountPercentage = state.discountPercentage;
+                appliedCouponCode = state.appliedPromoCode;
+              } else {
+                amount = selectedSubscription.price;
               }
-            },
-            child: Padding(
-              padding: EdgeInsets.only(
-                left: Responsive.width(ctx, 20),
-                right: Responsive.width(ctx, 20),
-                bottom: MediaQuery.of(ctx).viewInsets.bottom + Responsive.height(ctx, 20),
-                top: Responsive.height(ctx, 16),
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Center(
-                    child: Container(
-                      width: Responsive.width(ctx, 50),
-                      height: Responsive.height(ctx, 5),
-                      decoration: BoxDecoration(
-                        color: Colors.grey[300],
-                        borderRadius: BorderRadius.circular(Responsive.radius(ctx, 12)),
+
+              return BlocListener<SubscriptionBloc, SubscriptionState>(
+                listener: (context, state) async {
+                  if (state is PaymentProcessing) {
+                    // nothing extra, button shows loader outside
+                  } else if (state is PaymentCheckoutReady) {
+                    final uri = Uri.parse(state.checkoutUrl);
+                    if (await canLaunchUrl(uri)) {
+                      await launchUrl(
+                        uri,
+                        mode: LaunchMode.externalApplication,
+                      );
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('لا يمكن فتح رابط الدفع'),
+                          backgroundColor: Colors.red,
+                        ),
+                      );
+                    }
+                    if (Navigator.of(context).canPop()) {
+                      Navigator.of(context).pop();
+                    }
+                  } else if (state is PaymentFailed) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(state.message),
+                        backgroundColor: Colors.red,
                       ),
-                    ),
+                    );
+                  } else if (state is PaymentCompleted || state is PaymentInitiated) {
+                    if (Navigator.of(context).canPop()) {
+                      Navigator.of(context).pop();
+                    }
+                  }
+                },
+                child: Padding(
+                  padding: EdgeInsets.only(
+                    left: Responsive.width(ctx, 20),
+                    right: Responsive.width(ctx, 20),
+                    bottom: MediaQuery.of(ctx).viewInsets.bottom + Responsive.height(ctx, 20),
+                    top: Responsive.height(ctx, 16),
                   ),
-                  SizedBox(height: Responsive.spacing(ctx, 16)),
-                  Text(
-                    'اختر طريقة الدفع',
-                    style: TextStyle(
-                      fontFamily: 'Cairo',
-                      fontSize: Responsive.fontSize(ctx, 16),
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.textPrimary,
-                    ),
-                  ),
-                  SizedBox(height: Responsive.spacing(ctx, 12)),
-                  _PaymentOptionTile(
-                    title: 'بطاقة ائتمانية',
-                    subtitle: 'ادفع عبر بوابة Kashier',
-                    icon: Icons.credit_card,
-                    onTap: () {
-                      bloc.add(
-                        ProcessPaymentEvent(
-                          service: PaymentService.kashier,
-                          currency: currencyCode,
-                          subscriptionId: selectedSubscription.id,
-                          phone: '',
-                          couponCode: promoCode,
-                        ),
-                      );
-                    },
-                  ),
-                  SizedBox(height: Responsive.spacing(ctx, 12)),
-                  _PaymentOptionTile(
-                    title: 'محفظة / طرق أخرى',
-                    subtitle: 'سيتم توجيهك لبوابة الدفع',
-                    icon: Icons.account_balance_wallet,
-                    onTap: () {
-                      bloc.add(
-                        ProcessPaymentEvent(
-                          service: PaymentService.kashier,
-                          currency: currencyCode,
-                          subscriptionId: selectedSubscription.id,
-                          phone: '',
-                          couponCode: promoCode,
-                        ),
-                      );
-                    },
-                  ),
-                  SizedBox(height: Responsive.spacing(ctx, 16)),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        'الإجمالي',
-                        style: TextStyle(
-                          fontFamily: 'Cairo',
-                          fontSize: Responsive.fontSize(ctx, 14),
-                          color: AppColors.textSecondary,
+                      Center(
+                        child: Container(
+                          width: Responsive.width(ctx, 50),
+                          height: Responsive.height(ctx, 5),
+                          decoration: BoxDecoration(
+                            color: Colors.grey[300],
+                            borderRadius: BorderRadius.circular(Responsive.radius(ctx, 12)),
+                          ),
                         ),
                       ),
+                      SizedBox(height: Responsive.spacing(ctx, 16)),
                       Text(
-                        '$amount $currencySymbol',
+                        'اختر طريقة الدفع',
                         style: TextStyle(
                           fontFamily: 'Cairo',
-                          fontSize: Responsive.fontSize(ctx, 18),
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.primary,
+                          fontSize: Responsive.fontSize(ctx, 16),
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.textPrimary,
                         ),
                       ),
+                      SizedBox(height: Responsive.spacing(ctx, 12)),
+                      _PaymentOptionTile(
+                        title: 'بطاقة ائتمانية',
+                        subtitle: 'ادفع عبر بوابة Kashier',
+                        icon: Icons.credit_card,
+                        onTap: () {
+                          bloc.add(
+                            ProcessPaymentEvent(
+                              service: PaymentService.kashier,
+                              currency: currencyCode,
+                              subscriptionId: selectedSubscription.id,
+                              phone: '',
+                              couponCode: appliedCouponCode,
+                            ),
+                          );
+                        },
+                      ),
+                      SizedBox(height: Responsive.spacing(ctx, 12)),
+                      _PaymentOptionTile(
+                        title: 'محفظة / طرق أخرى',
+                        subtitle: 'سيتم توجيهك لبوابة الدفع',
+                        icon: Icons.account_balance_wallet,
+                        onTap: () {
+                          bloc.add(
+                            ProcessPaymentEvent(
+                              service: PaymentService.kashier,
+                              currency: currencyCode,
+                              subscriptionId: selectedSubscription.id,
+                              phone: '',
+                              couponCode: appliedCouponCode,
+                            ),
+                          );
+                        },
+                      ),
+                      SizedBox(height: Responsive.spacing(ctx, 16)),
+                      // Show discount info if coupon applied
+                      if (discountPercentage != null && discountPercentage > 0) ...[
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              'السعر قبل الخصم',
+                              style: TextStyle(
+                                fontFamily: 'Cairo',
+                                fontSize: Responsive.fontSize(ctx, 12),
+                                color: AppColors.textSecondary,
+                              ),
+                            ),
+                            Text(
+                              '${selectedSubscription.price} $currencySymbol',
+                              style: TextStyle(
+                                fontFamily: 'Cairo',
+                                fontSize: Responsive.fontSize(ctx, 12),
+                                color: AppColors.textSecondary,
+                                decoration: TextDecoration.lineThrough,
+                              ),
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: Responsive.spacing(ctx, 4)),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Container(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: Responsive.width(ctx, 8),
+                                vertical: Responsive.height(ctx, 4),
+                              ),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF4CAF50).withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(Responsive.radius(ctx, 4)),
+                              ),
+                              child: Text(
+                                'خصم ${discountPercentage.toStringAsFixed(0)}%',
+                                style: TextStyle(
+                                  fontFamily: 'Cairo',
+                                  fontSize: Responsive.fontSize(ctx, 12),
+                                  fontWeight: FontWeight.bold,
+                                  color: const Color(0xFF4CAF50),
+                                ),
+                              ),
+                            ),
+                            Text(
+                              '-${((double.tryParse(selectedSubscription.price) ?? 0) - (double.tryParse(amount) ?? 0)).toStringAsFixed(2).replaceAll(RegExp(r'\.?0+$'), '')} $currencySymbol',
+                              style: TextStyle(
+                                fontFamily: 'Cairo',
+                                fontSize: Responsive.fontSize(ctx, 12),
+                                fontWeight: FontWeight.bold,
+                                color: const Color(0xFF4CAF50),
+                              ),
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: Responsive.spacing(ctx, 8)),
+                        Divider(
+                          height: Responsive.height(ctx, 1),
+                          color: Colors.grey[300],
+                        ),
+                        SizedBox(height: Responsive.spacing(ctx, 8)),
+                      ],
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'الإجمالي',
+                            style: TextStyle(
+                              fontFamily: 'Cairo',
+                              fontSize: Responsive.fontSize(ctx, 14),
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                          Text(
+                            '$amount $currencySymbol',
+                            style: TextStyle(
+                              fontFamily: 'Cairo',
+                              fontSize: Responsive.fontSize(ctx, 18),
+                              fontWeight: FontWeight.bold,
+                              color: discountPercentage != null && discountPercentage > 0
+                                  ? const Color(0xFF4CAF50)
+                                  : AppColors.primary,
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: Responsive.spacing(ctx, 20)),
                     ],
                   ),
-                  SizedBox(height: Responsive.spacing(ctx, 20)),
-                ],
-              ),
-            ),
+                ),
+              );
+            },
           ),
         );
       },

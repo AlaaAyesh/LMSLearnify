@@ -10,12 +10,16 @@ class SubscriptionPlanCard extends StatelessWidget {
   final SubscriptionPlan plan;
   final bool isSelected;
   final VoidCallback onTap;
+  final double? couponDiscountPercentage;
+  final String? finalPriceAfterCoupon;
 
   const SubscriptionPlanCard({
     super.key,
     required this.plan,
     required this.isSelected,
     required this.onTap,
+    this.couponDiscountPercentage,
+    this.finalPriceAfterCoupon,
   });
 
   @override
@@ -50,6 +54,8 @@ class SubscriptionPlanCard extends StatelessWidget {
                   originalPrice: plan.originalPrice,
                   discountedPrice: plan.discountedPrice,
                   currency: plan.currency,
+                  couponDiscountPercentage: couponDiscountPercentage,
+                  finalPriceAfterCoupon: finalPriceAfterCoupon,
                 ),
               ],
             ),
