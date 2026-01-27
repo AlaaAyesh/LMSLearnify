@@ -82,6 +82,46 @@ class ReelsRepositoryImpl implements ReelsRepository {
       return Left(ServerFailure('حدث خطأ غير متوقع: $e'));
     }
   }
+
+  @override
+  Future<Either<Failure, ReelsFeedResponseModel>> getUserReels({
+    required int userId,
+    int perPage = 10,
+    int page = 1,
+  }) async {
+    try {
+      final response = await remoteDataSource.getUserReels(
+        userId: userId,
+        perPage: perPage,
+        page: page,
+      );
+      return Right(response);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    } catch (e) {
+      return Left(ServerFailure('حدث خطأ غير متوقع: $e'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, ReelsFeedResponseModel>> getUserLikedReels({
+    required int userId,
+    int perPage = 10,
+    int page = 1,
+  }) async {
+    try {
+      final response = await remoteDataSource.getUserLikedReels(
+        userId: userId,
+        perPage: perPage,
+        page: page,
+      );
+      return Right(response);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    } catch (e) {
+      return Left(ServerFailure('حدث خطأ غير متوقع: $e'));
+    }
+  }
 }
 
 

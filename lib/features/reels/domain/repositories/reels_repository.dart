@@ -31,6 +31,26 @@ abstract class ReelsRepository {
   /// Get reel categories with their reel counts
   /// Returns a list of categories with the number of reels in each category
   Future<Either<Failure, List<ReelCategoryModel>>> getReelCategoriesWithReels();
+
+  /// Get user reels (reels created by a specific user)
+  /// [userId] - The ID of the user whose reels to retrieve
+  /// [perPage] - Number of reels per page (default: 10)
+  /// [page] - Page number (default: 1)
+  Future<Either<Failure, ReelsFeedResponseModel>> getUserReels({
+    required int userId,
+    int perPage = 10,
+    int page = 1,
+  });
+
+  /// Get user liked reels (reels that a specific user has liked)
+  /// [userId] - The ID of the user whose liked reels to retrieve
+  /// [perPage] - Number of reels per page (default: 10)
+  /// [page] - Page number (default: 1)
+  Future<Either<Failure, ReelsFeedResponseModel>> getUserLikedReels({
+    required int userId,
+    int perPage = 10,
+    int page = 1,
+  });
 }
 
 

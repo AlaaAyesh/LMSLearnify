@@ -14,6 +14,7 @@ import '../../../../core/routing/app_router.dart';
 import '../../../authentication/data/datasources/auth_local_datasource.dart';
 import '../../../home/presentation/pages/main_navigation_page.dart';
 import '../../domain/entities/reel.dart';
+import '../../domain/entities/reel_owner.dart';
 import '../../data/models/reel_category_model.dart';
 import '../bloc/reels_bloc.dart';
 import '../bloc/reels_event.dart';
@@ -977,7 +978,7 @@ class _ReelsFeedPageState extends State<ReelsFeedPage>
             if (widget.hideCategoryFilters || widget.initialReel != null) {
               Navigator.of(context).pop();
             } else {
-              _navigateToCollectedReels(context);
+              _navigateToUserProfile(context, reel.owner);
             }
           },
         );
@@ -1053,7 +1054,7 @@ class _ReelsFeedPageState extends State<ReelsFeedPage>
     }
   }
 
-  void _navigateToCollectedReels(BuildContext context) async {
+  void _navigateToUserProfile(BuildContext context, ReelOwner owner) async {
     // Pause videos before navigating
     setState(() => _isPageVisible = false);
 
@@ -1062,15 +1063,21 @@ class _ReelsFeedPageState extends State<ReelsFeedPage>
 
     if (!mounted) return;
 
+    final profilePage = CollectedReelsPage(
+      userId: owner.id,
+      userName: owner.name,
+      userAvatarUrl: owner.avatarUrl,
+    );
+
     final mainNav = context.mainNavigation;
     if (mainNav != null) {
       // Keep bottom nav visible by pushing inside the current tab navigator
       mainNav.setShowBottomNav(true);
-      mainNav.pushPage(const CollectedReelsPage());
+      mainNav.pushPage(profilePage);
     } else {
       // Fallback: regular push (may hide bottom nav if above shell)
       await Navigator.of(context).push(
-        MaterialPageRoute(builder: (_) => const CollectedReelsPage()),
+        MaterialPageRoute(builder: (_) => profilePage),
       );
     }
 

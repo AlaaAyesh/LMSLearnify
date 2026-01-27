@@ -54,6 +54,8 @@ import '../../features/reels/domain/usecases/get_reels_feed_usecase.dart';
 import '../../features/reels/domain/usecases/record_reel_view_usecase.dart';
 import '../../features/reels/domain/usecases/toggle_reel_like_usecase.dart';
 import '../../features/reels/domain/usecases/get_reel_categories_usecase.dart';
+import '../../features/reels/domain/usecases/get_user_reels_usecase.dart';
+import '../../features/reels/domain/usecases/get_user_liked_reels_usecase.dart';
 import '../../features/reels/presentation/bloc/reels_bloc.dart';
 import '../../features/banners/data/datasources/banners_remote_datasource.dart';
 import '../../features/banners/data/repositories/banners_repository_impl.dart';
@@ -306,6 +308,8 @@ void _initReels() {
   sl.registerLazySingleton(() => RecordReelViewUseCase(sl()));
   sl.registerLazySingleton(() => ToggleReelLikeUseCase(sl()));
   sl.registerLazySingleton(() => GetReelCategoriesUseCase(sl()));
+  sl.registerLazySingleton(() => GetUserReelsUseCase(sl()));
+  sl.registerLazySingleton(() => GetUserLikedReelsUseCase(sl()));
 
   // Bloc
   sl.registerFactory(
@@ -314,6 +318,8 @@ void _initReels() {
       recordReelViewUseCase: sl(),
       toggleReelLikeUseCase: sl(),
       getReelCategoriesUseCase: sl(),
+      getUserReelsUseCase: sl(),
+      getUserLikedReelsUseCase: sl(),
     ),
   );
 }

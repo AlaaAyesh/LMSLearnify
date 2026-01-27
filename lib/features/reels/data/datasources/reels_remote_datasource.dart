@@ -40,6 +40,28 @@ abstract class ReelsRemoteDataSource {
   /// Returns a list of categories with the number of reels in each category
   /// Throws [ServerException] on failure
   Future<List<ReelCategoryModel>> getReelCategoriesWithReels();
+
+  /// Get user reels (reels created by a specific user)
+  /// [userId] - The ID of the user whose reels to retrieve
+  /// [perPage] - Number of reels per page (default: 10)
+  /// [page] - Page number (default: 1)
+  /// Throws [ServerException] on failure
+  Future<ReelsFeedResponseModel> getUserReels({
+    required int userId,
+    int perPage = 10,
+    int page = 1,
+  });
+
+  /// Get user liked reels (reels that a specific user has liked)
+  /// [userId] - The ID of the user whose liked reels to retrieve
+  /// [perPage] - Number of reels per page (default: 10)
+  /// [page] - Page number (default: 1)
+  /// Throws [ServerException] on failure
+  Future<ReelsFeedResponseModel> getUserLikedReels({
+    required int userId,
+    int perPage = 10,
+    int page = 1,
+  });
 }
 
 class ReelsRemoteDataSourceImpl implements ReelsRemoteDataSource {
@@ -306,6 +328,122 @@ class ReelsRemoteDataSourceImpl implements ReelsRemoteDataSource {
 
       throw ServerException(
         message: response.data['message'] ?? 'فشل في جلب فئات الرييلز',
+        statusCode: response.statusCode,
+      );
+    } on DioException catch (e) {
+      String errorMessage = 'خطأ في الاتصال بالخادم';
+
+      if (e.response?.statusCode == 401) {
+        errorMessage = 'يجب تسجيل الدخول أولاً';
+      } else if (e.response?.data != null && e.response?.data['message'] != null) {
+        errorMessage = e.response?.data['message'];
+      }
+
+      throw ServerException(
+        message: errorMessage,
+        statusCode: e.response?.statusCode,
+      );
+    } catch (e) {
+      throw ServerException(message: 'خطأ غير متوقع: $e');
+    }
+  }
+
+  @override
+  Future<ReelsFeedResponseModel> getUserReels({
+    required int userId,
+    int perPage = 10,
+    int page = 1,
+  }) async {
+    try {
+      final endpoint = ApiConstants.userReels.replaceAll('{userId}', userId.toString());
+      
+      final response = await dioClient.get(
+        endpoint,
+        queryParameters: {
+          'per_page': perPage,
+          'page': page,
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final responseData = response.data;
+
+        // Handle standard response format: { "status": "success", "data": { "data": [...], "meta": {...} } }
+        if (responseData['status'] == 'success' && responseData['data'] != null) {
+          return ReelsFeedResponseModel.fromJson(responseData['data']);
+        }
+
+        // Handle case where data and meta are at root level
+        if (responseData['data'] != null || responseData['items'] != null) {
+          return ReelsFeedResponseModel.fromJson(responseData);
+        }
+
+        return const ReelsFeedResponseModel(
+          reels: [],
+          meta: ReelsFeedMetaModel(perPage: 10, hasMore: false),
+        );
+      }
+
+      throw ServerException(
+        message: response.data['message'] ?? 'فشل في جلب فيديوهات المستخدم',
+        statusCode: response.statusCode,
+      );
+    } on DioException catch (e) {
+      String errorMessage = 'خطأ في الاتصال بالخادم';
+
+      if (e.response?.statusCode == 401) {
+        errorMessage = 'يجب تسجيل الدخول أولاً';
+      } else if (e.response?.data != null && e.response?.data['message'] != null) {
+        errorMessage = e.response?.data['message'];
+      }
+
+      throw ServerException(
+        message: errorMessage,
+        statusCode: e.response?.statusCode,
+      );
+    } catch (e) {
+      throw ServerException(message: 'خطأ غير متوقع: $e');
+    }
+  }
+
+  @override
+  Future<ReelsFeedResponseModel> getUserLikedReels({
+    required int userId,
+    int perPage = 10,
+    int page = 1,
+  }) async {
+    try {
+      final endpoint = ApiConstants.userLikedReels.replaceAll('{userId}', userId.toString());
+      
+      final response = await dioClient.get(
+        endpoint,
+        queryParameters: {
+          'per_page': perPage,
+          'page': page,
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final responseData = response.data;
+
+        // Handle standard response format: { "status": "success", "data": { "data": [...], "meta": {...} } }
+        if (responseData['status'] == 'success' && responseData['data'] != null) {
+          return ReelsFeedResponseModel.fromJson(responseData['data']);
+        }
+
+        // Handle case where data and meta are at root level
+        if (responseData['data'] != null || responseData['items'] != null) {
+          return ReelsFeedResponseModel.fromJson(responseData);
+        }
+
+        return const ReelsFeedResponseModel(
+          reels: [],
+          meta: ReelsFeedMetaModel(perPage: 10, hasMore: false),
+        );
+      }
+
+      throw ServerException(
+        message: response.data['message'] ?? 'فشل في جلب الفيديوهات المفضلة',
         statusCode: response.statusCode,
       );
     } on DioException catch (e) {

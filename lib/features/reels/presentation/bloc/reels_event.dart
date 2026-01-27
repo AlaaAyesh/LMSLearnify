@@ -84,5 +84,47 @@ class LoadNextCategoryReelsEvent extends ReelsEvent {
   List<Object?> get props => [categoryId];
 }
 
+/// Load user reels (reels created by a specific user)
+class LoadUserReelsEvent extends ReelsEvent {
+  final int userId;
+  final int perPage;
+  final int page;
+
+  const LoadUserReelsEvent({
+    required this.userId,
+    this.perPage = 10,
+    this.page = 1,
+  });
+
+  @override
+  List<Object?> get props => [userId, perPage, page];
+}
+
+/// Load more user reels (pagination)
+class LoadMoreUserReelsEvent extends ReelsEvent {
+  const LoadMoreUserReelsEvent();
+}
+
+/// Load user liked reels (reels that a specific user has liked)
+class LoadUserLikedReelsEvent extends ReelsEvent {
+  final int userId;
+  final int perPage;
+  final int page;
+
+  const LoadUserLikedReelsEvent({
+    required this.userId,
+    this.perPage = 10,
+    this.page = 1,
+  });
+
+  @override
+  List<Object?> get props => [userId, perPage, page];
+}
+
+/// Load more user liked reels (pagination)
+class LoadMoreUserLikedReelsEvent extends ReelsEvent {
+  const LoadMoreUserLikedReelsEvent();
+}
+
 
 

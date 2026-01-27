@@ -5,6 +5,8 @@ import '../../domain/usecases/get_reels_feed_usecase.dart';
 import '../../domain/usecases/record_reel_view_usecase.dart';
 import '../../domain/usecases/toggle_reel_like_usecase.dart';
 import '../../domain/usecases/get_reel_categories_usecase.dart';
+import '../../domain/usecases/get_user_reels_usecase.dart';
+import '../../domain/usecases/get_user_liked_reels_usecase.dart';
 import 'reels_event.dart';
 import 'reels_state.dart';
 
@@ -13,18 +15,27 @@ class ReelsBloc extends Bloc<ReelsEvent, ReelsState> {
   final RecordReelViewUseCase recordReelViewUseCase;
   final ToggleReelLikeUseCase toggleReelLikeUseCase;
   final GetReelCategoriesUseCase getReelCategoriesUseCase;
+  final GetUserReelsUseCase getUserReelsUseCase;
+  final GetUserLikedReelsUseCase getUserLikedReelsUseCase;
 
   int _perPage = 10;
   int? _currentCategoryId; // Track current category filter
   int _loadRequestId = 0; // Track latest load request to ignore stale responses
   final Set<int> _viewedReelIds = {}; // Track viewed reels to avoid duplicate API calls
   List<ReelCategoryModel> _categories = []; // Store categories to persist across state changes
+  
+  // Track user reels state
+  int? _currentUserId;
+  int _userReelsPage = 1;
+  int _userLikedReelsPage = 1;
 
   ReelsBloc({
     required this.getReelsFeedUseCase,
     required this.recordReelViewUseCase,
     required this.toggleReelLikeUseCase,
     required this.getReelCategoriesUseCase,
+    required this.getUserReelsUseCase,
+    required this.getUserLikedReelsUseCase,
   }) : super(const ReelsInitial()) {
     on<LoadReelsFeedEvent>(_onLoadReelsFeed);
     on<LoadMoreReelsEvent>(_onLoadMoreReels);
@@ -35,6 +46,10 @@ class ReelsBloc extends Bloc<ReelsEvent, ReelsState> {
     on<LoadReelCategoriesEvent>(_onLoadReelCategories);
     on<SeedSingleReelEvent>(_onSeedSingleReel);
     on<SeedReelsListEvent>(_onSeedReelsList);
+    on<LoadUserReelsEvent>(_onLoadUserReels);
+    on<LoadMoreUserReelsEvent>(_onLoadMoreUserReels);
+    on<LoadUserLikedReelsEvent>(_onLoadUserLikedReels);
+    on<LoadMoreUserLikedReelsEvent>(_onLoadMoreUserLikedReels);
   }
 
   void _onSeedReelsList(
@@ -432,6 +447,184 @@ class ReelsBloc extends Bloc<ReelsEvent, ReelsState> {
         // Store categories for later use
         _categories = categories;
         emit(ReelsWithCategories(categories: categories));
+      },
+    );
+  }
+
+  Future<void> _onLoadUserReels(
+    LoadUserReelsEvent event,
+    Emitter<ReelsState> emit,
+  ) async {
+    emit(const ReelsLoading());
+    _currentUserId = event.userId;
+    _userReelsPage = event.page;
+
+    final result = await getUserReelsUseCase(
+      userId: event.userId,
+      perPage: event.perPage,
+      page: event.page,
+    );
+
+    result.fold(
+      (failure) => emit(ReelsError(failure.message)),
+      (response) {
+        if (response.reels.isEmpty) {
+          emit(const ReelsEmpty());
+        } else {
+          final likedReels = <int, bool>{};
+          for (final reel in response.reels) {
+            likedReels[reel.id] = reel.liked;
+            if (reel.viewed) {
+              _viewedReelIds.add(reel.id);
+            }
+          }
+
+          emit(ReelsLoaded(
+            reels: response.reels,
+            nextPageUrl: response.meta.nextPageUrl,
+            hasMore: response.meta.hasMore,
+            likedReels: likedReels,
+            categories: _categories,
+          ));
+        }
+      },
+    );
+  }
+
+  Future<void> _onLoadMoreUserReels(
+    LoadMoreUserReelsEvent event,
+    Emitter<ReelsState> emit,
+  ) async {
+    final currentState = state;
+    if (currentState is! ReelsLoaded || _currentUserId == null) {
+      return;
+    }
+
+    if (!currentState.hasMore || currentState.isLoadingMore) {
+      return;
+    }
+
+    emit(currentState.copyWith(isLoadingMore: true));
+    _userReelsPage++;
+
+    final result = await getUserReelsUseCase(
+      userId: _currentUserId!,
+      perPage: _perPage,
+      page: _userReelsPage,
+    );
+
+    result.fold(
+      (failure) {
+        emit(currentState.copyWith(isLoadingMore: false));
+        emit(ReelsError(failure.message));
+      },
+      (response) {
+        final updatedReels = [...currentState.reels, ...response.reels];
+        final updatedLikedReels = Map<int, bool>.from(currentState.likedReels);
+        
+        for (final reel in response.reels) {
+          updatedLikedReels[reel.id] = reel.liked;
+          if (reel.viewed) {
+            _viewedReelIds.add(reel.id);
+          }
+        }
+
+        emit(ReelsLoaded(
+          reels: updatedReels,
+          nextPageUrl: response.meta.nextPageUrl,
+          hasMore: response.meta.hasMore,
+          likedReels: updatedLikedReels,
+          categories: _categories,
+        ));
+      },
+    );
+  }
+
+  Future<void> _onLoadUserLikedReels(
+    LoadUserLikedReelsEvent event,
+    Emitter<ReelsState> emit,
+  ) async {
+    emit(const ReelsLoading());
+    _currentUserId = event.userId;
+    _userLikedReelsPage = event.page;
+
+    final result = await getUserLikedReelsUseCase(
+      userId: event.userId,
+      perPage: event.perPage,
+      page: event.page,
+    );
+
+    result.fold(
+      (failure) => emit(ReelsError(failure.message)),
+      (response) {
+        if (response.reels.isEmpty) {
+          emit(const ReelsEmpty());
+        } else {
+          final likedReels = <int, bool>{};
+          for (final reel in response.reels) {
+            likedReels[reel.id] = true; // All reels in liked list are liked
+            if (reel.viewed) {
+              _viewedReelIds.add(reel.id);
+            }
+          }
+
+          emit(ReelsLoaded(
+            reels: response.reels,
+            nextPageUrl: response.meta.nextPageUrl,
+            hasMore: response.meta.hasMore,
+            likedReels: likedReels,
+            categories: _categories,
+          ));
+        }
+      },
+    );
+  }
+
+  Future<void> _onLoadMoreUserLikedReels(
+    LoadMoreUserLikedReelsEvent event,
+    Emitter<ReelsState> emit,
+  ) async {
+    final currentState = state;
+    if (currentState is! ReelsLoaded || _currentUserId == null) {
+      return;
+    }
+
+    if (!currentState.hasMore || currentState.isLoadingMore) {
+      return;
+    }
+
+    emit(currentState.copyWith(isLoadingMore: true));
+    _userLikedReelsPage++;
+
+    final result = await getUserLikedReelsUseCase(
+      userId: _currentUserId!,
+      perPage: _perPage,
+      page: _userLikedReelsPage,
+    );
+
+    result.fold(
+      (failure) {
+        emit(currentState.copyWith(isLoadingMore: false));
+        emit(ReelsError(failure.message));
+      },
+      (response) {
+        final updatedReels = [...currentState.reels, ...response.reels];
+        final updatedLikedReels = Map<int, bool>.from(currentState.likedReels);
+        
+        for (final reel in response.reels) {
+          updatedLikedReels[reel.id] = true; // All reels in liked list are liked
+          if (reel.viewed) {
+            _viewedReelIds.add(reel.id);
+          }
+        }
+
+        emit(ReelsLoaded(
+          reels: updatedReels,
+          nextPageUrl: response.meta.nextPageUrl,
+          hasMore: response.meta.hasMore,
+          likedReels: updatedLikedReels,
+          categories: _categories,
+        ));
       },
     );
   }

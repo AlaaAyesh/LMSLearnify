@@ -13,17 +13,26 @@ class ReelsFeedResponseModel {
   factory ReelsFeedResponseModel.fromJson(Map<String, dynamic> json) {
     // Handle different response structures
     // Structure 1: { "data": { "items": [...], "meta": {...} } }
-    // Structure 2: { "data": [...], "meta": {...} }
-    // Structure 3: { "items": [...], "meta": {...} }
+    // Structure 2: { "data": { "data": [...], "meta": {...} } } - User reels API
+    // Structure 3: { "data": [...], "meta": {...} }
+    // Structure 4: { "items": [...], "meta": {...} }
     
     List<dynamic>? itemsList;
     Map<String, dynamic>? metaJson;
     
-    // Check for nested data.items structure
+    // Check for nested data structure
     if (json['data'] != null && json['data'] is Map) {
       final data = json['data'] as Map<String, dynamic>;
-      itemsList = data['items'] as List?;
-      metaJson = data['meta'] as Map<String, dynamic>? ?? json['meta'] as Map<String, dynamic>?;
+      // Check for data.data (User reels API structure)
+      if (data['data'] != null && data['data'] is List) {
+        itemsList = data['data'] as List;
+        metaJson = data['meta'] as Map<String, dynamic>?;
+      }
+      // Check for data.items structure
+      else if (data['items'] != null && data['items'] is List) {
+        itemsList = data['items'] as List;
+        metaJson = data['meta'] as Map<String, dynamic>? ?? json['meta'] as Map<String, dynamic>?;
+      }
     } 
     // Check for data as array
     else if (json['data'] != null && json['data'] is List) {
