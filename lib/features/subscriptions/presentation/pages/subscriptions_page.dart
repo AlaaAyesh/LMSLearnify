@@ -588,22 +588,22 @@ class _SubscriptionsPageContentState extends State<_SubscriptionsPageContent> {
                         },
                       ),
                       SizedBox(height: Responsive.spacing(ctx, 12)),
-                      _PaymentOptionTile(
-                        title: 'محفظة / طرق أخرى',
-                        subtitle: 'سيتم توجيهك لبوابة الدفع',
-                        icon: Icons.account_balance_wallet,
-                        onTap: () {
-                          bloc.add(
-                            ProcessPaymentEvent(
-                              service: PaymentService.kashier,
-                              currency: currencyCode,
-                              subscriptionId: selectedSubscription.id,
-                              phone: '',
-                              couponCode: appliedCouponCode,
-                            ),
-                          );
-                        },
-                      ),
+                      // _PaymentOptionTile(
+                      //   title: 'محفظة / طرق أخرى',
+                      //   subtitle: 'سيتم توجيهك لبوابة الدفع',
+                      //   icon: Icons.account_balance_wallet,
+                      //   onTap: () {
+                      //     bloc.add(
+                      //       ProcessPaymentEvent(
+                      //         service: PaymentService.kashier,
+                      //         currency: currencyCode,
+                      //         subscriptionId: selectedSubscription.id,
+                      //         phone: '',
+                      //         couponCode: appliedCouponCode,
+                      //       ),
+                      //     );
+                      //   },
+                      // ),
                       SizedBox(height: Responsive.spacing(ctx, 16)),
                       // Show discount info if coupon applied
                       if (discountPercentage != null && discountPercentage > 0) ...[

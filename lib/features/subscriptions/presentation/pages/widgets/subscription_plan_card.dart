@@ -54,7 +54,7 @@ class SubscriptionPlanCard extends StatelessWidget {
                   originalPrice: plan.originalPrice,
                   discountedPrice: plan.discountedPrice,
                   currency: plan.currency,
-                  couponDiscountPercentage: couponDiscountPercentage,
+                  // couponDiscountPercentage: couponDiscountPercentage,
                   finalPriceAfterCoupon: finalPriceAfterCoupon,
                 ),
               ],
