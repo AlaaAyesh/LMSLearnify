@@ -104,7 +104,6 @@ class _MenuPageContent extends StatelessWidget {
 
                   MenuButton(
                     text: 'اختر باقتك',
-                    badge: 'عروض',
                     onTap: () {
                       print('🔵 Subscriptions button tapped');
                       context.pushWithNav(const SubscriptionsPage());

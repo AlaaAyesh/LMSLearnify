@@ -53,7 +53,7 @@ class _ReelsFeedPageState extends State<ReelsFeedPage>
     with RouteAware, WidgetsBindingObserver {
   late PageController _pageController;
   int _currentIndex = 0;
-  int _selectedCategoryIndex = 0; // Default to first category (General)
+  int _selectedCategoryIndex = -1; // No category selected initially
   bool _showPaywall = false;
   bool _isSubscribed = false;
   bool _isPageVisible =
@@ -151,7 +151,7 @@ class _ReelsFeedPageState extends State<ReelsFeedPage>
               // Check if bloc already has categories in its state
               final currentState = bloc.state;
               if (currentState is ReelsWithCategories) {
-                // Restore categories and reset to default category
+                // Restore categories and reset to no category filter
                 setState(() {
                   _categories = currentState.categories
                       .where((c) => c.isActive)
@@ -159,27 +159,18 @@ class _ReelsFeedPageState extends State<ReelsFeedPage>
                       .reversed
                       .toList();
                   
-                  // Reset to default category (General or first)
+                  // Reset to no category selected (show all reels)
                   if (_categories.isNotEmpty) {
-                    final generalCategory = _categories.firstWhere(
-                      (c) =>
-                          c.slug.toLowerCase() == 'general' ||
-                          c.name.contains('عام'),
-                      orElse: () => _categories[0],
-                    );
-                    _selectedCategoryIndex = _categories.indexOf(generalCategory);
-                    if (_selectedCategoryIndex == -1) {
-                      _selectedCategoryIndex = 0;
-                    }
-                    _activeCategoryId = generalCategory.id;
-                    _lastFilteredCategoryId = generalCategory.id;
+                    _selectedCategoryIndex = -1; // No category selected
+                    _activeCategoryId = null; // No category filter
+                    _lastFilteredCategoryId = null;
                     _pageViewResetToken++;
                     
-                    // Reload reels for the default category with smaller page for faster first response
+                    // Reload reels WITHOUT category filter (all reels)
                     bloc.add(
                       LoadReelsFeedEvent(
                         perPage: 5,
-                        categoryId: generalCategory.id,
+                        categoryId: null, // No category filter
                       ),
                     );
                   }
@@ -194,25 +185,16 @@ class _ReelsFeedPageState extends State<ReelsFeedPage>
                       .toList();
                   
                   if (_categories.isNotEmpty) {
-                    final generalCategory = _categories.firstWhere(
-                      (c) =>
-                          c.slug.toLowerCase() == 'general' ||
-                          c.name.contains('عام'),
-                      orElse: () => _categories[0],
-                    );
-                    _selectedCategoryIndex = _categories.indexOf(generalCategory);
-                    if (_selectedCategoryIndex == -1) {
-                      _selectedCategoryIndex = 0;
-                    }
-                    _activeCategoryId = generalCategory.id;
-                    _lastFilteredCategoryId = generalCategory.id;
+                    _selectedCategoryIndex = -1; // No category selected
+                    _activeCategoryId = null; // No category filter
+                    _lastFilteredCategoryId = null;
                     _pageViewResetToken++;
                     
-                    // Reload reels for the default category with smaller page for faster first response
+                    // Reload reels WITHOUT category filter (all reels)
                     bloc.add(
                       LoadReelsFeedEvent(
                         perPage: 5,
-                        categoryId: generalCategory.id,
+                        categoryId: null, // No category filter
                       ),
                     );
                   }
@@ -409,31 +391,18 @@ class _ReelsFeedPageState extends State<ReelsFeedPage>
                       .reversed
                       .toList();
 
-                  // Find "General" category (slug: "general" or name contains "عام")
+                  // No category selected initially - show all reels
                   if (_categories.isNotEmpty) {
-                    final generalCategory = _categories.firstWhere(
-                      (c) =>
-                          c.slug.toLowerCase() == 'general' ||
-                          c.name.contains('عام'),
-                      orElse: () =>
-                          _categories[0], // Fallback to first category
-                    );
-
-                    // Set selected index to General category
-                    _selectedCategoryIndex =
-                        _categories.indexOf(generalCategory);
-                    if (_selectedCategoryIndex == -1) {
-                      _selectedCategoryIndex = 0; // Fallback to first category
-                    }
-                    _activeCategoryId = generalCategory.id;
-                    _lastFilteredCategoryId = generalCategory.id;
+                    _selectedCategoryIndex = -1; // No category selected
+                    _activeCategoryId = null; // No category selected initially
+                    _lastFilteredCategoryId = null;
                     _pageViewResetToken++;
 
-                    // Load reels for General category
+                    // Load reels WITHOUT category filter (all reels)
                     context.read<ReelsBloc>().add(
                           LoadReelsFeedEvent(
                             perPage: 10,
-                            categoryId: generalCategory.id,
+                            categoryId: null, // No category filter initially
                           ),
                         );
                   }
@@ -448,13 +417,16 @@ class _ReelsFeedPageState extends State<ReelsFeedPage>
                       .toList()
                       .reversed
                       .toList();
-                  // Reset selected index if out of bounds
-                  if (_categories.isNotEmpty && _selectedCategoryIndex >= _categories.length) {
-                    _selectedCategoryIndex = 0;
-                  }
+                  // Reset selected index if out of bounds or if no category was selected
                   if (_categories.isNotEmpty) {
-                    _activeCategoryId = _categories[_selectedCategoryIndex].id;
-                    _lastFilteredCategoryId ??= _activeCategoryId;
+                    if (_selectedCategoryIndex < 0 || _selectedCategoryIndex >= _categories.length) {
+                      _selectedCategoryIndex = -1; // No category selected
+                      _activeCategoryId = null;
+                      _lastFilteredCategoryId = null;
+                    } else {
+                      _activeCategoryId = _categories[_selectedCategoryIndex].id;
+                      _lastFilteredCategoryId ??= _activeCategoryId;
+                    }
                   }
                 });
               }
@@ -479,7 +451,9 @@ class _ReelsFeedPageState extends State<ReelsFeedPage>
               
               // Reset filtering state and page controller when filtering completes
               if (state is ReelsLoaded && _isFiltering && state.reels.isNotEmpty) {
-                final categoryId = _categories.isNotEmpty && _selectedCategoryIndex < _categories.length
+                final categoryId = _categories.isNotEmpty && 
+                    _selectedCategoryIndex >= 0 && 
+                    _selectedCategoryIndex < _categories.length
                     ? _categories[_selectedCategoryIndex].id
                     : null;
                 
@@ -657,8 +631,10 @@ class _ReelsFeedPageState extends State<ReelsFeedPage>
                             .toList()
                             .reversed
                             .toList();
-                        if (_categories.isNotEmpty && _selectedCategoryIndex >= _categories.length) {
-                          _selectedCategoryIndex = 0;
+                        if (_categories.isNotEmpty) {
+                          if (_selectedCategoryIndex < 0 || _selectedCategoryIndex >= _categories.length) {
+                            _selectedCategoryIndex = -1; // No category selected
+                          }
                         }
                       });
                     }
@@ -749,45 +725,90 @@ class _ReelsFeedPageState extends State<ReelsFeedPage>
             onTap: () {
               if (!mounted) return;
               
-              setState(() {
-                _selectedCategoryIndex = index;
-                _isFiltering = true;
-                _activeCategoryId = category.id;
-                _lastFilteredCategoryId = category.id;
-                _pageViewResetToken++;
-                // Clear reset flag when user manually filters
-                _shouldResetOnNextLoad = false;
-                // Reset to first video when filtering
-                _currentIndex = 0;
-              });
-              
-              // Reset page controller to first item when filtering
-              if (_pageController.hasClients) {
-                _pageController.jumpToPage(0);
-              }
-              
-              // Cancel previous debounce timer
-              _filterDebounceTimer?.cancel();
-              
-              // Debounce the filter request to prevent rapid API calls
-              _filterDebounceTimer = Timer(const Duration(milliseconds: 250), () {
-                if (!mounted) return;
+              // If category is already selected, deselect it (show all reels)
+              if (isSelected) {
+                setState(() {
+                  _selectedCategoryIndex = -1;
+                  _isFiltering = true;
+                  _activeCategoryId = null;
+                  _lastFilteredCategoryId = null;
+                  _pageViewResetToken++;
+                  // Clear reset flag when user manually filters
+                  _shouldResetOnNextLoad = false;
+                  // Reset to first video when filtering
+                  _currentIndex = 0;
+                });
                 
-                try {
-                  final bloc = context.read<ReelsBloc>();
-                  bloc.add(
-                    LoadReelsFeedEvent(
-                      perPage: 10,
-                      categoryId: category.id,
-                    ),
-                  );
-                } catch (e) {
-                  debugPrint('ReelsFeedPage: Could not filter by category: $e');
-                  if (mounted) {
-                    setState(() => _isFiltering = false);
-                  }
+                // Reset page controller to first item when filtering
+                if (_pageController.hasClients) {
+                  _pageController.jumpToPage(0);
                 }
-              });
+                
+                // Cancel previous debounce timer
+                _filterDebounceTimer?.cancel();
+                
+                // Debounce the filter request to prevent rapid API calls
+                _filterDebounceTimer = Timer(const Duration(milliseconds: 250), () {
+                  if (!mounted) return;
+                  
+                  try {
+                    final bloc = context.read<ReelsBloc>();
+                    // Load all reels without category filter
+                    bloc.add(
+                      LoadReelsFeedEvent(
+                        perPage: 10,
+                        categoryId: null, // No category filter
+                      ),
+                    );
+                  } catch (e) {
+                    debugPrint('ReelsFeedPage: Could not load all reels: $e');
+                    if (mounted) {
+                      setState(() => _isFiltering = false);
+                    }
+                  }
+                });
+              } else {
+                // Select the category and filter
+                setState(() {
+                  _selectedCategoryIndex = index;
+                  _isFiltering = true;
+                  _activeCategoryId = category.id;
+                  _lastFilteredCategoryId = category.id;
+                  _pageViewResetToken++;
+                  // Clear reset flag when user manually filters
+                  _shouldResetOnNextLoad = false;
+                  // Reset to first video when filtering
+                  _currentIndex = 0;
+                });
+                
+                // Reset page controller to first item when filtering
+                if (_pageController.hasClients) {
+                  _pageController.jumpToPage(0);
+                }
+                
+                // Cancel previous debounce timer
+                _filterDebounceTimer?.cancel();
+                
+                // Debounce the filter request to prevent rapid API calls
+                _filterDebounceTimer = Timer(const Duration(milliseconds: 250), () {
+                  if (!mounted) return;
+                  
+                  try {
+                    final bloc = context.read<ReelsBloc>();
+                    bloc.add(
+                      LoadReelsFeedEvent(
+                        perPage: 10,
+                        categoryId: category.id,
+                      ),
+                    );
+                  } catch (e) {
+                    debugPrint('ReelsFeedPage: Could not filter by category: $e');
+                    if (mounted) {
+                      setState(() => _isFiltering = false);
+                    }
+                  }
+                });
+              }
             },
             child: Container(
               padding: Responsive.padding(context, horizontal: 18, vertical: 6),
@@ -845,7 +866,9 @@ class _ReelsFeedPageState extends State<ReelsFeedPage>
 
     // Use category ID + reset token for key to force rebuilds on category reloads
     final categoryKey = _activeCategoryId ??
-        (_categories.isNotEmpty && _selectedCategoryIndex < _categories.length
+        (_categories.isNotEmpty && 
+         _selectedCategoryIndex >= 0 && 
+         _selectedCategoryIndex < _categories.length
             ? _categories[_selectedCategoryIndex].id
             : null);
     final pageViewKey = ValueKey(
@@ -930,6 +953,7 @@ class _ReelsFeedPageState extends State<ReelsFeedPage>
         if (!widget.hideCategoryFilters &&
             widget.initialReel == null &&
             _categories.isNotEmpty &&
+            _selectedCategoryIndex >= 0 &&
             _selectedCategoryIndex < _categories.length) {
           final selectedCategoryId = _categories[_selectedCategoryIndex].id;
           // If reel has category data, require that it matches the selected category.
@@ -1001,7 +1025,9 @@ class _ReelsFeedPageState extends State<ReelsFeedPage>
     }
 
     // Cycle through categories: after last, go back to first
-    return (_selectedCategoryIndex + 1) % _categories.length;
+    // If no category is selected, start from 0
+    final startIndex = _selectedCategoryIndex >= 0 ? _selectedCategoryIndex : -1;
+    return (startIndex + 1) % _categories.length;
   }
 
   void _loadNextCategoryIfAvailable() {
