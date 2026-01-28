@@ -16,6 +16,9 @@ import '../../../subscriptions/data/models/payment_model.dart';
 import '../../../subscriptions/presentation/bloc/subscription_bloc.dart';
 import '../../../subscriptions/presentation/bloc/subscription_event.dart';
 import '../../../subscriptions/presentation/bloc/subscription_state.dart';
+import '../../../certificates/presentation/bloc/certificate_bloc.dart';
+import '../../../certificates/presentation/bloc/certificate_event.dart';
+import '../../../certificates/presentation/bloc/certificate_state.dart';
 import '../../domain/entities/chapter.dart';
 import '../../domain/entities/course.dart';
 import '../../domain/entities/lesson.dart';
@@ -40,8 +43,11 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> {
   final TextEditingController _phoneController = TextEditingController();
   bool _isPaymentLoading = false;
   SubscriptionBloc? _subscriptionBloc;
+  CertificateBloc? _certificateBloc;
   bool _isAuthenticated = false;
   bool _isCheckingAuth = true;
+  bool _hasAttemptedCertificateGeneration = false; // Prevent multiple calls
+  bool _hasCheckedInitialCertificate = false; // Track initial check
 
   @override
   void initState() {
@@ -78,6 +84,8 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> {
       setState(() {
         _viewedLessonIds.add(lessonId);
       });
+      // Check if all lessons are viewed and generate certificate if needed
+      _checkAndGenerateCertificate();
     }
   }
 
@@ -91,9 +99,54 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> {
         if (progress >= 1.0 && !_viewedLessonIds.contains(lessonId)) {
           _viewedLessonIds.add(lessonId);
           print('CourseDetailsPage: Added lesson $lessonId to viewed list (progress: 100%)');
+          // Check if all lessons are viewed and generate certificate if needed
+          _checkAndGenerateCertificate();
         }
       });
     }
+  }
+
+  /// Check if all lessons in the course are viewed
+  bool _areAllLessonsViewed() {
+    // Get all lesson IDs from the course
+    final allLessonIds = <int>{};
+    for (final chapter in course.chapters) {
+      for (final lesson in chapter.lessons) {
+        if (lesson.id > 0) { // Only count valid lesson IDs
+          allLessonIds.add(lesson.id);
+        }
+      }
+    }
+    
+    // Check if all lessons are in the viewed list
+    return allLessonIds.isNotEmpty && allLessonIds.every((id) => _viewedLessonIds.contains(id));
+  }
+
+  /// Check if certificate should be generated and call the API
+  void _checkAndGenerateCertificate() {
+    // Only generate if:
+    // 1. User hasn't attempted generation before (prevent multiple calls)
+    // 2. User doesn't already have a certificate (userHasCertificate is false)
+    // 3. All lessons are viewed
+    if (_hasAttemptedCertificateGeneration) {
+      print('CourseDetailsPage: Certificate generation already attempted, skipping');
+      return;
+    }
+
+    if (course.userHasCertificate) {
+      print('CourseDetailsPage: User already has certificate, skipping generation');
+      return;
+    }
+
+    if (!_areAllLessonsViewed()) {
+      print('CourseDetailsPage: Not all lessons are viewed yet, skipping certificate generation');
+      return;
+    }
+
+    // All conditions met - generate certificate
+    print('CourseDetailsPage: All lessons viewed and no certificate yet, generating certificate...');
+    _hasAttemptedCertificateGeneration = true;
+    _certificateBloc?.add(GenerateCertificateEvent(courseId: course.id));
   }
 
   Course get course => widget.course;
@@ -106,30 +159,60 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => sl<SubscriptionBloc>(),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(create: (context) => sl<SubscriptionBloc>()),
+        BlocProvider(create: (context) => sl<CertificateBloc>()),
+      ],
       child: Builder(
         builder: (blocContext) {
-          // Capture bloc reference for use in dialogs
+          // Capture bloc references for use in dialogs
           _subscriptionBloc = blocContext.read<SubscriptionBloc>();
+          _certificateBloc = blocContext.read<CertificateBloc>();
+          
+          // Check certificate generation on first build (if all lessons already viewed)
+          if (!_hasCheckedInitialCertificate) {
+            _hasCheckedInitialCertificate = true;
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (mounted) {
+                _checkAndGenerateCertificate();
+              }
+            });
+          }
 
-          return BlocListener<SubscriptionBloc, SubscriptionState>(
+          return BlocListener<CertificateBloc, CertificateState>(
             listener: (context, state) {
-              if (state is PaymentProcessing) {
-                setState(() => _isPaymentLoading = true);
-              } else if (state is PaymentInitiated) {
-                setState(() => _isPaymentLoading = false);
-                _showPaymentSuccessDialog(state.message);
-              } else if (state is PaymentFailed) {
-                setState(() => _isPaymentLoading = false);
+              if (state is CertificateGenerated) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(state.message),
-                    backgroundColor: Colors.red,
+                  const SnackBar(
+                    content: Text('تم إنشاء الشهادة بنجاح!'),
+                    backgroundColor: AppColors.success,
+                    duration: Duration(seconds: 3),
                   ),
                 );
+              } else if (state is CertificateError) {
+                // Reset flag on error so user can retry
+                _hasAttemptedCertificateGeneration = false;
+                // Error message removed - silently handle the error
               }
             },
+            child: BlocListener<SubscriptionBloc, SubscriptionState>(
+              listener: (context, state) {
+                if (state is PaymentProcessing) {
+                  setState(() => _isPaymentLoading = true);
+                } else if (state is PaymentInitiated) {
+                  setState(() => _isPaymentLoading = false);
+                  _showPaymentSuccessDialog(state.message);
+                } else if (state is PaymentFailed) {
+                  setState(() => _isPaymentLoading = false);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(state.message),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
+              },
             child: Scaffold(
               backgroundColor: AppColors.white,
               appBar: CustomAppBar(title: course.nameAr),
@@ -162,6 +245,7 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> {
                       ),
                     ),
                   ]),
+            ),
             ),
           );
         },

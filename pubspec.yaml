@@ -35,7 +35,7 @@ dependencies:
   # UI & Utilities
   flutter_svg: ^2.0.9
   cached_network_image: ^3.3.1
-  intl: ^0.20.2
+  intl: ^0.19.0
 
   # Routing
   url_launcher: ^6.3.2
