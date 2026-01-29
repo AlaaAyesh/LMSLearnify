@@ -37,8 +37,8 @@ class ReelModel extends Reel {
           : const ReelOwnerModel(id: 0, name: '', email: ''),
       categories: json['categories'] != null && json['categories'] is List
           ? (json['categories'] as List)
-              .map((c) => ReelCategoryModel.fromJson(c as Map<String, dynamic>))
-              .toList()
+          .map((c) => ReelCategoryModel.fromJson(c as Map<String, dynamic>))
+          .toList()
           : [],
       viewed: _parseBool(json['viewed']),
       liked: _parseBool(json['liked']),

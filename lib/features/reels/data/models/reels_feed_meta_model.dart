@@ -30,7 +30,7 @@ class ReelsFeedMetaModel extends ReelsFeedMeta {
       final last = _parseInt(json['last_page']);
       hasMoreValue = current < last;
     }
-    
+
     return ReelsFeedMetaModel(
       perPage: _parseInt(json['per_page'] ?? 2),
       nextCursor: json['next_cursor']?.toString(),

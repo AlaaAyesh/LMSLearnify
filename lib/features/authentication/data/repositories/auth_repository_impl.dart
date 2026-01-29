@@ -281,6 +281,14 @@ class AuthRepositoryImpl implements AuthRepository {
 
       return Right(loginResponse.user);
     } on ServerException catch (e) {
+      // If the server returns 404, this usually means that the social
+      // account (Google / Apple) is valid but not yet linked to a user
+      // in our system. We surface this as a NotFoundFailure so the
+      // presentation layer can redirect the user to complete profile.
+      if (e.statusCode == 404) {
+        return Left(NotFoundFailure(e.message));
+      }
+
       return Left(ServerFailure(e.message));
     } catch (e) {
       return Left(ServerFailure('حدث خطأ غير متوقع: $e'));
@@ -296,6 +304,8 @@ class AuthRepositoryImpl implements AuthRepository {
     String? religion,
     String? about,
     String? birthday,
+    int? specialtyId,
+    String? role,
   }) async {
     try {
       final updatedUser = await remoteDataSource.updateProfile(
@@ -306,6 +316,8 @@ class AuthRepositoryImpl implements AuthRepository {
         religion: religion,
         about: about,
         birthday: birthday,
+        specialtyId: specialtyId,
+        role: role,
       );
 
       // Cache updated user data

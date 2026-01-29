@@ -27,13 +27,13 @@ abstract class AuthRemoteDataSource {
     required String newPassword,
     required String passwordConfirmation,
   });
-  
+
   /// Get Google OAuth URL for authentication
   Future<String> getGoogleAuthUrl();
-  
+
   /// Handle Google OAuth callback and authenticate user
   Future<LoginResponseModel> handleGoogleCallback(String code);
-  
+
   /// Mobile OAuth login with access token from native SDK
   /// [provider] - OAuth provider name (google, facebook)
   /// [accessToken] - Access token from OAuth provider
@@ -48,7 +48,7 @@ abstract class AuthRemoteDataSource {
     String? religion,
     String? birthday,
   });
-  
+
   /// Update user profile
   Future<User> updateProfile({
     String? name,
@@ -57,7 +57,7 @@ abstract class AuthRemoteDataSource {
     String? gender,
     String? religion,
     String? about,
-    String? birthday,
+    String? birthday, int? specialtyId, String? role,
   });
 }
 
@@ -316,48 +316,48 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       );
     } on DioException catch (e) {
       String errorMessage = 'خطأ في الاتصال بالخادم';
-      
+
       if (e.response?.data != null) {
-        errorMessage = e.response?.data['error'] ?? 
-                       e.response?.data['message'] ?? 
+        errorMessage = e.response?.data['error'] ??
+                       e.response?.data['message'] ??
                        errorMessage;
       }
-      
+
       throw ServerException(
         message: errorMessage,
         statusCode: e.response?.statusCode,
       );
     }
   }
-  
+
   /// Parse OAuth response which has a different format than standard login
   LoginResponseModel _parseOAuthResponse(Map<String, dynamic> json) {
     // Mobile OAuth response format: { "user": {...}, "access_token": "...", "token_type": "...", "message": "..." }
     // Standard format: { "status": "success", "data": { "user": {...}, "access_token": "..." } }
-    
+
     // Check if it's standard format first
     if (json.containsKey('data') && json['data'] is Map) {
       return LoginResponseModel.fromJson(json);
     }
-    
+
     // Handle OAuth response format (user and access_token at root level)
     final userData = json['user'] as Map<String, dynamic>?;
     // Support both 'access_token' and 'token' keys
     final token = (json['access_token'] ?? json['token']) as String?;
     final tokenType = (json['token_type'] as String?) ?? 'Bearer';
-    
+
     if (userData == null) {
       throw ServerException(
         message: json['error'] ?? 'فشل في الحصول على بيانات المستخدم',
       );
     }
-    
+
     if (token == null || token.isEmpty) {
       throw ServerException(
         message: 'فشل في الحصول على رمز الوصول',
       );
     }
-    
+
     // Convert OAuth response to standard format
     return LoginResponseModel.fromJson({
       'data': {
@@ -418,15 +418,15 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       );
     } on DioException catch (e) {
       String errorMessage = 'خطأ في الاتصال بالخادم';
-      
+
       if (e.response?.statusCode == 401) {
         errorMessage = e.response?.data['error'] ?? 'رمز الوصول غير صالح';
       } else if (e.response?.data != null) {
-        errorMessage = e.response?.data['message'] ?? 
-                       e.response?.data['error'] ?? 
+        errorMessage = e.response?.data['message'] ??
+                       e.response?.data['error'] ??
                        errorMessage;
       }
-      
+
       throw ServerException(
         message: errorMessage,
         statusCode: e.response?.statusCode,
@@ -443,6 +443,8 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     String? religion,
     String? about,
     String? birthday,
+    int? specialtyId,
+    String? role,
   }) async {
     try {
       // Build form data with _method override for PUT
@@ -458,6 +460,8 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       if (religion != null && religion.isNotEmpty) formFields['religion'] = religion;
       if (about != null && about.isNotEmpty) formFields['about'] = about;
       if (birthday != null && birthday.isNotEmpty) formFields['birthday'] = birthday;
+      if (specialtyId != null) formFields['specialty_id'] = specialtyId;
+      if (role != null && role.isNotEmpty) formFields['role'] = role;
 
       final response = await dioClient.post(
         ApiConstants.updateProfile,

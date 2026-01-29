@@ -1,5 +1,6 @@
 /// Payment service types supported by the API
 enum PaymentService {
+  gplay,   // Google Play (Android IAP)
   iap,     // In-App Purchase
   stripe,  // Stripe payment gateway
   wallet,  // Digital wallet
@@ -9,6 +10,8 @@ enum PaymentService {
 extension PaymentServiceExtension on PaymentService {
   String get value {
     switch (this) {
+      case PaymentService.gplay:
+        return 'gplay';
       case PaymentService.iap:
         return 'iap';
       case PaymentService.stripe:
@@ -22,6 +25,8 @@ extension PaymentServiceExtension on PaymentService {
 
   static PaymentService fromString(String value) {
     switch (value.toLowerCase()) {
+      case 'gplay':
+        return PaymentService.gplay;
       case 'iap':
         return PaymentService.iap;
       case 'stripe':

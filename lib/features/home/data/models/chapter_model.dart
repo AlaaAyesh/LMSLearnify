@@ -51,8 +51,8 @@ class ChapterModel extends Chapter {
       nameEn: json['name_en']?.toString() ?? '',
       lessons: json['lessons'] != null
           ? (json['lessons'] as List)
-              .map((l) => LessonModel.fromJson(l))
-              .toList()
+          .map((l) => LessonModel.fromJson(l))
+          .toList()
           : [],
       course: json['course'] != null && json['course'] is Map
           ? ChapterCourseInfoModel.fromJson(json['course'])

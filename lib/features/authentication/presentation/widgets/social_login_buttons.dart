@@ -25,6 +25,7 @@ class SocialLoginButtons extends StatelessWidget {
                 name: state.name,
                 providerId: state.providerId,
                 accessToken: state.accessToken,
+                requiresRegistration: state.requiresRegistration,
               ),
             ),
           );

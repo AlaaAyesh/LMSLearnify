@@ -113,7 +113,7 @@ class UpdateSubscriptionRequest {
     final map = <String, dynamic>{
       '_method': 'PUT',
     };
-    
+
     if (nameAr != null) map['name_ar'] = nameAr;
     if (nameEn != null) map['name_en'] = nameEn;
     if (price != null) map['price'] = price;
@@ -122,7 +122,7 @@ class UpdateSubscriptionRequest {
     if (usdPriceBeforeDiscount != null) map['usd_price_before_discount'] = usdPriceBeforeDiscount;
     if (duration != null) map['duration'] = duration;
     if (specialtyId != null) map['specialty_id'] = specialtyId;
-    
+
     return map;
   }
 }

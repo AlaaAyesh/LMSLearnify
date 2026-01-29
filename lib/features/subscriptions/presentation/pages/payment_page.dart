@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:io' show Platform;
 import 'package:learnify_lms/core/theme/app_text_styles.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -493,8 +494,11 @@ class _PaymentPageContentState extends State<_PaymentPageContent> {
 
     final phone = _phoneController.text.trim();
 
-    // Use kashier for web-based payment gateways, iap for in-app purchases
-    final paymentService = PaymentService.kashier;
+    // Default to kashier. For mobile in-app purchases:
+    // Android => gplay, iOS => iap
+    final paymentService = Platform.isAndroid
+        ? PaymentService.gplay
+        : (Platform.isIOS ? PaymentService.iap : PaymentService.kashier);
 
     context.read<SubscriptionBloc>().add(
           ProcessPaymentEvent(

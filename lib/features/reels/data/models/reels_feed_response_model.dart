@@ -16,10 +16,10 @@ class ReelsFeedResponseModel {
     // Structure 2: { "data": { "data": [...], "meta": {...} } } - User reels API
     // Structure 3: { "data": [...], "meta": {...} }
     // Structure 4: { "items": [...], "meta": {...} }
-    
+
     List<dynamic>? itemsList;
     Map<String, dynamic>? metaJson;
-    
+
     // Check for nested data structure
     if (json['data'] != null && json['data'] is Map) {
       final data = json['data'] as Map<String, dynamic>;
@@ -33,7 +33,7 @@ class ReelsFeedResponseModel {
         itemsList = data['items'] as List;
         metaJson = data['meta'] as Map<String, dynamic>? ?? json['meta'] as Map<String, dynamic>?;
       }
-    } 
+    }
     // Check for data as array
     else if (json['data'] != null && json['data'] is List) {
       itemsList = json['data'] as List;
@@ -44,7 +44,7 @@ class ReelsFeedResponseModel {
       itemsList = json['items'] as List;
       metaJson = json['meta'] as Map<String, dynamic>?;
     }
-    
+
     return ReelsFeedResponseModel(
       reels: (itemsList ?? [])
           .map((e) => ReelModel.fromJson(e as Map<String, dynamic>))

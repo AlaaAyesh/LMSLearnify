@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:io' show Platform;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:learnify_lms/features/subscriptions/presentation/pages/widgets/apply_button.dart';
 import 'package:learnify_lms/features/subscriptions/presentation/pages/widgets/benefit_item.dart';
@@ -587,6 +588,44 @@ class _SubscriptionsPageContentState extends State<_SubscriptionsPageContent> {
                           );
                         },
                       ),
+                      // In-app purchase options
+                      if (Platform.isAndroid) ...[
+                        SizedBox(height: Responsive.spacing(ctx, 12)),
+                        _PaymentOptionTile(
+                          title: 'Google Play',
+                          subtitle: 'ادفع عبر Google Play (In‑App Purchase)',
+                          icon: Icons.shop_2_outlined,
+                          onTap: () {
+                            bloc.add(
+                              ProcessPaymentEvent(
+                                service: PaymentService.gplay,
+                                currency: currencyCode,
+                                subscriptionId: selectedSubscription.id,
+                                phone: '',
+                                couponCode: appliedCouponCode,
+                              ),
+                            );
+                          },
+                        ),
+                      ] else if (Platform.isIOS) ...[
+                        SizedBox(height: Responsive.spacing(ctx, 12)),
+                        _PaymentOptionTile(
+                          title: 'Apple In‑App Purchase',
+                          subtitle: 'ادفع عبر Apple IAP',
+                          icon: Icons.apple,
+                          onTap: () {
+                            bloc.add(
+                              ProcessPaymentEvent(
+                                service: PaymentService.iap,
+                                currency: currencyCode,
+                                subscriptionId: selectedSubscription.id,
+                                phone: '',
+                                couponCode: appliedCouponCode,
+                              ),
+                            );
+                          },
+                        ),
+                      ],
                       SizedBox(height: Responsive.spacing(ctx, 12)),
                       // _PaymentOptionTile(
                       //   title: 'محفظة / طرق أخرى',

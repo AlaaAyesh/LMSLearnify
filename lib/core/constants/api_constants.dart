@@ -10,12 +10,12 @@ class ApiConstants {
   static const String resetPassword = 'auth/reset-password';
   static const String changePassword = 'auth/change-password';
   static const String saveFirebaseToken = 'auth/save-firebase-token';
-  
+
   // OAuth Endpoints
   static const String googleAuth = 'auth/google';
   static const String googleCallback = 'auth/google/callback';
   static const String mobileOAuthLogin = 'auth/mobile/login';
-  
+
   // Email Verification Endpoints
   static const String sendEmailOtp = 'auth/email/send-otp';
   static const String verifyEmailOtp = 'auth/email/verify-otp';

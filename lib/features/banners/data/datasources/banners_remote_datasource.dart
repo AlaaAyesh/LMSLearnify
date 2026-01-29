@@ -81,7 +81,7 @@ class BannersRemoteDataSourceImpl implements BannersRemoteDataSource {
   Future<void> recordBannerClick(int bannerId) async {
     try {
       final endpoint = ApiConstants.recordBannerClick.replaceAll('{id}', bannerId.toString());
-      
+
       final response = await dioClient.post(endpoint);
 
       if (response.statusCode != 200 && response.statusCode != 201) {

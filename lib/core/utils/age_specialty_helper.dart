@@ -12,13 +12,13 @@ class AgeSpecialtyHelper {
   static int calculateAge(DateTime birthday) {
     final now = DateTime.now();
     int age = now.year - birthday.year;
-    
+
     // Adjust if birthday hasn't occurred this year
     if (now.month < birthday.month ||
         (now.month == birthday.month && now.day < birthday.day)) {
       age--;
     }
-    
+
     return age;
   }
 
@@ -35,18 +35,18 @@ class AgeSpecialtyHelper {
   /// Get specialty ID from birthday string (YYYY-MM-DD)
   static int? getSpecialtyIdFromBirthday(String? birthday) {
     if (birthday == null || birthday.isEmpty) return null;
-    
+
     try {
       final parts = birthday.split('-');
       if (parts.length != 3) return null;
-      
+
       final year = int.parse(parts[0]);
       final month = int.parse(parts[1]);
       final day = int.parse(parts[2]);
-      
+
       final birthDate = DateTime(year, month, day);
       final age = calculateAge(birthDate);
-      
+
       return getSpecialtyIdFromAge(age);
     } catch (e) {
       return null;

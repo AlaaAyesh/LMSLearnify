@@ -75,7 +75,7 @@ abstract class AuthRepository {
     String? gender,
     String? religion,
     String? about,
-    String? birthday,
+    String? birthday, String? role, int? specialtyId,
   });
 }
 

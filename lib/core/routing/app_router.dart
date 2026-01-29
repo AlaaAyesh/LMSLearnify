@@ -93,6 +93,9 @@ class AppRouter {
             name: args?['name'],
             providerId: args?['providerId'] ?? 'google',
             accessToken: args?['accessToken'] ?? '',
+            // When navigated via named route we assume this is a new
+            // registration flow that still needs to create the user.
+            requiresRegistration: args?['requiresRegistration'] ?? true,
           ),
         );
 

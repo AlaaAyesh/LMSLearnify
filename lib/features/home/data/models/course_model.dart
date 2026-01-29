@@ -30,11 +30,11 @@ class CourseModel extends Course {
     super.introVideoDuration,
     super.introVideoStatus,
     super.purchaseCount,
-      super.hidden,
-      super.soon,
-      super.locked,
-      super.hasAccess,
-      super.userHasCertificate,
+    super.hidden,
+    super.soon,
+    super.locked,
+    super.hasAccess,
+    super.userHasCertificate,
   });
 
   factory CourseModel.fromJson(Map<String, dynamic> json) {
@@ -57,16 +57,16 @@ class CourseModel extends Course {
           : null,
       categories: json['categories'] != null && json['categories'] is List
           ? (json['categories'] as List)
-              .map((c) => CategoryModel.fromJson(c))
-              .toList()
+          .map((c) => CategoryModel.fromJson(c))
+          .toList()
           : [],
       instructor: json['instructor'] != null && json['instructor'] is Map
           ? InstructorModel.fromJson(json['instructor'])
           : null,
       chapters: json['chapters'] != null && json['chapters'] is List
           ? (json['chapters'] as List)
-              .map((ch) => ChapterModel.fromJson(ch))
-              .toList()
+          .map((ch) => ChapterModel.fromJson(ch))
+          .toList()
           : [],
       reviews: _parseInt(json['reviews']),
       reviewsAvg: json['reviews_avg']?.toString(),

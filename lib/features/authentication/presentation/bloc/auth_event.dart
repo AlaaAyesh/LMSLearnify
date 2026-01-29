@@ -186,6 +186,8 @@ class UpdateProfileEvent extends AuthEvent {
   final String? religion;
   final String? about;
   final String? birthday;
+  final int? specialtyId;
+  final String? role;
 
   const UpdateProfileEvent({
     this.name,
@@ -195,10 +197,12 @@ class UpdateProfileEvent extends AuthEvent {
     this.religion,
     this.about,
     this.birthday,
+    this.specialtyId,
+    this.role,
   });
 
   @override
-  List<Object?> get props => [name, email, phone, gender, religion, about, birthday];
+  List<Object?> get props => [name, email, phone, gender, religion, about, birthday, specialtyId, role];
 }
 
 

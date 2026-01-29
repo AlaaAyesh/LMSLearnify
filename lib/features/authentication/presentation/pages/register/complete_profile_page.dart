@@ -22,6 +22,7 @@ class CompleteProfilePage extends StatelessWidget {
   final String? name;
   final String providerId; // google | apple
   final String accessToken; // OAuth token for registration
+  final bool requiresRegistration;
 
   const CompleteProfilePage({
     super.key,
@@ -29,6 +30,7 @@ class CompleteProfilePage extends StatelessWidget {
     this.name,
     required this.providerId,
     required this.accessToken,
+    required this.requiresRegistration,
   });
 
   @override
@@ -40,6 +42,7 @@ class CompleteProfilePage extends StatelessWidget {
         name: name,
         providerId: providerId,
         accessToken: accessToken,
+        requiresRegistration: requiresRegistration,
       ),
     );
   }
@@ -50,12 +53,14 @@ class _CompleteProfileView extends StatefulWidget {
   final String? name;
   final String providerId;
   final String accessToken;
+  final bool requiresRegistration;
 
   const _CompleteProfileView({
     required this.email,
     this.name,
     required this.providerId,
     required this.accessToken,
+    required this.requiresRegistration,
   });
 
   @override
@@ -180,22 +185,40 @@ class _CompleteProfileViewState extends State<_CompleteProfileView> {
         return;
       }
 
-      context.read<AuthBloc>().add(
-            CompleteProfileEvent(
-              name: nameController.text.trim(),
-              email: widget.email,
-              phone: countryCode != null
-                  ? '$countryCode${phoneController.text.trim()}'
-                  : phoneController.text.trim(),
-              role: selectedRole,
-              specialtyId: calculatedSpecialtyId!,
-              gender: selectedGender,
-              religion: selectedReligion,
-              birthday: _getBirthdayString(),
-              providerId: widget.providerId,
-              accessToken: widget.accessToken,
-            ),
-          );
+      final phone = countryCode != null
+          ? '$countryCode${phoneController.text.trim()}'
+          : phoneController.text.trim();
+
+      // For new users (no backend session yet), register using social token.
+      // For existing users with incomplete profile, update using profile endpoint.
+      if (widget.requiresRegistration) {
+        context.read<AuthBloc>().add(
+              CompleteProfileEvent(
+                name: nameController.text.trim(),
+                email: widget.email,
+                phone: phone,
+                role: selectedRole,
+                specialtyId: calculatedSpecialtyId!,
+                gender: selectedGender,
+                religion: selectedReligion,
+                birthday: _getBirthdayString(),
+                providerId: widget.providerId,
+                accessToken: widget.accessToken,
+              ),
+            );
+      } else {
+        context.read<AuthBloc>().add(
+              UpdateProfileEvent(
+                name: nameController.text.trim(),
+                phone: phone,
+                gender: selectedGender,
+                religion: selectedReligion,
+                birthday: _getBirthdayString(),
+                specialtyId: calculatedSpecialtyId,
+                role: selectedRole,
+              ),
+            );
+      }
     }
   }
 

@@ -48,7 +48,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   // Google Sign-In instance
   final GoogleSignIn _googleSignIn = GoogleSignIn(
     scopes: ['email', 'profile'],
-    serverClientId: '91869598940-gndd1i75dk53hhu101e3hr2o9o4d5u0j.apps.googleusercontent.com',
+    serverClientId: '695539439418-g40jdtebreloi78lkk4f4t24v1fktu8q.apps.googleusercontent.com',
   );
 
   Future<void> _onLogin(LoginEvent event, Emitter<AuthState> emit) async {
@@ -347,10 +347,42 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       );
 
       result.fold(
-        (failure) => emit(AuthError(failure.message)),
-        // Backend already returns the user and access token. Skip forcing
-        // a separate registration/complete-profile step for Google sign-in.
-        (user) => emit(AuthAuthenticated(user)),
+        (failure) {
+          // If the backend reports that the user was not found, redirect
+          // to the complete profile flow so we can register a new user
+          // using the Google account data.
+          if (failure is NotFoundFailure) {
+            emit(
+              SocialLoginNeedsCompletion(
+                email: account.email ?? '',
+                name: account.displayName,
+                providerId: 'google',
+                accessToken: tokenToSend,
+                requiresRegistration: true,
+              ),
+            );
+          } else {
+            emit(AuthError(failure.message));
+          }
+        },
+        (user) {
+          // If the user exists but has incomplete profile information
+          // (e.g. missing phone, birthday, or specialty), force them to
+          // complete the profile before accessing the app.
+          if (!user.isProfileComplete) {
+            emit(
+              SocialLoginNeedsCompletion(
+                email: user.email,
+                name: user.name,
+                providerId: 'google',
+                accessToken: tokenToSend,
+                requiresRegistration: false,
+              ),
+            );
+          } else {
+            emit(AuthAuthenticated(user));
+          }
+        },
       );
     } catch (e) {
       // Handle specific Google Sign-In errors
@@ -442,12 +474,15 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
             // Existing user with complete profile - go to home
             emit(AuthAuthenticated(user));
           } else {
-            // New user or incomplete profile - show complete profile page
+            // New user or incomplete profile - show complete profile page.
+            // At this point we already have a backend session, so we just
+            // need to complete the profile via update-profile endpoint.
             emit(SocialLoginNeedsCompletion(
               email: email ?? user.email,
               name: fullName ?? user.name,
               providerId: 'apple',
               accessToken: identityToken,
+              requiresRegistration: false,
             ));
           }
         },
@@ -507,6 +542,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       religion: event.religion,
       about: event.about,
       birthday: event.birthday,
+      specialtyId: event.specialtyId,
+      role: event.role,
     );
 
     result.fold(

@@ -67,16 +67,22 @@ class SocialLoginNeedsCompletion extends AuthState {
   final String? name;
   final String providerId;
   final String accessToken; // Google/Apple token to be used after profile completion
+  // If true => we don't have a backend session yet (new user), so we must
+  // complete profile using social token via `auth/mobile/login`.
+  // If false => user already logged in but profile is incomplete, so we can
+  // complete profile using `auth/update-profile`.
+  final bool requiresRegistration;
 
   const SocialLoginNeedsCompletion({
     required this.email,
     this.name,
     required this.providerId,
     required this.accessToken,
+    required this.requiresRegistration,
   });
 
   @override
-  List<Object?> get props => [email, name, providerId, accessToken];
+  List<Object?> get props => [email, name, providerId, accessToken, requiresRegistration];
 }
 
 // Google OAuth states
