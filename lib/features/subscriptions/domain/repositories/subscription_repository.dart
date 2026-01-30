@@ -33,6 +33,16 @@ abstract class SubscriptionRepository {
     required String type,
     required int id,
   });
+
+  /// Verify In-App Purchase receipt (Google / Apple)
+  Future<Either<Failure, Unit>> verifyIapReceipt({
+    required String receiptData,
+    required String transactionId,
+    required int purchaseId,
+    required String store, // gplay | iap
+  });
+
+
 }
 
 

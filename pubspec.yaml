@@ -1,7 +1,7 @@
 name: learnify_lms
 description: A Flutter LMS Application
 publish_to: 'none'
-version: 1.0.0+1
+version: 1.0.0+2
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
@@ -50,6 +50,9 @@ dependencies:
   google_sign_in: ^6.2.1
   sign_in_with_apple: ^6.1.0
   crypto: ^3.0.3
+  in_app_purchase: ^3.2.3
+  in_app_purchase_android: ^0.4.0+5
+  in_app_purchase_storekit: ^0.4.4
 
 dev_dependencies:
   flutter_test:

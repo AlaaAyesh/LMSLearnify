@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:in_app_purchase/in_app_purchase.dart';
 import '../../data/models/payment_model.dart';
 import '../../data/models/subscription_model.dart';
 
@@ -95,4 +96,22 @@ class ProcessPaymentEvent extends SubscriptionEvent {
   List<Object?> get props => [service, currency, courseId, subscriptionId, phone, couponCode];
 }
 
+class VerifyIapReceiptEvent extends SubscriptionEvent {
+  final String receiptData;
+  final String transactionId;
+  final int purchaseId;
+  final String store;
+  final PurchaseDetails? purchaseDetails; // لإكمال الشراء بعد التحقق
+
+  VerifyIapReceiptEvent({
+    required this.receiptData,
+    required this.transactionId,
+    required this.purchaseId,
+    required this.store,
+    this.purchaseDetails,
+  });
+
+  @override
+  List<Object?> get props => [receiptData, transactionId, purchaseId, store, purchaseDetails];
+}
 

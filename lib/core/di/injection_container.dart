@@ -28,6 +28,7 @@ import '../../features/subscriptions/domain/usecases/create_subscription_usecase
 import '../../features/subscriptions/domain/usecases/get_subscription_by_id_usecase.dart';
 import '../../features/subscriptions/domain/usecases/get_subscriptions_usecase.dart';
 import '../../features/subscriptions/domain/usecases/update_subscription_usecase.dart';
+import '../../features/subscriptions/domain/usecases/verify_iap_receipt_usecase.dart';
 import '../../features/subscriptions/presentation/bloc/subscription_bloc.dart';
 import '../../features/courses/data/datasources/course_remote_datasource.dart';
 import '../../features/courses/data/repositories/course_repository_impl.dart';
@@ -199,6 +200,7 @@ void _initSubscriptions() {
   sl.registerLazySingleton(() => GetSubscriptionByIdUseCase(sl()));
   sl.registerLazySingleton(() => CreateSubscriptionUseCase(sl()));
   sl.registerLazySingleton(() => UpdateSubscriptionUseCase(sl()));
+  sl.registerLazySingleton(() => VerifyIapReceiptUseCase(sl()));
 
   // Bloc
   sl.registerFactory(
@@ -208,6 +210,7 @@ void _initSubscriptions() {
       createSubscriptionUseCase: sl(),
       updateSubscriptionUseCase: sl(),
       subscriptionRepository: sl(),
+      verifyIapReceiptUseCase: sl(),
     ),
   );
 }

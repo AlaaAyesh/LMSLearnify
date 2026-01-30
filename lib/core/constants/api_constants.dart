@@ -53,6 +53,9 @@ class ApiConstants {
 
   // Payment Endpoints
   static const String processPayment = 'payments/process';
+  // IAP Endpoints
+  static const String validateIapReceipt = 'iap/validate-receipt';
+
 
   // Reels Endpoints
   static const String reelsFeed = 'reels/feed';

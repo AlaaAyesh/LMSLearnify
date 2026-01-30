@@ -194,4 +194,12 @@ class PaymentFailed extends SubscriptionState {
   List<Object?> get props => [message];
 }
 
+class IapVerificationLoading extends SubscriptionState {}
+
+class IapVerificationSuccess extends SubscriptionState {}
+
+class IapVerificationFailure extends SubscriptionState {
+  final String message;
+  IapVerificationFailure(this.message);
+}
 

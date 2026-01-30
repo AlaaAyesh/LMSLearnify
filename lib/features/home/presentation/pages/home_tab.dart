@@ -188,25 +188,30 @@ class _HomeTabContent extends StatelessWidget {
               SizedBox(height: Responsive.spacing(context, 24)),
             ],
 
-            // Popular/Most Watched Courses
-            if (homeData.popularCourses.isNotEmpty || homeData.latestCourses.isNotEmpty) ...[
-              const SectionHeader(title: 'الأكثر مشاهدة'),
+            // Popular/Most Watched Courses - الأكثر مشاهدة (best_seller من API)
+            if (homeData.popularCourses.isNotEmpty) ...[
+              SectionHeader(
+                title: 'الأكثر مشاهدة',
+                onSeeAll: () {
+                  // Navigate to all popular courses page
+                  // يمكن إضافة صفحة خاصة بجميع الدورات الأكثر مشاهدة
+                },
+              ),
               SizedBox(height: Responsive.spacing(context, 12)),
               SizedBox(
                 height: Responsive.height(context, 200),
                 child: ListView.builder(
                   scrollDirection: Axis.horizontal,
                   padding: Responsive.padding(context, right: 16),
-                  itemCount: homeData.popularCourses.isNotEmpty 
-                      ? homeData.popularCourses.length 
-                      : homeData.latestCourses.length,
+                  itemCount: homeData.popularCourses.length,
                   itemBuilder: (context, index) {
-                    final course = homeData.popularCourses.isNotEmpty 
-                        ? homeData.popularCourses[index]
-                        : homeData.latestCourses[index];
-                    return PopularCourseCard(
-                      course: course,
-                      onTap: () => _onCourseTap(context, course),
+                    final course = homeData.popularCourses[index];
+                    return Padding(
+                      padding: Responsive.padding(context, left: 16),
+                      child: PopularCourseCard(
+                        course: course,
+                        onTap: () => _onCourseTap(context, course),
+                      ),
                     );
                   },
                 ),

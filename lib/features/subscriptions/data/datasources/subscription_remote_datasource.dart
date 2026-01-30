@@ -33,6 +33,14 @@ abstract class SubscriptionRemoteDataSource {
     required String type,
     required int id,
   });
+  /// Verify In-App Purchase receipt
+  Future<void> verifyIapReceipt({
+    required String receiptData,
+    required String transactionId,
+    required int purchaseId,
+    required String store,
+  });
+
 }
 
 class SubscriptionRemoteDataSourceImpl implements SubscriptionRemoteDataSource {
@@ -292,6 +300,35 @@ class SubscriptionRemoteDataSourceImpl implements SubscriptionRemoteDataSource {
       statusCode: e.response?.statusCode,
     );
   }
+  @override
+  Future<void> verifyIapReceipt({
+    required String receiptData,
+    required String transactionId,
+    required int purchaseId,
+    required String store,
+  }) async {
+    try {
+      final response = await dioClient.post(
+        ApiConstants.validateIapReceipt,
+        data: {
+          'receipt_data': receiptData,
+          'transaction_id': transactionId,
+          'purchase_id': purchaseId,
+          'store': store, // gplay | iap
+        },
+      );
+
+      if (response.statusCode == 200) return;
+
+      throw ServerException(
+        message: response.data['message'] ?? 'فشل التحقق من عملية الشراء',
+        statusCode: response.statusCode,
+      );
+    } on DioException catch (e) {
+      throw _handleDioError(e, 'فشل التحقق من عملية الشراء');
+    }
+  }
+
 }
 
 

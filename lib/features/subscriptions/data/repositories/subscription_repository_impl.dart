@@ -102,6 +102,28 @@ class SubscriptionRepositoryImpl implements SubscriptionRepository {
       return Left(ServerFailure('حدث خطأ غير متوقع: $e'));
     }
   }
+  @override
+  Future<Either<Failure, Unit>> verifyIapReceipt({
+    required String receiptData,
+    required String transactionId,
+    required int purchaseId,
+    required String store,
+  }) async {
+    try {
+      await remoteDataSource.verifyIapReceipt(
+        receiptData: receiptData,
+        transactionId: transactionId,
+        purchaseId: purchaseId,
+        store: store,
+      );
+      return const Right(unit);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    } catch (e) {
+      return Left(ServerFailure('حدث خطأ غير متوقع'));
+    }
+  }
+
 }
 
 

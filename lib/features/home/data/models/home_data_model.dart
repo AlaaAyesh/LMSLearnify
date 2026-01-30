@@ -21,7 +21,8 @@ class HomeDataModel extends HomeData {
       banners: _parseBanners(json['banners']),
       latestCourses: _parseCourses(json['latest_courses']),
       freeCourses: _parseCourses(json['free_courses']),
-      popularCourses: _parseCourses(json['popular_courses']),
+      // استخدام best_seller من API كـ popularCourses (الأكثر مشاهدة)
+      popularCourses: _parseCourses(json['best_seller'] ?? json['popular_courses']),
       topMentors: _parseMentors(json['top_mentors']),
       partners: _parsePartners(json['partners']),
       categoryCourseBlocks: _parseCategoryCourseBlocks(json['category_course_blocks']),

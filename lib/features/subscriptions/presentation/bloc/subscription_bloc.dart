@@ -1,12 +1,17 @@
+// في ملف subscription_bloc.dart
+import 'dart:io';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:in_app_purchase/in_app_purchase.dart';
 import '../../data/models/payment_model.dart';
 import '../../domain/repositories/subscription_repository.dart';
 import '../../domain/usecases/create_subscription_usecase.dart';
 import '../../domain/usecases/get_subscription_by_id_usecase.dart';
 import '../../domain/usecases/get_subscriptions_usecase.dart';
 import '../../domain/usecases/update_subscription_usecase.dart';
+import '../../../../core/services/google_play_billing_service.dart';
 import 'subscription_event.dart';
 import 'subscription_state.dart';
+import '../../domain/usecases/verify_iap_receipt_usecase.dart';
 
 class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
   final GetSubscriptionsUseCase getSubscriptionsUseCase;
@@ -14,6 +19,12 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
   final CreateSubscriptionUseCase createSubscriptionUseCase;
   final UpdateSubscriptionUseCase updateSubscriptionUseCase;
   final SubscriptionRepository subscriptionRepository;
+  final VerifyIapReceiptUseCase verifyIapReceiptUseCase;
+
+  // خدمة Google Play Billing
+  late final GooglePlayBillingService _billingService;
+  bool _billingInitialized = false;
+  int? _pendingPurchaseId; // حفظ purchase ID من الباك إند
 
   SubscriptionBloc({
     required this.getSubscriptionsUseCase,
@@ -21,7 +32,10 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
     required this.createSubscriptionUseCase,
     required this.updateSubscriptionUseCase,
     required this.subscriptionRepository,
+    required this.verifyIapReceiptUseCase,
   }) : super(SubscriptionInitial()) {
+    _billingService = GooglePlayBillingService();
+
     on<LoadSubscriptionsEvent>(_onLoadSubscriptions);
     on<LoadSubscriptionByIdEvent>(_onLoadSubscriptionById);
     on<SelectSubscriptionEvent>(_onSelectSubscription);
@@ -30,23 +44,142 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
     on<UpdateSubscriptionEvent>(_onUpdateSubscription);
     on<ClearSubscriptionStateEvent>(_onClearState);
     on<ProcessPaymentEvent>(_onProcessPayment);
+    on<VerifyIapReceiptEvent>(_onVerifyIapReceipt);
+  }
+
+  /// تهيئة Google Play Billing
+  Future<void> _initializeGooglePlayBilling(
+      Emitter<SubscriptionState> emit,
+      ) async {
+    if (_billingInitialized) return;
+
+    print('Initializing Google Play Billing...');
+    try {
+      await _billingService.initialize(
+        onPurchaseUpdated: (PurchaseDetails purchase) async {
+          print('Purchase updated callback triggered');
+          // التحقق من الشراء مع الباك إند
+          await _verifyAndCompletePurchase(purchase, emit);
+        },
+        onError: (String error) {
+          print('Billing error callback: $error');
+          emit(PaymentFailed(error));
+        },
+      );
+      _billingInitialized = true;
+      print('Google Play Billing initialized successfully');
+    } catch (e) {
+      print('Failed to initialize billing: $e');
+      emit(PaymentFailed('فشل تهيئة نظام الدفع: $e'));
+      rethrow;
+    }
+  }
+
+  /// التحقق من الشراء وإكماله
+  Future<void> _verifyAndCompletePurchase(
+      PurchaseDetails purchase,
+      Emitter<SubscriptionState> emit,
+      ) async {
+    print('Verifying purchase: ${purchase.productID}');
+    
+    // التحقق من وجود purchase ID من الباك إند
+    if (_pendingPurchaseId == null) {
+      print('No pending purchase ID found');
+      emit(PaymentFailed('خطأ: لم يتم العثور على معرف الدفع'));
+      if (purchase.pendingCompletePurchase) {
+        await _billingService.completePurchase(purchase);
+      }
+      return;
+    }
+
+    try {
+      // بيانات التحقق من الشراء
+      final verificationData = purchase.verificationData;
+
+      print('Verification data: ${verificationData.serverVerificationData}');
+      print('Transaction ID: ${purchase.purchaseID}');
+      print('Product ID: ${purchase.productID}');
+      print('Purchase ID from backend: $_pendingPurchaseId');
+
+      // إرسال للباك إند للتحقق
+      add(VerifyIapReceiptEvent(
+        receiptData: verificationData.serverVerificationData,
+        transactionId: purchase.purchaseID ?? '',
+        purchaseId: _pendingPurchaseId!, // استخدام purchase ID من الباك إند
+        store: Platform.isAndroid ? 'google_play' : 'app_store',
+        purchaseDetails: purchase,
+      ));
+
+    } catch (e) {
+      print('Verification error: $e');
+      emit(PaymentFailed('فشل التحقق من عملية الشراء: $e'));
+      if (purchase.pendingCompletePurchase) {
+        await _billingService.completePurchase(purchase);
+      }
+    }
+  }
+  Future<void> _onVerifyIapReceipt(
+      VerifyIapReceiptEvent event,
+      Emitter<SubscriptionState> emit,
+      ) async {
+    print('Verifying IAP receipt with backend...');
+    print('Receipt data: ${event.receiptData.substring(0, event.receiptData.length > 50 ? 50 : event.receiptData.length)}...');
+    print('Transaction ID: ${event.transactionId}');
+    print('Purchase ID: ${event.purchaseId}');
+    print('Store: ${event.store}');
+    
+    emit(IapVerificationLoading());
+
+    final result = await verifyIapReceiptUseCase(
+      receiptData: event.receiptData,
+      transactionId: event.transactionId,
+      purchaseId: event.purchaseId,
+      store: event.store,
+    );
+
+    result.fold(
+      (failure) {
+        print('Verification failed: ${failure.message}');
+        emit(IapVerificationFailure(failure.message));
+        // إكمال الشراء حتى في حالة الفشل لتجنب تكرار المحاولات
+        if (event.purchaseDetails != null && event.purchaseDetails!.pendingCompletePurchase) {
+          _billingService.completePurchase(event.purchaseDetails!);
+        }
+        _pendingPurchaseId = null; // إعادة تعيين
+      },
+      (_) {
+        print('Verification successful');
+        // إكمال الشراء بعد التحقق الناجح
+        if (event.purchaseDetails != null && event.purchaseDetails!.pendingCompletePurchase) {
+          _billingService.completePurchase(event.purchaseDetails!);
+        }
+        emit(IapVerificationSuccess());
+        // بعد التحقق الناجح، أظهر رسالة النجاح
+        emit(PaymentCompleted(
+          purchase: null,
+          message: 'تم تفعيل اشتراكك بنجاح',
+        ));
+        // أعد تحميل الاشتراكات لتحديث الحالة
+        add(const LoadSubscriptionsEvent());
+        _pendingPurchaseId = null; // إعادة تعيين بعد النجاح
+      },
+    );
   }
 
   Future<void> _onLoadSubscriptions(
-    LoadSubscriptionsEvent event,
-    Emitter<SubscriptionState> emit,
-  ) async {
+      LoadSubscriptionsEvent event,
+      Emitter<SubscriptionState> emit,
+      ) async {
     emit(SubscriptionLoading());
 
     final result = await getSubscriptionsUseCase();
 
     result.fold(
-      (failure) => emit(SubscriptionError(failure.message)),
-      (subscriptions) {
+          (failure) => emit(SubscriptionError(failure.message)),
+          (subscriptions) {
         if (subscriptions.isEmpty) {
           emit(SubscriptionsEmpty());
         } else {
-          // Find recommended plan (longest duration) or default to first
           int recommendedIndex = 0;
           int maxDuration = 0;
           for (int i = 0; i < subscriptions.length; i++) {
@@ -65,31 +198,30 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
   }
 
   Future<void> _onLoadSubscriptionById(
-    LoadSubscriptionByIdEvent event,
-    Emitter<SubscriptionState> emit,
-  ) async {
+      LoadSubscriptionByIdEvent event,
+      Emitter<SubscriptionState> emit,
+      ) async {
     emit(SubscriptionLoading());
 
     final result = await getSubscriptionByIdUseCase(id: event.id);
 
     result.fold(
-      (failure) => emit(SubscriptionError(failure.message)),
-      (subscription) => emit(SubscriptionDetailsLoaded(subscription: subscription)),
+          (failure) => emit(SubscriptionError(failure.message)),
+          (subscription) => emit(SubscriptionDetailsLoaded(subscription: subscription)),
     );
   }
 
   void _onSelectSubscription(
-    SelectSubscriptionEvent event,
-    Emitter<SubscriptionState> emit,
-  ) {
+      SelectSubscriptionEvent event,
+      Emitter<SubscriptionState> emit,
+      ) {
     final currentState = state;
     if (currentState is SubscriptionsLoaded) {
       final newSelectedSubscription = event.index < currentState.subscriptions.length
           ? currentState.subscriptions[event.index]
           : null;
-      
-      // If coupon is applied, recalculate discount for the new subscription
-      if (currentState.appliedPromoCode != null && 
+
+      if (currentState.appliedPromoCode != null &&
           currentState.appliedPromoCode!.isNotEmpty &&
           currentState.discountPercentage != null &&
           newSelectedSubscription != null) {
@@ -98,7 +230,7 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
         final discountAmount = (currentPrice * discountPercentage / 100);
         final finalPrice = currentPrice - discountAmount;
         final finalPriceString = finalPrice.toStringAsFixed(2).replaceAll(RegExp(r'\.?0+$'), '');
-        
+
         emit(currentState.copyWith(
           selectedIndex: event.index,
           discountAmount: discountAmount,
@@ -111,13 +243,13 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
   }
 
   Future<void> _onApplyPromoCode(
-    ApplyPromoCodeEvent event,
-    Emitter<SubscriptionState> emit,
-  ) async {
+      ApplyPromoCodeEvent event,
+      Emitter<SubscriptionState> emit,
+      ) async {
     final currentState = state;
     if (currentState is SubscriptionsLoaded) {
       final selectedSubscription = currentState.selectedSubscription;
-      
+
       if (selectedSubscription == null) {
         emit(SubscriptionError('يرجى اختيار باقة أولاً'));
         return;
@@ -128,7 +260,6 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
         return;
       }
 
-      // Validate coupon via API
       final result = await subscriptionRepository.validateCoupon(
         code: event.promoCode,
         type: 'subscription',
@@ -136,101 +267,79 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
       );
 
       result.fold(
-        (failure) {
+            (failure) {
           emit(SubscriptionError(failure.message));
-          // Return to loaded state after error
           if (state is SubscriptionError) {
             emit(currentState);
           }
         },
-        (validationResult) {
-          // Extract discount information from API response
-          // API may return data in 'data' field or directly
-          print('Coupon validation result: $validationResult'); // Debug log
-          
-          // Check if data is nested in 'data' field
+            (validationResult) {
+          print('Coupon validation result: $validationResult');
+
           Map<String, dynamic> responseData;
           if (validationResult['data'] != null && validationResult['data'] is Map) {
             responseData = validationResult['data'] as Map<String, dynamic>;
           } else {
-            responseData = validationResult is Map<String, dynamic> 
-                ? validationResult 
+            responseData = validationResult is Map<String, dynamic>
+                ? validationResult
                 : <String, dynamic>{};
           }
-          
-          // Try different possible field names
+
           final discountPercentage = responseData['discount_percentage'] != null
               ? (responseData['discount_percentage'] is num
-                  ? responseData['discount_percentage'].toDouble()
-                  : double.tryParse(responseData['discount_percentage'].toString()) ?? 0.0)
+              ? responseData['discount_percentage'].toDouble()
+              : double.tryParse(responseData['discount_percentage'].toString()) ?? 0.0)
               : (responseData['percentage'] != null
-                  ? (responseData['percentage'] is num
-                      ? responseData['percentage'].toDouble()
-                      : double.tryParse(responseData['percentage'].toString()) ?? 0.0)
-                  : null);
-          
+              ? (responseData['percentage'] is num
+              ? responseData['percentage'].toDouble()
+              : double.tryParse(responseData['percentage'].toString()) ?? 0.0)
+              : null);
+
           final discountAmount = responseData['discount_amount'] != null
               ? (responseData['discount_amount'] is num
-                  ? responseData['discount_amount'].toDouble()
-                  : double.tryParse(responseData['discount_amount'].toString()) ?? 0.0)
+              ? responseData['discount_amount'].toDouble()
+              : double.tryParse(responseData['discount_amount'].toString()) ?? 0.0)
               : (responseData['discount'] != null
-                  ? (responseData['discount'] is num
-                      ? responseData['discount'].toDouble()
-                      : double.tryParse(responseData['discount'].toString()) ?? 0.0)
-                  : null);
+              ? (responseData['discount'] is num
+              ? responseData['discount'].toDouble()
+              : double.tryParse(responseData['discount'].toString()) ?? 0.0)
+              : null);
 
-          final discountType = responseData['discount_type']?.toString().toLowerCase() ?? 
-                              responseData['type']?.toString().toLowerCase() ?? 
-                              'percentage';
-          
-          print('Extracted discount_percentage: $discountPercentage, discount_amount: $discountAmount, discount_type: $discountType');
-          
-          // Calculate final price after coupon discount
+          final discountType = responseData['discount_type']?.toString().toLowerCase() ??
+              responseData['type']?.toString().toLowerCase() ??
+              'percentage';
+
           final currentPrice = double.tryParse(selectedSubscription.price) ?? 0.0;
           double finalPrice = currentPrice;
           double? calculatedDiscountPercentage;
           double calculatedDiscountAmount = 0.0;
 
           if (discountType == 'percentage' && discountPercentage != null && discountPercentage > 0) {
-            // Percentage-based discount
             calculatedDiscountPercentage = discountPercentage;
             calculatedDiscountAmount = (currentPrice * discountPercentage / 100);
             finalPrice = currentPrice - calculatedDiscountAmount;
           } else if (discountType == 'fixed' && discountAmount != null && discountAmount > 0) {
-            // Fixed amount discount
             calculatedDiscountAmount = discountAmount;
             finalPrice = currentPrice - discountAmount;
             if (finalPrice < 0) finalPrice = 0;
-            // Calculate percentage for display
-            calculatedDiscountPercentage = currentPrice > 0 
-                ? ((discountAmount / currentPrice) * 100) 
+            calculatedDiscountPercentage = currentPrice > 0
+                ? ((discountAmount / currentPrice) * 100)
                 : 0.0;
           } else if (discountPercentage != null && discountPercentage > 0) {
-            // Fallback: use percentage if available
             calculatedDiscountPercentage = discountPercentage;
             calculatedDiscountAmount = (currentPrice * discountPercentage / 100);
             finalPrice = currentPrice - calculatedDiscountAmount;
           } else if (discountAmount != null && discountAmount > 0) {
-            // Fallback: use fixed amount if available
             calculatedDiscountAmount = discountAmount;
             finalPrice = currentPrice - discountAmount;
             if (finalPrice < 0) finalPrice = 0;
-            calculatedDiscountPercentage = currentPrice > 0 
-                ? ((discountAmount / currentPrice) * 100) 
+            calculatedDiscountPercentage = currentPrice > 0
+                ? ((discountAmount / currentPrice) * 100)
                 : 0.0;
-          } else {
-            // If no discount info in response, assume 10% discount as fallback (or you can remove this)
-            // For now, we'll just mark coupon as applied but with 0 discount
-            // This means the API validated the coupon but didn't provide discount info
-            print('Warning: Coupon validated but no discount info found in response');
           }
 
-          // Format final price to string (preserve decimal places if needed)
           final finalPriceString = finalPrice.toStringAsFixed(2).replaceAll(RegExp(r'\.?0+$'), '');
 
-          print('Calculated discount: ${calculatedDiscountPercentage}%, Amount: $calculatedDiscountAmount, Final price: $finalPriceString');
-
-          // Update state with coupon information
           final updatedState = currentState.copyWith(
             appliedPromoCode: event.promoCode,
             discountAmount: calculatedDiscountAmount,
@@ -238,8 +347,7 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
             finalPriceAfterCoupon: finalPriceString,
           );
           emit(updatedState);
-          
-          // Emit success state for UI feedback
+
           emit(PromoCodeApplied(
             promoCode: event.promoCode,
             discountAmount: calculatedDiscountAmount,
@@ -248,8 +356,7 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
                 ? 'تم تطبيق كود الخصم بنجاح - خصم ${calculatedDiscountPercentage.toStringAsFixed(0)}%'
                 : 'تم تطبيق كود الخصم بنجاح',
           ));
-          
-          // Return to loaded state after showing success message
+
           emit(updatedState);
         },
       );
@@ -257,23 +364,23 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
   }
 
   Future<void> _onCreateSubscription(
-    CreateSubscriptionEvent event,
-    Emitter<SubscriptionState> emit,
-  ) async {
+      CreateSubscriptionEvent event,
+      Emitter<SubscriptionState> emit,
+      ) async {
     emit(SubscriptionLoading());
 
     final result = await createSubscriptionUseCase(request: event.request);
 
     result.fold(
-      (failure) => emit(SubscriptionError(failure.message)),
-      (subscription) => emit(SubscriptionCreated(subscription: subscription)),
+          (failure) => emit(SubscriptionError(failure.message)),
+          (subscription) => emit(SubscriptionCreated(subscription: subscription)),
     );
   }
 
   Future<void> _onUpdateSubscription(
-    UpdateSubscriptionEvent event,
-    Emitter<SubscriptionState> emit,
-  ) async {
+      UpdateSubscriptionEvent event,
+      Emitter<SubscriptionState> emit,
+      ) async {
     emit(SubscriptionLoading());
 
     final result = await updateSubscriptionUseCase(
@@ -282,35 +389,135 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
     );
 
     result.fold(
-      (failure) => emit(SubscriptionError(failure.message)),
-      (subscription) => emit(SubscriptionUpdated(subscription: subscription)),
+          (failure) => emit(SubscriptionError(failure.message)),
+          (subscription) => emit(SubscriptionUpdated(subscription: subscription)),
     );
   }
 
   void _onClearState(
-    ClearSubscriptionStateEvent event,
-    Emitter<SubscriptionState> emit,
-  ) {
+      ClearSubscriptionStateEvent event,
+      Emitter<SubscriptionState> emit,
+      ) {
     emit(SubscriptionInitial());
   }
 
   Future<void> _onProcessPayment(
-    ProcessPaymentEvent event,
-    Emitter<SubscriptionState> emit,
-  ) async {
+      ProcessPaymentEvent event,
+      Emitter<SubscriptionState> emit,
+      ) async {
     emit(PaymentProcessing());
 
-    // Check if this is a free subscription (100% coupon)
+    // إذا كان الدفع عبر Google Play
+    if (event.service == PaymentService.gplay) {
+      try {
+        print('Processing Google Play payment...');
+        print('Subscription ID: ${event.subscriptionId}');
+
+        // التحقق من أن subscriptionId ليس null
+        if (event.subscriptionId == null) {
+          print('Subscription ID is null');
+          emit(PaymentFailed('يرجى اختيار باقة أولاً'));
+          return;
+        }
+
+        // الخطوة 1: إنشاء سجل الدفع في الباك إند أولاً
+        print('Step 1: Creating payment record in backend...');
+        final request = ProcessPaymentRequest(
+          service: event.service,
+          currency: event.currency,
+          courseId: event.courseId,
+          subscriptionId: event.subscriptionId,
+          phone: event.phone,
+          couponCode: event.couponCode,
+        );
+
+        final paymentResult = await subscriptionRepository.processPayment(request: request);
+        
+        await paymentResult.fold(
+          (failure) {
+            print('Failed to create payment record: ${failure.message}');
+            emit(PaymentFailed('فشل إنشاء سجل الدفع: ${failure.message}'));
+          },
+          (response) async {
+            // الحصول على purchase ID من الاستجابة
+            if (response.purchase == null) {
+              print('No purchase ID in response');
+              emit(PaymentFailed('فشل: لم يتم الحصول على معرف الدفع من السيرفر'));
+              return;
+            }
+
+            _pendingPurchaseId = response.purchase!.id;
+            print('Payment record created with ID: $_pendingPurchaseId');
+
+            // تهيئة نظام الدفع إذا لم يكن مهيئاً
+            if (!_billingInitialized) {
+              await _initializeGooglePlayBilling(emit);
+            }
+
+            // الحصول على معرف المنتج من Google Play
+            final productId = GooglePlayBillingService.getProductId(event.subscriptionId!);
+
+            if (productId == null) {
+              print('Invalid subscription ID: ${event.subscriptionId}');
+              emit(PaymentFailed(
+                'معرف الباقة غير صحيح.\n'
+                'معرف الباقة: ${event.subscriptionId}\n'
+                'المعرفات المتاحة: ${GooglePlayBillingService.productIdMap.keys.join(', ')}',
+              ));
+              return;
+            }
+
+            print('Product ID for subscription ${event.subscriptionId}: $productId');
+
+            // جلب تفاصيل المنتج من Google Play
+            final products = await _billingService.getProducts([productId]);
+
+            if (products.isEmpty) {
+              print('Product not found in Google Play');
+              emit(PaymentFailed(
+                'الباقة غير متوفرة في المتجر.\n'
+                'معرف المنتج: $productId\n'
+                'تأكد من:\n'
+                '1. إعداد المنتج في Google Play Console\n'
+                '2. تفعيل المنتج\n'
+                '3. رفع التطبيق على Internal Testing',
+              ));
+              return;
+            }
+
+            print('Product found: ${products.first.id}, Price: ${products.first.price}');
+
+            // بدء عملية الشراء من Google Play
+            print('Step 2: Initiating Google Play purchase...');
+            await _billingService.purchaseProduct(products.first);
+
+            // في انتظار تأكيد الشراء
+            emit(PaymentInitiated(
+              purchase: response.purchase,
+              message: 'جارٍ معالجة عملية الشراء عبر Google Play...',
+            ));
+          },
+        );
+
+      } catch (e) {
+        print('Google Play payment error: $e');
+        emit(PaymentFailed('فشل عملية الشراء: $e'));
+        _pendingPurchaseId = null; // إعادة تعيين في حالة الخطأ
+      }
+      return;
+    }
+
+    // الكود الأصلي لطرق الدفع الأخرى (Kashier, إلخ)
     final currentState = state;
     double finalPrice = 0.0;
-    if (currentState is SubscriptionsLoaded && 
+
+    if (currentState is SubscriptionsLoaded &&
         currentState.finalPriceAfterCoupon != null) {
       finalPrice = double.tryParse(currentState.finalPriceAfterCoupon!) ?? 0.0;
     } else if (event.subscriptionId != null) {
-      // Get subscription price from state
       if (currentState is SubscriptionsLoaded) {
         final subscription = currentState.subscriptions.firstWhere(
-          (s) => s.id == event.subscriptionId,
+              (s) => s.id == event.subscriptionId,
           orElse: () => currentState.subscriptions.first,
         );
         finalPrice = double.tryParse(subscription.price) ?? 0.0;
@@ -329,25 +536,22 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
     final result = await subscriptionRepository.processPayment(request: request);
 
     result.fold(
-      (failure) => emit(PaymentFailed(failure.message)),
-      (response) {
+          (failure) => emit(PaymentFailed(failure.message)),
+          (response) {
         if (response.isSuccess) {
-          // Check if this is a free subscription (100% coupon) - API returns subscription object directly
-          if (response.isFreeSubscription || (finalPrice == 0 && response.subscriptionData != null)) {
-            // Free subscription activated directly - no payment needed
+          if (response.isFreeSubscription ||
+              (finalPrice == 0 && response.subscriptionData != null)) {
             print('Free subscription activated: ${response.subscriptionData}');
             emit(PaymentCompleted(
-              purchase: null, // No purchase for free subscriptions
+              purchase: null,
               message: response.dataMessage ?? response.message ?? 'تم تفعيل الاشتراك بنجاح',
             ));
           } else if (response.hasCheckoutUrl) {
-            // Check if checkout URL is available (for payment gateways like Kashier)
             emit(PaymentCheckoutReady(
               checkoutUrl: response.checkoutUrl!,
               message: response.dataMessage ?? 'تم بدء عملية الدفع',
             ));
           } else if (response.purchase != null) {
-            // Payment initiated - status is pending, waiting for confirmation
             if (response.purchase!.status == PaymentStatus.completed) {
               emit(PaymentCompleted(
                 purchase: response.purchase!,
@@ -360,15 +564,12 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
               ));
             }
           } else {
-            // Success but no purchase or checkout URL - might be free subscription
-            // Check if final price is 0
             if (finalPrice == 0) {
               emit(PaymentCompleted(
                 purchase: null,
                 message: response.dataMessage ?? response.message ?? 'تم تفعيل الاشتراك بنجاح',
               ));
             } else {
-              // Unknown state - handle gracefully
               emit(PaymentInitiated(
                 purchase: null,
                 message: response.dataMessage ?? response.message,
@@ -381,6 +582,9 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
       },
     );
   }
+  @override
+  Future<void> close() {
+    _billingService.dispose();
+    return super.close();
+  }
 }
-
-
