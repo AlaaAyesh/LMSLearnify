@@ -485,11 +485,16 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
               return;
             }
 
-            print('Product found: ${products.first.id}, Price: ${products.first.price}');
+            final product = products.first;
+            final displayName = GooglePlayBillingService.getDisplayName(
+              product.id, 
+              product.title,
+            );
+            print('Product found: ${product.id}, Price: ${product.price}, Title: $displayName');
 
             // بدء عملية الشراء من Google Play
             print('Step 2: Initiating Google Play purchase...');
-            await _billingService.purchaseProduct(products.first);
+            await _billingService.purchaseProduct(product);
 
             // في انتظار تأكيد الشراء
             emit(PaymentInitiated(

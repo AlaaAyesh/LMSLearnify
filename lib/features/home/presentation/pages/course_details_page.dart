@@ -223,7 +223,24 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
                 } else if (state is PaymentInitiated) {
                   setState(() => _isPaymentLoading = false);
                   _showPaymentSuccessDialog(state.message);
+                } else if (state is PaymentCompleted) {
+                  setState(() => _isPaymentLoading = false);
+                  _showPaymentSuccessDialog(state.message);
+                } else if (state is PaymentCheckoutReady) {
+                  setState(() => _isPaymentLoading = false);
+                  // Payment checkout will be handled by PaymentCheckoutWebViewPage
+                } else if (state is IapVerificationSuccess) {
+                  setState(() => _isPaymentLoading = false);
+                  _showPaymentSuccessDialog('تم تفعيل اشتراكك بنجاح');
                 } else if (state is PaymentFailed) {
+                  setState(() => _isPaymentLoading = false);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(state.message),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                } else if (state is IapVerificationFailure) {
                   setState(() => _isPaymentLoading = false);
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
@@ -552,10 +569,15 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
   }
 
   bool get _isFreeCourse {
-    return course.price == null ||
-        course.price!.isEmpty ||
-        course.price == '0' ||
-        course.price == '0.00';
+    if (course.price == null || course.price!.isEmpty) {
+      return true;
+    }
+    final price = course.price!.trim();
+    return price == '0' ||
+        price == '0.0' ||
+        price == '0.00' ||
+        price == '0.000' ||
+        double.tryParse(price) == 0.0;
   }
 
   Widget _buildLessonsTitleSection(BuildContext context) {
@@ -582,56 +604,52 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
 
           const Spacer(),
 
-          // Free course banner - show only if user is not authenticated
-          if (_isFreeCourse && !_isAuthenticated)
-            GestureDetector(
+          // Free course banner - show login message if not authenticated, or Enroll Now button if authenticated but no access
+          if (_isFreeCourse)
+            if (!_isAuthenticated)
+              GestureDetector(
                 onTap: () {
-                  if (!_isAuthenticated) {
-                    Navigator.of(context, rootNavigator: true).pushNamed(
-                      AppRouter.login,
-                      arguments: {'returnTo': 'subscriptions'},
-                    );
-                  } else {
-                    // يرجع لصفحة الاشتراكات + الـ bottom nav ظاهر
-                    context.mainNavigation?.switchToTab(2);
-                  }
+                  Navigator.of(context, rootNavigator: true).pushNamed(
+                    AppRouter.login,
+                    arguments: {'returnTo': 'course', 'courseId': course.id},
+                  );
                 },
-              child: Container(
-                constraints: BoxConstraints(
-                  maxWidth: context.isTablet
-                      ? context.rw(260)
-                      : context.rw(210),
-                ),
-                padding: Responsive.padding(
-                  context,
-                  horizontal: 24,
-                  vertical: 6,
-                ),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFEDE4FF),
-                  borderRadius: BorderRadius.circular(
-                    Responsive.radius(context, 22),
+                child: Container(
+                  constraints: BoxConstraints(
+                    maxWidth: context.isTablet
+                        ? context.rw(260)
+                        : context.rw(210),
                   ),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'الكورس مجاني سجل دخولك',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontFamily: 'Cairo',
-                        fontSize: Responsive.fontSize(context, 12),
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.textPrimary,
-                      ),
+                  padding: Responsive.padding(
+                    context,
+                    horizontal: 24,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFEDE4FF),
+                    borderRadius: BorderRadius.circular(
+                      Responsive.radius(context, 22),
                     ),
-                    SizedBox(height: context.rs(4)),
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'الكورس مجاني سجل دخولك',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontFamily: 'Cairo',
+                          fontSize: Responsive.fontSize(context, 12),
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
+                      SizedBox(height: context.rs(4)),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
                           'للمشاهدة ',
                           style: TextStyle(
                             fontFamily: 'Cairo',
@@ -655,7 +673,46 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
                   ],
                 ),
               ),
-            ),
+            )
+            else if (!course.hasAccess)
+              // Show Enroll Now button after login only if user doesn't have access
+              ElevatedButton(
+                onPressed: _isPaymentLoading
+                    ? null
+                    : () => _onEnrollFreeCourse(context),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  disabledBackgroundColor: Colors.grey[300],
+                  padding: Responsive.padding(
+                    context,
+                    horizontal: 20,
+                    vertical: 10,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(
+                      Responsive.radius(context, 22),
+                    ),
+                  ),
+                ),
+                child: _isPaymentLoading
+                    ? SizedBox(
+                        height: 16,
+                        width: 16,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    : Text(
+                        'Enroll Now',
+                        style: TextStyle(
+                          fontFamily: 'Cairo',
+                          fontSize: Responsive.fontSize(context, 14),
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                        ),
+                      ),
+              ),
         ],
       ),
     );
@@ -856,9 +913,11 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
     // Mark lesson as viewed immediately when opening (will be confirmed when video loads)
     _markLessonAsViewed(lesson.id);
     
-    // If user has access (subscribed), allow all lessons
-    // For free courses, if user is authenticated, allow all lessons
-    final hasFullAccess = course.hasAccess || (_isFreeCourse && _isAuthenticated);
+    // For paid courses: only allow access if user has subscription (course.hasAccess)
+    // For free courses: allow access if user has subscription OR is authenticated
+    final hasFullAccess = _isFreeCourse 
+        ? (course.hasAccess || _isAuthenticated)
+        : course.hasAccess;
     
     if (hasFullAccess) {
       final result = await Navigator.of(context, rootNavigator: true).push(
@@ -888,12 +947,21 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
       return;
     }
 
-    // For non-subscribers, only allow first lesson preview
-    final isFirstLesson = course.chapters.isNotEmpty &&
+    // For paid courses: lock ALL lessons if no access (no preview)
+    // For free courses: allow first lesson preview even if not authenticated
+    if (!_isFreeCourse && !course.hasAccess) {
+      // Paid course without access - lock everything
+      await _handleLockedLessonTap(context);
+      return;
+    }
+    
+    // For free courses, allow first lesson preview
+    final isFirstLesson = _isFreeCourse && 
+        course.chapters.isNotEmpty &&
         course.chapters.first.lessons.isNotEmpty &&
         course.chapters.first.lessons.first.id == lesson.id;
 
-    if (!isFirstLesson) {
+    if (!hasFullAccess && !isFirstLesson) {
       // Locked lesson - handle based on course type and login status
       await _handleLockedLessonTap(context);
       return;
@@ -989,9 +1057,34 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
     }
   }
 
+  void _onEnrollFreeCourse(BuildContext context) async {
+    // For free course enrollment after login - process payment with course_id
+    if (!_isAuthenticated) {
+      // Should not happen, but just in case
+      final result = await Navigator.pushNamed(
+        context,
+        '/login',
+        arguments: {'returnTo': 'course', 'courseId': course.id},
+      );
+      if (result == true && mounted) {
+        await _checkAuthentication();
+        if (mounted) {
+          setState(() {});
+        }
+      }
+      return;
+    }
+
+    // Show phone input dialog for enrollment
+    _showPhoneInputDialog();
+  }
+
   void _onEnrollPressed(BuildContext context) async {
-    // Check if user has full access (subscribed or free course + authenticated)
-    final hasFullAccess = course.hasAccess || (_isFreeCourse && _isAuthenticated);
+    // For paid courses: only allow access if user has subscription (course.hasAccess)
+    // For free courses: allow access if user has subscription OR is authenticated
+    final hasFullAccess = _isFreeCourse 
+        ? (course.hasAccess || _isAuthenticated)
+        : course.hasAccess;
     
     if (hasFullAccess) {
       // User has access - start learning
@@ -1282,14 +1375,23 @@ class _ChapterSection extends StatelessWidget {
           itemBuilder: (context, index) {
             final lesson = chapter.lessons[index];
             
-            // First lesson in the entire course is always available for preview
+            // First lesson in the entire course is available for preview ONLY if:
+            // - Course is free, OR
+            // - User has access (paid course with subscription)
             final isFirstLessonInCourse = firstLessonInCourse != null && 
                 firstLessonInCourse!.id == lesson.id;
             
-            // If user has access (subscribed), all lessons are available
-            // For free courses, if user is authenticated, all lessons are available
-            final hasFullAccess = course.hasAccess || (isFreeCourse && isAuthenticated);
-            final isAvailable = hasFullAccess || isFirstLessonInCourse;
+            // For paid courses: only allow access if user has subscription (course.hasAccess)
+            // For free courses: allow access if user has subscription OR is authenticated
+            final hasFullAccess = isFreeCourse 
+                ? (course.hasAccess || isAuthenticated)
+                : course.hasAccess;
+            
+            // For paid courses: lock ALL lessons (including first) if no access
+            // For free courses: allow first lesson preview even if not authenticated
+            final isAvailable = isFreeCourse
+                ? (hasFullAccess || isFirstLessonInCourse)
+                : hasFullAccess; // Paid courses: no preview, need full access
             final isViewed = isLessonViewed(lesson.id);
             
             return _LessonCard(

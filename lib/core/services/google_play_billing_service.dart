@@ -9,28 +9,51 @@ class GooglePlayBillingService {
   final InAppPurchase _inAppPurchase = InAppPurchase.instance;
   StreamSubscription<List<PurchaseDetails>>? _purchaseSubscription;
 
-  // معرفات المنتجات من Google Play Console
+  // معرفات المنتجات من Google Play Console (One-time products / Lifetime access)
   // المفتاح: معرف الباقة في السيرفر (1, 2, 3)
   // القيمة: معرف المنتج في Google Play Console
+  // نوع المنتج: ProductType.inapp (One-time products)
   static const Map<int, String> productIdMap = {
-    1: '1',    // الباقة الشهرية - Product ID: 1
-    2: '2',   // باقة 6 شهور - Product ID: 2
-    3: '3',  // الباقة السنوية - Product ID: 3
+    1: '1',    // Lifetime Access - 1 Month - Product ID: 1
+    2: '2',   // Lifetime Access - 6 Months - Product ID: 2
+    3: '3',  // Lifetime Access - 1 Year - Product ID: 3
   };
 
   /// الحصول على معرف المنتج في Google Play من معرف الباقة
-  static String? getProductId(int subscriptionId) {
-    return productIdMap[subscriptionId];
+  static String? getProductId(int planId) {
+    return productIdMap[planId];
   }
 
   /// الحصول على معرف الباقة من معرف المنتج في Google Play
-  static int? getSubscriptionId(String productId) {
+  static int? getPlanId(String productId) {
     for (var entry in productIdMap.entries) {
       if (entry.value == productId) {
         return entry.key;
       }
     }
     return null;
+  }
+
+  /// الحصول على اسم العرض للمنتج (للتغلب على الالتباس)
+  /// يغير "1 Year Subscription" إلى "Lifetime Access"
+  static String getDisplayName(String productId, String originalTitle) {
+    // للمنتج ID 3 (Lifetime Access - 1 Year)
+    if (productId == '3') {
+      return 'Lifetime Access';
+    }
+    // للمنتجات الأخرى، نتحقق من العنوان الأصلي
+    if (originalTitle.contains('1 Year Subscription') || 
+        originalTitle.contains('Year Subscription')) {
+      return 'Lifetime Access';
+    }
+    return originalTitle;
+  }
+
+  /// Deprecated: Use getPlanId instead
+  /// الحصول على معرف الباقة من معرف المنتج في Google Play (للتوافق مع الكود القديم)
+  @Deprecated('Use getPlanId instead')
+  static int? getSubscriptionId(String productId) {
+    return getPlanId(productId);
   }
 
   /// التحقق من توفر Google Play Billing
@@ -160,6 +183,8 @@ class GooglePlayBillingService {
     }
 
     print('Google Play Billing is available, querying products...');
+    // Query for One-time products (ProductType.inapp)
+    // Note: Google Play Console should have these as "One-time products" not "Subscriptions"
     final ProductDetailsResponse response =
         await _inAppPurchase.queryProductDetails(productIds.toSet());
 
@@ -190,14 +215,16 @@ class GooglePlayBillingService {
       errorMessage += '3. إضافة حسابك كـ Tester في Internal Testing\n';
       errorMessage += '4. استخدام نفس Package Name الموجود في Google Play Console\n';
       errorMessage += '5. الانتظار 2-3 ساعات بعد رفع التطبيق للمرة الأولى\n';
-      errorMessage += '6. التأكد من أن المنتجات من نوع "One-time products" وليست "Subscriptions"';
+      errorMessage += '6. التأكد من أن المنتجات من نوع "One-time products" (ProductType.inapp) وليست "Subscriptions"\n';
+      errorMessage += '7. في Google Play Console: Products > One-time products (وليس Subscriptions)';
       
       throw Exception(errorMessage);
     }
 
     print('Found ${response.productDetails.length} products');
     for (var product in response.productDetails) {
-      print('Product: ${product.id}, Price: ${product.price}, Title: ${product.title}');
+      final displayName = getDisplayName(product.id, product.title);
+      print('Product: ${product.id}, Price: ${product.price}, Title: $displayName (Original: ${product.title})');
     }
 
     return response.productDetails;
@@ -205,20 +232,22 @@ class GooglePlayBillingService {
 
   /// بدء عملية الشراء
   Future<void> purchaseProduct(ProductDetails productDetails) async {
+    final displayName = getDisplayName(productDetails.id, productDetails.title);
     print('Starting purchase for: ${productDetails.id}');
     print('Product details:');
     print('  - ID: ${productDetails.id}');
     print('  - Price: ${productDetails.price}');
-    print('  - Title: ${productDetails.title}');
+    print('  - Title: $displayName (Original: ${productDetails.title})');
     print('  - Description: ${productDetails.description}');
 
     PurchaseParam purchaseParam;
 
-    // استخدام GooglePlayPurchaseParam للـ one-time products على Android
+    // استخدام GooglePlayPurchaseParam للـ one-time products (Lifetime access) على Android
+    // ProductType.inapp - One-time products (Non-consumable)
     if (Platform.isAndroid) {
       final GooglePlayPurchaseParam androidParam = GooglePlayPurchaseParam(
         productDetails: productDetails,
-        changeSubscriptionParam: null, // null للـ one-time products
+        changeSubscriptionParam: null, // null للـ one-time products (Lifetime access)
         applicationUserName: null,
       );
       purchaseParam = androidParam;
@@ -229,9 +258,11 @@ class GooglePlayBillingService {
     }
 
     try {
-      print('Calling buyNonConsumable for one-time product...');
+      print('Calling buyNonConsumable for Lifetime access (One-time product)...');
+      print('Product Type: ProductType.inapp (One-time product)');
       print('Purchase param type: ${purchaseParam.runtimeType}');
       
+      // استخدام buyNonConsumable للـ Lifetime access (One-time products)
       final bool success = await _inAppPurchase.buyNonConsumable(
         purchaseParam: purchaseParam,
       );
