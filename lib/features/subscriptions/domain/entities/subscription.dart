@@ -10,6 +10,7 @@ class Subscription extends Equatable {
   final String usdPriceBeforeDiscount;
   final int duration;
   final String? currency; // العملة من الباك إند (EGP, USD, إلخ)
+  final bool isActive; // هل المستخدم مشترك في هذه الباقة
   final String? createdAt;
   final String? updatedAt;
 
@@ -23,6 +24,7 @@ class Subscription extends Equatable {
     required this.usdPriceBeforeDiscount,
     required this.duration,
     this.currency,
+    this.isActive = false,
     this.createdAt,
     this.updatedAt,
   });
@@ -72,6 +74,7 @@ class Subscription extends Equatable {
         usdPriceBeforeDiscount,
         duration,
         currency,
+        isActive,
         createdAt,
         updatedAt,
       ];

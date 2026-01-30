@@ -25,11 +25,11 @@ class _BunnyVideoPlayerState extends State<BunnyVideoPlayer> {
     // To: https://iframe.mediadelivery.net/embed/332604/video-id
     String embedUrl = url.replaceFirst('/play/', '/embed/');
     
-    // Add parameters
+    // Add parameters to make video fill width and remove black bars
     if (!embedUrl.contains('?')) {
-      embedUrl = '$embedUrl?autoplay=true&responsive=true';
+      embedUrl = '$embedUrl?autoplay=true&responsive=true&aspectRatio=16:9';
     } else {
-      embedUrl = '$embedUrl&autoplay=true&responsive=true';
+      embedUrl = '$embedUrl&autoplay=true&responsive=true&aspectRatio=16:9';
     }
     return embedUrl;
   }
@@ -50,15 +50,18 @@ class _BunnyVideoPlayerState extends State<BunnyVideoPlayer> {
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     html, body { 
-      width: 100vw; 
-      height: 100vh; 
+      width: 100%;
+      height: 100%;
       background: #000;
       overflow: hidden;
+      margin: 0;
+      padding: 0;
     }
     .video-wrapper {
       position: relative;
-      width: 100vw;
-      height: 100vh;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
     }
     iframe {
       position: absolute;
@@ -67,6 +70,8 @@ class _BunnyVideoPlayerState extends State<BunnyVideoPlayer> {
       width: 100%;
       height: 100%;
       border: 0;
+      min-width: 100%;
+      min-height: 100%;
     }
   </style>
 </head>
@@ -75,8 +80,8 @@ class _BunnyVideoPlayerState extends State<BunnyVideoPlayer> {
     <iframe 
       src="$embedUrl"
       loading="lazy"
-      style="border:0;position:absolute;top:0;left:0;height:100%;width:100%;"
-      allow="accelerometer;gyroscope;autoplay;encrypted-media;picture-in-picture;"
+      style="border:0;position:absolute;top:50%;left:0;width:100%;height:100%;transform:translateY(-50%);"
+      allow="accelerometer;gyroscope;autoplay;encrypted-media;picture-in-picture;fullscreen"
       allowfullscreen="true">
     </iframe>
   </div>
@@ -104,22 +109,21 @@ class _BunnyVideoPlayerState extends State<BunnyVideoPlayer> {
 
   @override
   Widget build(BuildContext context) {
-    return AspectRatio(
-      aspectRatio: 16 / 9,
-      child: Container(
-        color: Colors.black,
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            WebViewWidget(controller: controller),
-            if (_isLoading)
-              Center(
-                child: CircularProgressIndicator(
-                  color: Colors.white,
-                ),
+    return Container(
+      width: double.infinity,
+      height: double.infinity,
+      color: Colors.black,
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          WebViewWidget(controller: controller),
+          if (_isLoading)
+            Center(
+              child: CircularProgressIndicator(
+                color: Colors.white,
               ),
-          ],
-        ),
+            ),
+        ],
       ),
     );
   }

@@ -81,15 +81,25 @@ class _PaymentCheckoutWebViewPageState extends State<PaymentCheckoutWebViewPage>
     final uri = Uri.parse(url);
     final host = uri.host.toLowerCase();
     
+    print('Checking payment completion for URL: $url');
+    print('Host: $host, Path: ${uri.path}, Query: ${uri.queryParameters}');
+    
     // Check for success indicators in URL
-    return uri.path.contains('success') ||
+    final isSuccess = uri.path.contains('success') ||
            uri.path.contains('payment-success') ||
-           uri.queryParameters.containsKey('payment_status') &&
-           uri.queryParameters['payment_status'] == 'success' ||
-           uri.queryParameters.containsKey('status') &&
-           uri.queryParameters['status'] == 'success' ||
+           (uri.queryParameters.containsKey('payment_status') &&
+           uri.queryParameters['payment_status'] == 'success') ||
+           (uri.queryParameters.containsKey('status') &&
+           uri.queryParameters['status'] == 'success') ||
+           uri.queryParameters.containsKey('payment_success') ||
            // Check if redirected to merchant redirect URL (usually means success)
-           (host.contains('learnify') && !host.contains('checkout'));
+           (host.contains('learnify') && !host.contains('checkout') && !host.contains('api'));
+    
+    if (isSuccess) {
+      print('Payment completion detected!');
+    }
+    
+    return isSuccess;
   }
 
   bool _isPaymentFailed(String url) {
@@ -107,6 +117,9 @@ class _PaymentCheckoutWebViewPageState extends State<PaymentCheckoutWebViewPage>
 
   void _handlePaymentComplete() {
     if (mounted) {
+      print('Handling payment completion...');
+      setState(() => _isLoading = false);
+      
       // Show success message
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -116,9 +129,10 @@ class _PaymentCheckoutWebViewPageState extends State<PaymentCheckoutWebViewPage>
         ),
       );
       
-      // Wait a bit then close
-      Future.delayed(const Duration(seconds: 1), () {
+      // Wait a bit for backend to process, then close
+      Future.delayed(const Duration(seconds: 2), () {
         if (mounted) {
+          print('Returning success from payment checkout page');
           Navigator.of(context).pop(true); // Return true to indicate success
         }
       });
@@ -127,6 +141,9 @@ class _PaymentCheckoutWebViewPageState extends State<PaymentCheckoutWebViewPage>
 
   void _handlePaymentFailed() {
     if (mounted) {
+      print('Handling payment failure...');
+      setState(() => _isLoading = false);
+      
       // Show error message
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -139,6 +156,7 @@ class _PaymentCheckoutWebViewPageState extends State<PaymentCheckoutWebViewPage>
       // Wait a bit then close
       Future.delayed(const Duration(seconds: 2), () {
         if (mounted) {
+          print('Returning failure from payment checkout page');
           Navigator.of(context).pop(false); // Return false to indicate failure
         }
       });

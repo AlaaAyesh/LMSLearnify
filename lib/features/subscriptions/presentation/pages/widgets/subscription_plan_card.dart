@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:learnify_lms/features/subscriptions/presentation/pages/widgets/plan_details_section.dart';
 import 'package:learnify_lms/features/subscriptions/presentation/pages/widgets/price_section.dart';
 import 'package:learnify_lms/features/subscriptions/presentation/pages/widgets/recommended_badge.dart';
+import 'package:learnify_lms/features/subscriptions/presentation/pages/widgets/active_badge.dart';
 import '../../../../../core/utils/responsive.dart';
 import '../../../domain/entities/card_color.dart';
 import '../../../domain/entities/subscription_plan.dart';
@@ -60,7 +61,10 @@ class SubscriptionPlanCard extends StatelessWidget {
               ],
             ),
           ),
-          if (plan.isRecommended) const RecommendedBadge(),
+          // Show active badge if user is subscribed to this plan
+          if (plan.isActive) const ActiveBadge()
+          // Show recommended badge only if not active
+          else if (plan.isRecommended) const RecommendedBadge(),
         ],
       ),
     );

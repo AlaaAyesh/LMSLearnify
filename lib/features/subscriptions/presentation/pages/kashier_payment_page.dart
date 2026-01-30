@@ -8,6 +8,8 @@ import '../../../../core/services/currency_service.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/responsive.dart';
 import '../../../../core/widgets/custom_app_bar.dart';
+import '../../../authentication/presentation/bloc/auth_bloc.dart';
+import '../../../authentication/presentation/bloc/auth_event.dart';
 import '../../data/models/payment_model.dart';
 import '../../domain/entities/subscription.dart';
 import '../bloc/subscription_bloc.dart';
@@ -547,16 +549,33 @@ class _KashierPaymentPageContentState extends State<_KashierPaymentPageContent> 
       builder: (ctx) => PaymentSuccessDialog(
         onContinue: () {
           Navigator.pop(ctx); // Close dialog
+          
+          // Reload subscriptions and user data before going back
+          if (mounted) {
+            print('Reloading subscriptions after successful payment...');
+            context.read<SubscriptionBloc>().add(const LoadSubscriptionsEvent());
+            
+            // Reload user data to update subscription status in profile
+            print('Reloading user data to update subscription status...');
+            try {
+              context.read<AuthBloc>().add(CheckAuthStatusEvent());
+            } catch (e) {
+              print('Error reloading user data: $e');
+            }
+          }
+          
           Navigator.pop(context); // Go back to subscriptions page
           
           // Show success message
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: const Text('تم تفعيل الاشتراك بنجاح! يمكنك الآن مشاهدة جميع الدروس'),
-              backgroundColor: AppColors.success,
-              duration: const Duration(seconds: 3),
-            ),
-          );
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: const Text('تم تفعيل الاشتراك بنجاح! يمكنك الآن مشاهدة جميع الدروس'),
+                backgroundColor: AppColors.success,
+                duration: const Duration(seconds: 3),
+              ),
+            );
+          }
         },
       ),
     );

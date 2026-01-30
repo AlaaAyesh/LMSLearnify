@@ -124,6 +124,24 @@ class SubscriptionRepositoryImpl implements SubscriptionRepository {
     }
   }
 
+  @override
+  Future<Either<Failure, TransactionsResponseModel>> getMyTransactions({
+    int page = 1,
+    int perPage = 10,
+  }) async {
+    try {
+      final response = await remoteDataSource.getMyTransactions(
+        page: page,
+        perPage: perPage,
+      );
+      return Right(response);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    } catch (e) {
+      return Left(ServerFailure('حدث خطأ غير متوقع: $e'));
+    }
+  }
+
 }
 
 

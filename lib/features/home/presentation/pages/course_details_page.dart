@@ -10,6 +10,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/responsive.dart';
 import '../../../../core/widgets/custom_app_bar.dart';
 import '../../../../core/widgets/custom_background.dart';
+import '../../../../core/widgets/bunny_video_player.dart';
 import '../../../authentication/data/datasources/auth_local_datasource.dart';
 import '../../../lessons/presentation/pages/lesson_player_page.dart';
 import '../../../subscriptions/data/models/payment_model.dart';
@@ -49,6 +50,7 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
   bool _isCheckingAuth = true;
   bool _hasAttemptedCertificateGeneration = false; // Prevent multiple calls
   bool _hasCheckedInitialCertificate = false; // Track initial check
+  bool _isVideoLoaded = false; // Track if intro video is loaded
 
   @override
   void initState() {
@@ -61,7 +63,17 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
         }
       }
     }
+    _isVideoLoaded = false; // Reset video loaded state
     _checkAuthentication();
+  }
+  
+  @override
+  void didUpdateWidget(CourseDetailsPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Reset video loaded state if course changed
+    if (oldWidget.course.introBunnyUrl != widget.course.introBunnyUrl) {
+      _isVideoLoaded = false;
+    }
   }
 
   @override
@@ -291,6 +303,108 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
   }
 
   Widget _buildCourseThumbnail(BuildContext context) {
+    // If intro video URL exists, show video player with thumbnail placeholder
+    if (course.introBunnyUrl != null && course.introBunnyUrl!.isNotEmpty) {
+      return Container(
+        height: 200,
+        width: double.infinity,
+        margin: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(20),
+          child: GestureDetector(
+            onTap: () => _playIntroVideo(context),
+            child: Stack(
+              children: [
+                // Show thumbnail image until video is loaded
+                if (!_isVideoLoaded)
+                  SizedBox(
+                    width: double.infinity,
+                    height: double.infinity,
+                    child: _buildThumbnailImage(),
+                  ),
+                // Always load video player (hidden until loaded)
+                Positioned.fill(
+                  child: Opacity(
+                    opacity: _isVideoLoaded ? 1.0 : 0.0,
+                    child: BunnyVideoPlayer(
+                      videoUrl: course.introBunnyUrl!,
+                      onVideoLoaded: () {
+                        if (mounted) {
+                          setState(() {
+                            _isVideoLoaded = true;
+                          });
+                        }
+                      },
+                    ),
+                  ),
+                ),
+                // Play button overlay (only when video not loaded or as fallback)
+                if (!_isVideoLoaded)
+                  Positioned.fill(
+                    child: Center(
+                      child: Container(
+                        width: 64,
+                        height: 64,
+                        decoration: BoxDecoration(
+                          color: AppColors.primary,
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppColors.primary.withOpacity(0.4),
+                              blurRadius: 16,
+                              offset: const Offset(0, 6),
+                            ),
+                          ],
+                        ),
+                        child: const Icon(
+                          Icons.play_arrow_rounded,
+                          color: Colors.white,
+                          size: 36,
+                        ),
+                      ),
+                    ),
+                  ),
+                // Soon badge
+                if (course.soon)
+                  Positioned(
+                    top: 12,
+                    right: 12,
+                    child: Container(
+                      padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: AppColors.warning,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Text(
+                        'قريباً',
+                        style: TextStyle(
+                          fontFamily: 'Cairo',
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+    
+    // Fallback to thumbnail image if no video URL
     return GestureDetector(
       onTap: () => _playIntroVideo(context),
       child: Container(

@@ -5,6 +5,7 @@ class SubscriptionPlan {
   final String currency;
   final String description;
   final bool isRecommended;
+  final bool isActive; // هل المستخدم مشترك في هذه الباقة
 
   const SubscriptionPlan({
     required this.title,
@@ -13,6 +14,7 @@ class SubscriptionPlan {
     required this.currency,
     required this.description,
     this.isRecommended = false,
+    this.isActive = false,
   });
 }
 

@@ -11,6 +11,7 @@ class SubscriptionModel extends Subscription {
     required super.usdPriceBeforeDiscount,
     required super.duration,
     super.currency,
+    super.isActive,
     super.createdAt,
     super.updatedAt,
   });
@@ -28,6 +29,7 @@ class SubscriptionModel extends Subscription {
           ? int.tryParse(json['duration']) ?? 0
           : json['duration'] ?? 0,
       currency: json['currency'] as String?,
+      isActive: json['is_active'] == true || json['is_subscribed'] == true || json['is_active'] == 1 || json['is_subscribed'] == 1,
       createdAt: json['created_at'],
       updatedAt: json['updated_at'],
     );
@@ -51,6 +53,7 @@ class SubscriptionModel extends Subscription {
       'usd_price_before_discount': usdPriceBeforeDiscount,
       'duration': duration,
       'currency': currency,
+      'is_active': isActive,
       'created_at': createdAt,
       'updated_at': updatedAt,
     };

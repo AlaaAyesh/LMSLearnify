@@ -17,6 +17,8 @@ import '../../../../core/widgets/custom_app_bar.dart';
 import '../../../../core/widgets/custom_background.dart';
 import '../../../../core/widgets/support_section.dart';
 import '../../../authentication/data/datasources/auth_local_datasource.dart';
+import '../../../authentication/presentation/bloc/auth_bloc.dart';
+import '../../../authentication/presentation/bloc/auth_event.dart';
 import '../../domain/entities/subscription_plan.dart';
 import '../../domain/entities/subscription.dart';
 import '../bloc/subscription_bloc.dart';
@@ -55,11 +57,12 @@ class _SubscriptionsPageContent extends StatefulWidget {
   State<_SubscriptionsPageContent> createState() => _SubscriptionsPageContentState();
 }
 
-class _SubscriptionsPageContentState extends State<_SubscriptionsPageContent> {
+class _SubscriptionsPageContentState extends State<_SubscriptionsPageContent> with WidgetsBindingObserver {
   final TextEditingController _promoController = TextEditingController();
   bool _shouldShowPaymentAfterLogin = false;
   int? _pendingSelectedIndex;
   String? _pendingPromoCode;
+  DateTime? _lastReloadTime;
 
   static const List<String> _benefits = [
     'الوصول الكامل لجميع الكورسات الحالية والمستقبلية',
@@ -68,9 +71,33 @@ class _SubscriptionsPageContentState extends State<_SubscriptionsPageContent> {
   ];
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _promoController.dispose();
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    // Reload subscriptions when app comes back to foreground
+    // This helps refresh data after returning from external payment browser
+    if (state == AppLifecycleState.resumed && mounted) {
+      final now = DateTime.now();
+      // Only reload if it's been more than 5 seconds since last reload
+      if (_lastReloadTime == null || 
+          now.difference(_lastReloadTime!).inSeconds > 5) {
+        print('App resumed, reloading subscriptions...');
+        _lastReloadTime = now;
+        context.read<SubscriptionBloc>().add(const LoadSubscriptionsEvent());
+      }
+    }
   }
 
   @override
@@ -120,8 +147,21 @@ class _SubscriptionsPageContentState extends State<_SubscriptionsPageContent> {
                     duration: const Duration(seconds: 3),
                   ),
                 );
-                // Reload subscriptions to reflect the new subscription
-                context.read<SubscriptionBloc>().add(const LoadSubscriptionsEvent());
+                // إعادة تحميل الاشتراكات بعد نجاح الدفع لإعادة بناء الصفحة
+                Future.delayed(const Duration(milliseconds: 500), () {
+                  if (mounted) {
+                    print('Reloading subscriptions from UI after payment completion...');
+                    context.read<SubscriptionBloc>().add(const LoadSubscriptionsEvent());
+                    
+                    // Reload user data to update subscription status in profile
+                    print('Reloading user data to update subscription status...');
+                    try {
+                      context.read<AuthBloc>().add(CheckAuthStatusEvent());
+                    } catch (e) {
+                      print('Error reloading user data: $e');
+                    }
+                  }
+                });
               }
             },
             builder: (context, state) {
@@ -218,6 +258,7 @@ class _SubscriptionsPageContentState extends State<_SubscriptionsPageContent> {
                     : currencySymbol, // Fallback to CurrencyService if currency not provided
                 description: _getDurationDescription(subscription.duration),
                 isRecommended: isRecommended,
+                isActive: subscription.isActive, // Show active badge if user is subscribed
               ),
               isSelected: state.selectedIndex == index,
               couponDiscountPercentage: shouldShowCouponDiscount ? state.discountPercentage : null,
@@ -537,6 +578,12 @@ class _SubscriptionsPageContentState extends State<_SubscriptionsPageContent> {
                       ),
                     );
                   } else if (state is PaymentCompleted || state is PaymentInitiated) {
+                    // Reload user data to update subscription status in profile
+                    try {
+                      context.read<AuthBloc>().add(CheckAuthStatusEvent());
+                    } catch (e) {
+                      print('Error reloading user data: $e');
+                    }
                     if (Navigator.of(context).canPop()) {
                       Navigator.of(context).pop();
                     }

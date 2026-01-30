@@ -42,6 +42,11 @@ abstract class SubscriptionRepository {
     required String store, // gplay | iap
   });
 
+  /// Get user transactions
+  Future<Either<Failure, TransactionsResponseModel>> getMyTransactions({
+    int page = 1,
+    int perPage = 10,
+  });
 
 }
 

@@ -13,6 +13,8 @@ import '../../domain/entities/subscription.dart';
 import '../bloc/subscription_bloc.dart';
 import '../bloc/subscription_event.dart';
 import '../bloc/subscription_state.dart';
+import '../../../authentication/presentation/bloc/auth_bloc.dart';
+import '../../../authentication/presentation/bloc/auth_event.dart';
 import 'payment_checkout_webview_page.dart';
 import 'widgets/payment_methods_row.dart';
 import 'widgets/payment_success_dialog.dart';
@@ -524,18 +526,41 @@ class _PaymentPageContentState extends State<_PaymentPageContent> {
 
     // Handle payment result
     if (result == true && mounted) {
-      // Payment successful
+      // Payment successful - reload subscriptions and transactions
+      setState(() => _isLoading = false);
+      
+      // Wait a bit for backend to process the payment
+      await Future.delayed(const Duration(seconds: 2));
+      
+      // Reload subscriptions and transactions
+      if (mounted) {
+        print('Reloading subscriptions and transactions after successful payment...');
+        context.read<SubscriptionBloc>().add(const LoadSubscriptionsEvent());
+        
+        // Reload user data to update subscription status in profile
+        print('Reloading user data to update subscription status...');
+        try {
+          context.read<AuthBloc>().add(CheckAuthStatusEvent());
+        } catch (e) {
+          print('Error reloading user data: $e');
+        }
+      }
+      
+      // Show success dialog
       _showPaymentSuccessDialog();
     } else if (result == false && mounted) {
       // Payment failed
+      setState(() => _isLoading = false);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('فشلت عملية الدفع. يرجى المحاولة مرة أخرى'),
           backgroundColor: Colors.red,
         ),
       );
+    } else if (mounted) {
+      // User closed the page manually - clear loading state
+      setState(() => _isLoading = false);
     }
-    // If result is null, user closed the page manually
   }
 
   void _showPaymentSuccessDialog() {
@@ -545,16 +570,30 @@ class _PaymentPageContentState extends State<_PaymentPageContent> {
       builder: (ctx) => PaymentSuccessDialog(
         onContinue: () {
           Navigator.pop(ctx); // Close dialog
+          
+          // Reload subscriptions and user data one more time before going back
+          if (mounted) {
+            context.read<SubscriptionBloc>().add(const LoadSubscriptionsEvent());
+            // Reload user data to update subscription status in profile
+            try {
+              context.read<AuthBloc>().add(CheckAuthStatusEvent());
+            } catch (e) {
+              print('Error reloading user data: $e');
+            }
+          }
+          
           Navigator.pop(context); // Go back to subscriptions page
           
           // Show success message
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('تم تفعيل الاشتراك بنجاح! يمكنك الآن مشاهدة جميع الدروس'),
-              backgroundColor: AppColors.success,
-              duration: Duration(seconds: 3),
-            ),
-          );
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('تم تفعيل الاشتراك بنجاح! يمكنك الآن مشاهدة جميع الدروس'),
+                backgroundColor: AppColors.success,
+                duration: Duration(seconds: 3),
+              ),
+            );
+          }
         },
       ),
     );

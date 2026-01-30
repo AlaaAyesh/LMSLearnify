@@ -41,6 +41,12 @@ abstract class SubscriptionRemoteDataSource {
     required String store,
   });
 
+  /// Get user transactions
+  Future<TransactionsResponseModel> getMyTransactions({
+    int page = 1,
+    int perPage = 10,
+  });
+
 }
 
 class SubscriptionRemoteDataSourceImpl implements SubscriptionRemoteDataSource {
@@ -326,6 +332,52 @@ class SubscriptionRemoteDataSourceImpl implements SubscriptionRemoteDataSource {
       );
     } on DioException catch (e) {
       throw _handleDioError(e, 'فشل التحقق من عملية الشراء');
+    }
+  }
+
+  @override
+  Future<TransactionsResponseModel> getMyTransactions({
+    int page = 1,
+    int perPage = 10,
+  }) async {
+    try {
+      final response = await dioClient.get(
+        ApiConstants.myTransactions,
+        queryParameters: {
+          'page': page,
+          'per_page': perPage,
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final responseData = response.data;
+        
+        // Handle response structure: { "status": "success", "data": { "data": [...], "meta": {...} } }
+        if (responseData['status'] == 'success' && responseData['data'] != null) {
+          return TransactionsResponseModel.fromJson(responseData['data']);
+        }
+        
+        // Handle case where data and meta are at root level
+        if (responseData['data'] != null || responseData['transactions'] != null) {
+          return TransactionsResponseModel.fromJson(responseData);
+        }
+
+        // Return empty response if structure is unexpected
+        return TransactionsResponseModel(
+          transactions: [],
+          total: 0,
+          perPage: 10,
+          currentPage: 1,
+          lastPage: 1,
+        );
+      }
+
+      throw ServerException(
+        message: response.data['message'] ?? 'فشل في جلب المعاملات',
+        statusCode: response.statusCode,
+      );
+    } on DioException catch (e) {
+      throw _handleDioError(e, 'فشل في جلب المعاملات');
     }
   }
 

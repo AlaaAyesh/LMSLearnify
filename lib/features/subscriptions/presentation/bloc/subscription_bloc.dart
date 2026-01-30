@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 import '../../data/models/payment_model.dart';
+import '../../data/models/subscription_model.dart';
 import '../../domain/repositories/subscription_repository.dart';
 import '../../domain/usecases/create_subscription_usecase.dart';
 import '../../domain/usecases/get_subscription_by_id_usecase.dart';
@@ -147,7 +148,7 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
         }
         _pendingPurchaseId = null; // إعادة تعيين
       },
-      (_) {
+      (_) async {
         print('Verification successful');
         // إكمال الشراء بعد التحقق الناجح
         if (event.purchaseDetails != null && event.purchaseDetails!.pendingCompletePurchase) {
@@ -159,8 +160,12 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
           purchase: null,
           message: 'تم تفعيل اشتراكك بنجاح',
         ));
-        // أعد تحميل الاشتراكات لتحديث الحالة
-        add(const LoadSubscriptionsEvent());
+        // انتظر قليلاً قبل إعادة التحميل لضمان تحديث البيانات في الباك إند
+        await Future.delayed(const Duration(milliseconds: 500));
+        // أعد تحميل الاشتراكات لتحديث الحالة وإعادة بناء الصفحة
+        print('Reloading subscriptions after successful payment...');
+        // إعادة تحميل مباشرة باستخدام emit
+        await _onLoadSubscriptions(const LoadSubscriptionsEvent(), emit);
         _pendingPurchaseId = null; // إعادة تعيين بعد النجاح
       },
     );
@@ -172,24 +177,83 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
       ) async {
     emit(SubscriptionLoading());
 
-    final result = await getSubscriptionsUseCase();
-
-    result.fold(
-          (failure) => emit(SubscriptionError(failure.message)),
-          (subscriptions) {
+    // Get subscriptions
+    final subscriptionsResult = await getSubscriptionsUseCase();
+    
+    await subscriptionsResult.fold(
+      (failure) async {
+        emit(SubscriptionError(failure.message));
+      },
+      (subscriptions) async {
         if (subscriptions.isEmpty) {
           emit(SubscriptionsEmpty());
         } else {
+          // Get user transactions to find active subscription
+          int? activeSubscriptionId;
+          try {
+            print('Fetching user transactions to find active subscription...');
+            final transactionsResult = await subscriptionRepository.getMyTransactions(
+              page: 1,
+              perPage: 10,
+            );
+            
+            transactionsResult.fold(
+              (failure) {
+                // If transactions fetch fails, continue without marking active subscription
+                print('Failed to fetch transactions: ${failure.message}');
+              },
+              (transactionsResponse) {
+                print('Transactions fetched: ${transactionsResponse.transactions.length} transactions');
+                // Find the most recent successful subscription transaction
+                final activeTransaction = transactionsResponse.activeSubscriptionTransaction;
+                if (activeTransaction != null) {
+                  activeSubscriptionId = activeTransaction.purchasableId;
+                  print('Active subscription found! ID: $activeSubscriptionId, Status: ${activeTransaction.status.value}, Type: ${activeTransaction.purchasableType}');
+                } else {
+                  print('No active subscription transaction found');
+                }
+              },
+            );
+          } catch (e) {
+            // If transactions fetch fails, continue without marking active subscription
+            print('Error fetching transactions: $e');
+          }
+
+          // Mark subscriptions as active based on transactions
+          print('Marking subscriptions as active. Active subscription ID: $activeSubscriptionId');
+          final subscriptionsWithActive = subscriptions.map((subscription) {
+            final isActive = activeSubscriptionId != null && 
+                           subscription.id == activeSubscriptionId;
+            if (isActive) {
+              print('✓ Subscription ${subscription.id} (${subscription.nameAr}) is marked as ACTIVE');
+            }
+            // Create new SubscriptionModel from Subscription with updated isActive
+            return SubscriptionModel(
+              id: subscription.id,
+              nameAr: subscription.nameAr,
+              nameEn: subscription.nameEn,
+              price: subscription.price,
+              usdPrice: subscription.usdPrice,
+              priceBeforeDiscount: subscription.priceBeforeDiscount,
+              usdPriceBeforeDiscount: subscription.usdPriceBeforeDiscount,
+              duration: subscription.duration,
+              currency: subscription.currency,
+              isActive: isActive,
+              createdAt: subscription.createdAt,
+              updatedAt: subscription.updatedAt,
+            );
+          }).toList();
+
           int recommendedIndex = 0;
           int maxDuration = 0;
-          for (int i = 0; i < subscriptions.length; i++) {
-            if (subscriptions[i].duration > maxDuration) {
-              maxDuration = subscriptions[i].duration;
+          for (int i = 0; i < subscriptionsWithActive.length; i++) {
+            if (subscriptionsWithActive[i].duration > maxDuration) {
+              maxDuration = subscriptionsWithActive[i].duration;
               recommendedIndex = i;
             }
           }
           emit(SubscriptionsLoaded(
-            subscriptions: subscriptions,
+            subscriptions: subscriptionsWithActive,
             selectedIndex: recommendedIndex,
           ));
         }
@@ -551,6 +615,13 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
               purchase: null,
               message: response.dataMessage ?? response.message ?? 'تم تفعيل الاشتراك بنجاح',
             ));
+            // إعادة تحميل الاشتراكات بعد نجاح الدفع
+            print('Payment completed, reloading subscriptions in 0.5 seconds...');
+            Future.delayed(const Duration(milliseconds: 500), () async {
+              print('Reloading subscriptions after successful payment...');
+              // استخدام emit مباشرة لإعادة تحميل الاشتراكات
+              await _onLoadSubscriptions(const LoadSubscriptionsEvent(), emit);
+            });
           } else if (response.hasCheckoutUrl) {
             emit(PaymentCheckoutReady(
               checkoutUrl: response.checkoutUrl!,
@@ -562,6 +633,13 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
                 purchase: response.purchase!,
                 message: response.dataMessage ?? 'تمت عملية الدفع بنجاح',
               ));
+              // إعادة تحميل الاشتراكات بعد نجاح الدفع
+              print('Payment completed, reloading subscriptions in 0.5 seconds...');
+              Future.delayed(const Duration(milliseconds: 500), () async {
+                print('Reloading subscriptions after successful payment...');
+                // استخدام emit مباشرة لإعادة تحميل الاشتراكات
+                await _onLoadSubscriptions(const LoadSubscriptionsEvent(), emit);
+              });
             } else {
               emit(PaymentInitiated(
                 purchase: response.purchase!,
@@ -574,6 +652,13 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
                 purchase: null,
                 message: response.dataMessage ?? response.message ?? 'تم تفعيل الاشتراك بنجاح',
               ));
+              // إعادة تحميل الاشتراكات بعد نجاح الدفع
+              print('Payment completed, reloading subscriptions in 0.5 seconds...');
+              Future.delayed(const Duration(milliseconds: 500), () async {
+                print('Reloading subscriptions after successful payment...');
+                // استخدام emit مباشرة لإعادة تحميل الاشتراكات
+                await _onLoadSubscriptions(const LoadSubscriptionsEvent(), emit);
+              });
             } else {
               emit(PaymentInitiated(
                 purchase: null,
