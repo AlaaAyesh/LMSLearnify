@@ -23,6 +23,7 @@ import '../../../banners/domain/usecases/get_site_banners_usecase.dart';
 import 'categories_page.dart';
 import 'course_details_page.dart';
 import 'main_navigation_page.dart';
+import 'popular_courses_page.dart';
 import 'single_category_page.dart';
 
 class HomeTab extends StatefulWidget {
@@ -193,8 +194,7 @@ class _HomeTabContent extends StatelessWidget {
               SectionHeader(
                 title: 'الأكثر مشاهدة',
                 onSeeAll: () {
-                  // Navigate to all popular courses page
-                  // يمكن إضافة صفحة خاصة بجميع الدورات الأكثر مشاهدة
+                  _navigateToPopularCourses(context, homeData.popularCourses);
                 },
               ),
               SizedBox(height: Responsive.spacing(context, 12)),
@@ -335,6 +335,12 @@ class _HomeTabContent extends StatelessWidget {
   void _navigateToSingleCategory(BuildContext context, Category category, List<Course> courses) {
     context.pushWithNav(SingleCategoryPage(
       category: category,
+    ));
+  }
+
+  void _navigateToPopularCourses(BuildContext context, List<Course> popularCourses) {
+    context.pushWithNav(PopularCoursesPage(
+      initialCourses: popularCourses,
     ));
   }
 

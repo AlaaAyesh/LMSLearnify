@@ -9,6 +9,7 @@ import '../../../../core/di/injection_container.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/responsive.dart';
 import '../../../../core/widgets/bunny_video_player.dart';
+import '../../../authentication/data/datasources/auth_local_datasource.dart';
 import '../../../home/domain/entities/chapter.dart';
 import '../../../home/domain/entities/course.dart';
 import '../../../home/domain/entities/lesson.dart';
@@ -84,11 +85,15 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
   Timer? _progressTimer;
   double _currentProgress = 0.0;
   int? _videoDurationSeconds;
+  
+  // Authentication state
+  bool? _isAuthenticated;
 
   @override
   void initState() {
     super.initState();
     _autoLandscape = _shouldAutoLandscape();
+    _checkAuthentication();
     
     // Allow all orientations for video playback
     SystemChrome.setPreferredOrientations([
@@ -101,6 +106,20 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
     if (_autoLandscape) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _enterLandscape();
+      });
+    }
+  }
+
+  Future<void> _checkAuthentication() async {
+    try {
+      final authLocalDataSource = sl<AuthLocalDataSource>();
+      final token = await authLocalDataSource.getAccessToken();
+      setState(() {
+        _isAuthenticated = token != null && token.isNotEmpty;
+      });
+    } catch (e) {
+      setState(() {
+        _isAuthenticated = false;
       });
     }
   }
@@ -316,10 +335,56 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
       builder: (context, state) {
         if (state is LessonLoading) return _buildLoadingScreen();
         if (state is LessonLoaded) return _buildPlayerPage(state.lesson);
-        if (state is LessonError) return _buildErrorScreen(state.message);
+        if (state is LessonError) {
+          // Check if we can use initialLesson for free courses
+          // If authentication check is still pending, wait a bit and rebuild
+          if (_isAuthenticated == null) {
+            // Wait for auth check to complete
+            Future.delayed(const Duration(milliseconds: 100), () {
+              if (mounted) {
+                setState(() {});
+              }
+            });
+            return _buildLoadingScreen();
+          }
+          
+          if (_canUseInitialLessonForFreeCourse(state.message)) {
+            return _buildPlayerPage(widget.initialLesson!);
+          }
+          return _buildErrorScreen(state.message);
+        }
         return _buildLoadingScreen();
       },
     );
+  }
+
+  /// Check if we can use initialLesson for free courses when API returns access denied
+  bool _canUseInitialLessonForFreeCourse(String errorMessage) {
+    // Check if error is access denied related
+    final isAccessDenied = errorMessage.toLowerCase().contains('access denied') ||
+        errorMessage.toLowerCase().contains('permission') ||
+        errorMessage.toLowerCase().contains('unauthorized') ||
+        errorMessage.toLowerCase().contains('ليس لديك صلاحية');
+
+    if (!isAccessDenied) return false;
+
+    // Check if course is free
+    if (widget.course == null) return false;
+    final isFreeCourse = widget.course!.price == null ||
+        widget.course!.price!.isEmpty ||
+        widget.course!.price == '0' ||
+        widget.course!.price == '0.00';
+
+    if (!isFreeCourse) return false;
+
+    // Check if initialLesson is available
+    if (widget.initialLesson == null || 
+        (widget.initialLesson!.bunnyUrl == null || widget.initialLesson!.bunnyUrl!.isEmpty)) {
+      return false;
+    }
+
+    // Check if user is authenticated (use cached value)
+    return _isAuthenticated == true;
   }
 
   Widget _buildLoadingScreen() {

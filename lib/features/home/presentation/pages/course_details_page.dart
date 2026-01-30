@@ -19,6 +19,7 @@ import '../../../subscriptions/presentation/bloc/subscription_state.dart';
 import '../../../certificates/presentation/bloc/certificate_bloc.dart';
 import '../../../certificates/presentation/bloc/certificate_event.dart';
 import '../../../certificates/presentation/bloc/certificate_state.dart';
+import '../../../reels/presentation/pages/reels_feed_page.dart';
 import '../../domain/entities/chapter.dart';
 import '../../domain/entities/course.dart';
 import '../../domain/entities/lesson.dart';
@@ -35,7 +36,7 @@ class CourseDetailsPage extends StatefulWidget {
   State<CourseDetailsPage> createState() => _CourseDetailsPageState();
 }
 
-class _CourseDetailsPageState extends State<CourseDetailsPage> {
+class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
   // Track viewed lessons locally (only lessons watched >90%)
   final Set<int> _viewedLessonIds = {};
   // Track lesson progress percentages (0.0 to 1.0)
@@ -60,6 +61,31 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> {
         }
       }
     }
+    _checkAuthentication();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Subscribe to route changes to detect when page becomes visible
+    final route = ModalRoute.of(context);
+    if (route is PageRoute) {
+      routeObserver.subscribe(this, route);
+    }
+  }
+
+  @override
+  void dispose() {
+    routeObserver.unsubscribe(this);
+    _phoneController.dispose();
+    super.dispose();
+  }
+
+  // RouteAware callbacks
+  @override
+  void didPopNext() {
+    // Page became visible again (user returned from another page)
+    // Refresh auth state in case user logged in
     _checkAuthentication();
   }
 
@@ -150,12 +176,6 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> {
   }
 
   Course get course => widget.course;
-
-  @override
-  void dispose() {
-    _phoneController.dispose();
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -562,8 +582,8 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> {
 
           const Spacer(),
 
-          // Free course banner
-          if (_isFreeCourse && !course.hasAccess)
+          // Free course banner - show only if user is not authenticated
+          if (_isFreeCourse && !_isAuthenticated)
             GestureDetector(
                 onTap: () {
                   if (!_isAuthenticated) {
@@ -697,6 +717,8 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> {
             firstLessonInCourse: firstLessonInCourse,
             isLessonViewed: _isLessonViewed,
             onLessonTap: (lesson) => _onLessonTap(context, lesson, chapter),
+            isFreeCourse: _isFreeCourse,
+            isAuthenticated: _isAuthenticated,
           );
         }).toList(),
       ),
@@ -835,7 +857,10 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> {
     _markLessonAsViewed(lesson.id);
     
     // If user has access (subscribed), allow all lessons
-    if (course.hasAccess) {
+    // For free courses, if user is authenticated, allow all lessons
+    final hasFullAccess = course.hasAccess || (_isFreeCourse && _isAuthenticated);
+    
+    if (hasFullAccess) {
       final result = await Navigator.of(context, rootNavigator: true).push(
         MaterialPageRoute(
           builder: (_) => LessonPlayerPage(
@@ -907,7 +932,7 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> {
     final isAuthenticated = token != null && token.isNotEmpty;
 
     if (_isFreeCourse) {
-      // Free course - show subscription message
+      // Free course - only require login, not subscription
       if (!isAuthenticated) {
         // Not logged in - show message and redirect to login
         ScaffoldMessenger.of(context).showSnackBar(
@@ -923,36 +948,26 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> {
                   '/login',
                   arguments: {'returnTo': 'course', 'courseId': course.id},
                 );
-                // After login, user will find the course unlocked
+                // After login, refresh auth state and unlock course
                 if (result == true && mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('تم تسجيل الدخول! الكورس متاح الآن'),
-                      backgroundColor: AppColors.success,
-                    ),
-                  );
+                  await _checkAuthentication();
+                  if (mounted) {
+                    setState(() {});
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('تم تسجيل الدخول! الكورس متاح الآن'),
+                        backgroundColor: AppColors.success,
+                      ),
+                    );
+                  }
                 }
               },
             ),
           ),
         );
-      } else {
-        // Logged in but not subscribed - show subscription message
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('الكورس مجاني! اشترك من هنا للمشاهدة'),
-            backgroundColor: AppColors.primary,
-            action: SnackBarAction(
-              label: 'الاشتراك',
-              textColor: Colors.white,
-              onPressed: () {
-                // Navigate to subscriptions page
-                Navigator.pushNamed(context, '/subscriptions');
-              },
-            ),
-          ),
-        );
       }
+      // If logged in, they should have access - this shouldn't be reached
+      // but if it is, it means there's a state issue
     } else {
       // Paid course - show subscription required message
       if (!isAuthenticated) {
@@ -975,7 +990,10 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> {
   }
 
   void _onEnrollPressed(BuildContext context) async {
-    if (course.hasAccess) {
+    // Check if user has full access (subscribed or free course + authenticated)
+    final hasFullAccess = course.hasAccess || (_isFreeCourse && _isAuthenticated);
+    
+    if (hasFullAccess) {
       // User has access - start learning
       if (course.chapters.isNotEmpty &&
           course.chapters.first.lessons.isNotEmpty) {
@@ -998,8 +1016,19 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> {
         }
       }
     } else if (_isFreeCourse) {
-      // Free course - redirect to login
-      Navigator.pushNamed(context, '/login');
+      // Free course but not authenticated - redirect to login
+      final result = await Navigator.pushNamed(
+        context,
+        '/login',
+        arguments: {'returnTo': 'course', 'courseId': course.id},
+      );
+      // After login, refresh auth state
+      if (result == true && mounted) {
+        await _checkAuthentication();
+        if (mounted) {
+          setState(() {});
+        }
+      }
     } else {
       // Paid course - show phone dialog for payment
       _showPhoneInputDialog();
@@ -1203,6 +1232,8 @@ class _ChapterSection extends StatelessWidget {
   final Lesson? firstLessonInCourse;
   final bool Function(int lessonId) isLessonViewed;
   final void Function(Lesson lesson) onLessonTap;
+  final bool isFreeCourse;
+  final bool isAuthenticated;
 
   const _ChapterSection({
     required this.chapter,
@@ -1211,6 +1242,8 @@ class _ChapterSection extends StatelessWidget {
     required this.firstLessonInCourse,
     required this.isLessonViewed,
     required this.onLessonTap,
+    required this.isFreeCourse,
+    required this.isAuthenticated,
   });
 
   @override
@@ -1253,15 +1286,17 @@ class _ChapterSection extends StatelessWidget {
             final isFirstLessonInCourse = firstLessonInCourse != null && 
                 firstLessonInCourse!.id == lesson.id;
             
-            // If user has access, all lessons are available
-            final isAvailable = course.hasAccess || isFirstLessonInCourse;
+            // If user has access (subscribed), all lessons are available
+            // For free courses, if user is authenticated, all lessons are available
+            final hasFullAccess = course.hasAccess || (isFreeCourse && isAuthenticated);
+            final isAvailable = hasFullAccess || isFirstLessonInCourse;
             final isViewed = isLessonViewed(lesson.id);
             
             return _LessonCard(
               key: ValueKey('lesson_${lesson.id}_viewed_$isViewed'),
               lesson: lesson,
               isAvailable: isAvailable,
-              hasAccess: course.hasAccess,
+              hasAccess: hasFullAccess,
               isViewed: isViewed,
               onTap: () => onLessonTap(lesson),
             );
