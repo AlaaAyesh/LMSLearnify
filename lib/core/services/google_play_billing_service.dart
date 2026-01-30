@@ -14,9 +14,9 @@ class GooglePlayBillingService {
   // القيمة: معرف المنتج في Google Play Console
   // نوع المنتج: ProductType.inapp (One-time products)
   static const Map<int, String> productIdMap = {
-    1: '1',    // Lifetime Access - 1 Month - Product ID: 1
-    2: '2',   // Lifetime Access - 6 Months - Product ID: 2
-    3: '3',  // Lifetime Access - 1 Year - Product ID: 3
+    1: 'one_month_sub',    // Lifetime Access - 1 Month - Product ID: one_month_sub
+    2: 'six_months_sub',   // Lifetime Access - 6 Months - Product ID: six_months_sub
+    3: 'one_year_sub',     // Lifetime Access - 1 Year - Product ID: one_year_sub
   };
 
   /// الحصول على معرف المنتج في Google Play من معرف الباقة
@@ -37,8 +37,8 @@ class GooglePlayBillingService {
   /// الحصول على اسم العرض للمنتج (للتغلب على الالتباس)
   /// يغير "1 Year Subscription" إلى "Lifetime Access"
   static String getDisplayName(String productId, String originalTitle) {
-    // للمنتج ID 3 (Lifetime Access - 1 Year)
-    if (productId == '3') {
+    // للمنتج ID one_year_sub (Lifetime Access - 1 Year)
+    if (productId == 'one_year_sub' || productId == '3') {
       return 'Lifetime Access';
     }
     // للمنتجات الأخرى، نتحقق من العنوان الأصلي
@@ -47,6 +47,44 @@ class GooglePlayBillingService {
       return 'Lifetime Access';
     }
     return originalTitle;
+  }
+
+  /// استخراج العملة من سعر المنتج (مثل "EGP 1,149.99" -> "EGP")
+  static String extractCurrency(String price) {
+    if (price.isEmpty) return 'EGP';
+    
+    // البحث عن كود العملة في بداية السعر
+    final currencyMatch = RegExp(r'^([A-Z]{3})\s').firstMatch(price);
+    if (currencyMatch != null) {
+      return currencyMatch.group(1) ?? 'EGP';
+    }
+    
+    // إذا لم يتم العثور على كود العملة، افترض EGP
+    return 'EGP';
+  }
+
+  /// الحصول على رمز العملة بناءً على كود العملة
+  /// EGP -> "جم", USD -> "$"
+  static String getCurrencySymbol(String currencyCode) {
+    switch (currencyCode.toUpperCase()) {
+      case 'EGP':
+        return 'جم';
+      case 'USD':
+        return '\$';
+      default:
+        return 'جم'; // افتراضي
+    }
+  }
+
+  /// استخراج السعر الرقمي من سعر المنتج (مثل "EGP 1,149.99" -> "1,149.99")
+  static String extractPriceValue(String price) {
+    if (price.isEmpty) return '0';
+    
+    // إزالة كود العملة من البداية
+    final priceWithoutCurrency = price.replaceFirst(RegExp(r'^[A-Z]{3}\s*'), '');
+    
+    // إزالة أي مسافات إضافية
+    return priceWithoutCurrency.trim();
   }
 
   /// Deprecated: Use getPlanId instead

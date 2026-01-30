@@ -213,7 +213,9 @@ class _SubscriptionsPageContentState extends State<_SubscriptionsPageContent> {
                 title: _getDurationTitle(subscription.duration),
                 originalPrice: subscription.priceBeforeDiscount,
                 discountedPrice: subscription.price,
-                currency: currencySymbol,
+                currency: subscription.currency != null && subscription.currency!.isNotEmpty
+                    ? subscription.getCurrencySymbol()
+                    : currencySymbol, // Fallback to CurrencyService if currency not provided
                 description: _getDurationDescription(subscription.duration),
                 isRecommended: isRecommended,
               ),

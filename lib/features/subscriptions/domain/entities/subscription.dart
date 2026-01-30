@@ -9,6 +9,7 @@ class Subscription extends Equatable {
   final String priceBeforeDiscount;
   final String usdPriceBeforeDiscount;
   final int duration;
+  final String? currency; // العملة من الباك إند (EGP, USD, إلخ)
   final String? createdAt;
   final String? updatedAt;
 
@@ -21,6 +22,7 @@ class Subscription extends Equatable {
     required this.priceBeforeDiscount,
     required this.usdPriceBeforeDiscount,
     required this.duration,
+    this.currency,
     this.createdAt,
     this.updatedAt,
   });
@@ -43,6 +45,22 @@ class Subscription extends Equatable {
     return (((originalPrice - currentPrice) / originalPrice) * 100).round();
   }
 
+  /// Get currency symbol based on currency code
+  /// EGP -> "جم", USD -> "$"
+  String getCurrencySymbol() {
+    if (currency == null || currency!.isEmpty) {
+      return 'جم'; // افتراضي
+    }
+    switch (currency!.toUpperCase()) {
+      case 'EGP':
+        return 'جم';
+      case 'USD':
+        return '\$';
+      default:
+        return 'جم'; // افتراضي
+    }
+  }
+
   @override
   List<Object?> get props => [
         id,
@@ -53,6 +71,7 @@ class Subscription extends Equatable {
         priceBeforeDiscount,
         usdPriceBeforeDiscount,
         duration,
+        currency,
         createdAt,
         updatedAt,
       ];
