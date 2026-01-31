@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/di/injection_container.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/utils/responsive.dart';
 import '../../../authentication/data/datasources/auth_local_datasource.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/custom_app_bar.dart';
@@ -111,24 +112,24 @@ class _UnauthenticatedProfilePage extends StatelessWidget {
       appBar: const CustomAppBar(title: 'الحساب'),
       body: Center(
         child: Padding(
-          padding: const EdgeInsets.all(32),
+          padding: Responsive.padding(context, all: 32),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               // Lock Icon
               Container(
-                padding: const EdgeInsets.all(32),
+                padding: Responsive.padding(context, all: 32),
                 decoration: BoxDecoration(
                   color: AppColors.primary.withOpacity(0.1),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.person_off_outlined,
-                  size: 80,
+                  size: Responsive.iconSize(context, 80),
                   color: AppColors.primary,
                 ),
               ),
-              SizedBox(height: 32),
+              SizedBox(height: Responsive.spacing(context, 32)),
 
               // Title
               Text(
@@ -136,7 +137,7 @@ class _UnauthenticatedProfilePage extends StatelessWidget {
                 style: AppTextStyles.displayMedium,
                 textAlign: TextAlign.center,
               ),
-              SizedBox(height: 16),
+              SizedBox(height: Responsive.spacing(context, 16)),
 
               // Description
               Text(
@@ -144,20 +145,20 @@ class _UnauthenticatedProfilePage extends StatelessWidget {
                 style: AppTextStyles.bodyLarge,
                 textAlign: TextAlign.center,
               ),
-              SizedBox(height: 32),
+              SizedBox(height: Responsive.spacing(context, 32)),
 
               // Login Button
               SizedBox(
                 width: double.infinity,
-                height: 56,
+                height: Responsive.height(context, 56),
                 child: Container(
                   decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(22),
+                    borderRadius: BorderRadius.circular(Responsive.radius(context, 22)),
                     boxShadow: [
                       BoxShadow(
                         color: AppColors.primary.withOpacity(0.2),
-                        blurRadius: 10,
-                        offset: const Offset(0, 4),
+                        blurRadius: Responsive.width(context, 10),
+                        offset: Offset(0, Responsive.height(context, 4)),
                       ),
                     ],
                   ),
@@ -173,34 +174,34 @@ class _UnauthenticatedProfilePage extends StatelessWidget {
                       elevation: 0, // مهم: نشيل elevation الافتراضي
                       padding: EdgeInsets.zero, // إزالة أي padding
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(22),
+                        borderRadius: BorderRadius.circular(Responsive.radius(context, 22)),
                       ),
                     ),
-                    child: const Text(
+                    child: Text(
                       'تسجيل الدخول',
                       style: TextStyle(
                         fontFamily: 'Cairo',
-                        fontSize: 18,
+                        fontSize: Responsive.fontSize(context, 18),
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                   ),
                 ),
               ),
-              SizedBox(height: 32),
+              SizedBox(height: Responsive.spacing(context, 32)),
 
               // Register Button
               SizedBox(
                 width: double.infinity,
-                height: 56,
+                height: Responsive.height(context, 56),
                 child: Container(
                   decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(22),
+                    borderRadius: BorderRadius.circular(Responsive.radius(context, 22)),
                     boxShadow: [
                       BoxShadow(
                         color: AppColors.primary.withOpacity(0.15),
-                        blurRadius: 8,
-                        offset: const Offset(0, 3),
+                        blurRadius: Responsive.width(context, 8),
+                        offset: Offset(0, Responsive.height(context, 3)),
                       ),
                     ],
                   ),
@@ -216,14 +217,14 @@ class _UnauthenticatedProfilePage extends StatelessWidget {
                       side: const BorderSide(color: AppColors.primary),
                       backgroundColor: Colors.white,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(22),
+                        borderRadius: BorderRadius.circular(Responsive.radius(context, 22)),
                       ),
                     ),
-                    child: const Text(
+                    child: Text(
                       'إنشاء حساب جديد',
                       style: TextStyle(
                         fontFamily: 'Cairo',
-                        fontSize: 18,
+                        fontSize: Responsive.fontSize(context, 18),
                         fontWeight: FontWeight.bold,
                         color: AppColors.primary,
                       ),
@@ -416,52 +417,52 @@ class _AuthenticatedProfilePageState extends State<_AuthenticatedProfilePage> {
       children: [
         const CustomBackground(),
         SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
+          padding: Responsive.padding(context, horizontal: 24),
           child: Form(
             key: formKey,
             child: Column(
               children: [
-                SizedBox(height: 24),
+                SizedBox(height: Responsive.spacing(context, 24)),
 
                 // Profile Avatar
                 _buildProfileAvatar(user),
-                SizedBox(height: 16),
+                SizedBox(height: Responsive.spacing(context, 16)),
 
                 // User Info
                 Text(
                   user.name,
                   style: AppTextStyles.displayMedium,
                 ),
-                SizedBox(height: 4),
+                SizedBox(height: Responsive.spacing(context, 4)),
                 Text(
                   user.email,
                   style: AppTextStyles.bodyMedium.copyWith(
                     color: AppColors.textSecondary,
                   ),
                 ),
-                SizedBox(height: 8),
+                SizedBox(height: Responsive.spacing(context, 8)),
 
                 // Subscription Status
                 _buildSubscriptionBadge(user),
-                SizedBox(height: 32),
+                SizedBox(height: Responsive.spacing(context, 32)),
 
                 // Form Fields
                 NameField(controller: nameController),
-                SizedBox(height: 16),
+                SizedBox(height: Responsive.spacing(context, 16)),
 
                 PhoneField(
                   controller: phoneController,
                   countryCode: countryCode,
                   onCountryChanged: (v) => setState(() => countryCode = v),
                 ),
-                SizedBox(height: 16),
+                SizedBox(height: Responsive.spacing(context, 16)),
 
                 // EmailField(controller: emailController),
                 // SizedBox(height: 24),
 
                 // Change Password Section
                 _buildSectionTitle('تغيير كلمة المرور'),
-                SizedBox(height: 16),
+                SizedBox(height: Responsive.spacing(context, 16)),
 
                 PasswordField(
                   controller: passwordController,
@@ -471,7 +472,7 @@ class _AuthenticatedProfilePageState extends State<_AuthenticatedProfilePage> {
                   onToggleVisibility: () =>
                       setState(() => obscurePassword = !obscurePassword),
                 ),
-                SizedBox(height: 16),
+                SizedBox(height: Responsive.spacing(context, 16)),
 
                 PasswordField(
                   controller: confirmPasswordController,
@@ -487,14 +488,14 @@ class _AuthenticatedProfilePageState extends State<_AuthenticatedProfilePage> {
                   onToggleVisibility: () => setState(
                       () => obscureConfirmPassword = !obscureConfirmPassword),
                 ),
-                SizedBox(height: 32),
+                SizedBox(height: Responsive.spacing(context, 32)),
 
                 // Save Button
                 PrimaryButton(
                   text: 'حفظ التعديلات',
                   onPressed: onSave,
                 ),
-                SizedBox(height: 40),
+                SizedBox(height: Responsive.spacing(context, 40)),
               ],
             ),
           ),
@@ -505,7 +506,7 @@ class _AuthenticatedProfilePageState extends State<_AuthenticatedProfilePage> {
 
   Widget _buildProfileAvatar(User user) {
     return CircleAvatar(
-          radius: 50,
+          radius: Responsive.width(context, 50),
           backgroundColor: AppColors.primary.withOpacity(0.1),
           backgroundImage:
               user.avatarUrl != null && user.avatarUrl!.isNotEmpty
@@ -514,8 +515,8 @@ class _AuthenticatedProfilePageState extends State<_AuthenticatedProfilePage> {
           child: user.avatarUrl == null || user.avatarUrl!.isEmpty
               ? Text(
                   user.name.isNotEmpty ? user.name[0].toUpperCase() : 'U',
-                  style: const TextStyle(
-                    fontSize: 40,
+                  style: TextStyle(
+                    fontSize: Responsive.fontSize(context, 40),
                     fontWeight: FontWeight.bold,
                     color: AppColors.primary,
                   ),
@@ -526,27 +527,27 @@ class _AuthenticatedProfilePageState extends State<_AuthenticatedProfilePage> {
 
   Widget _buildSubscriptionBadge(User user) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: Responsive.padding(context, horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
         color: user.isSubscribed
             ? AppColors.success.withOpacity(0.1)
             : AppColors.warning.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(Responsive.radius(context, 20)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(
             user.isSubscribed ? Icons.verified : Icons.info_outline,
-            size: 16,
+            size: Responsive.iconSize(context, 16),
             color: user.isSubscribed ? AppColors.success : AppColors.warning,
           ),
-          SizedBox(width: 8),
+          SizedBox(width: Responsive.width(context, 8)),
           Text(
             user.isSubscribed ? 'مشترك' : 'غير مشترك',
             style: TextStyle(
               fontFamily: 'Cairo',
-              fontSize: 14,
+              fontSize: Responsive.fontSize(context, 14),
               fontWeight: FontWeight.w600,
               color: user.isSubscribed ? AppColors.success : AppColors.warning,
             ),

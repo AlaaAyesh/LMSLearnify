@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:learnify_lms/core/theme/app_text_styles.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/utils/responsive.dart';
 import '../../../authentication/presentation/bloc/auth_bloc.dart';
 import '../../../authentication/presentation/bloc/auth_state.dart';
 import '../../../authentication/presentation/pages/register/complete_profile_page.dart';
@@ -139,19 +140,19 @@ class MainNavigationPageState extends State<MainNavigationPage> {
 
   Widget _buildBottomNavigationBar() {
     return DecoratedBox(
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Color(0x0D000000), // 5% black opacity
-            blurRadius: 10,
-            offset: Offset(0, -2),
+            color: const Color(0x0D000000), // 5% black opacity
+            blurRadius: Responsive.width(context, 10),
+            offset: Offset(0, -Responsive.height(context, 2)),
           ),
         ],
       ),
       child: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+          padding: Responsive.padding(context, horizontal: 8, vertical: 8),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
@@ -181,21 +182,21 @@ class MainNavigationPageState extends State<MainNavigationPage> {
       },
       behavior: HitTestBehavior.opaque,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+        padding: Responsive.padding(context, horizontal: 12, vertical: 4),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
               isSelected ? activeIcon : icon,
               color: isSelected ? AppColors.primary : AppColors.textSecondary,
-              size: 26,
+              size: Responsive.iconSize(context, 26),
             ),
-            const SizedBox(height: 4),
+            SizedBox(height: Responsive.spacing(context, 4)),
             Text(
               label,
               style: TextStyle(
                 fontFamily: 'Cairo',
-                fontSize: 11,
+                fontSize: Responsive.fontSize(context, 11),
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
                 color: isSelected ? AppColors.primary : AppColors.textSecondary,
               ),

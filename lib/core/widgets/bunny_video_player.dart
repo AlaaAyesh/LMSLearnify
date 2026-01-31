@@ -112,18 +112,18 @@ class _BunnyVideoPlayerState extends State<BunnyVideoPlayer> {
     return Container(
       width: double.infinity,
       height: double.infinity,
-      color: Colors.black,
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          WebViewWidget(controller: controller),
-          if (_isLoading)
-            Center(
-              child: CircularProgressIndicator(
-                color: Colors.white,
+        color: Colors.black,
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            WebViewWidget(controller: controller),
+            if (_isLoading)
+              Center(
+                child: CircularProgressIndicator(
+                  color: Colors.white,
+                ),
               ),
-            ),
-        ],
+          ],
       ),
     );
   }

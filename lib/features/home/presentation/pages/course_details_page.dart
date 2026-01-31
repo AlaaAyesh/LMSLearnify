@@ -51,6 +51,7 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
   bool _hasAttemptedCertificateGeneration = false; // Prevent multiple calls
   bool _hasCheckedInitialCertificate = false; // Track initial check
   bool _isVideoLoaded = false; // Track if intro video is loaded
+  bool _hasAccess = false; // Track subscription access state
 
   @override
   void initState() {
@@ -64,6 +65,7 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
       }
     }
     _isVideoLoaded = false; // Reset video loaded state
+    _hasAccess = widget.course.hasAccess; // Initialize access state from course
     _checkAuthentication();
   }
   
@@ -73,6 +75,12 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
     // Reset video loaded state if course changed
     if (oldWidget.course.introBunnyUrl != widget.course.introBunnyUrl) {
       _isVideoLoaded = false;
+    }
+    // Update access state if course changed
+    if (oldWidget.course.hasAccess != widget.course.hasAccess) {
+      setState(() {
+        _hasAccess = widget.course.hasAccess;
+      });
     }
   }
 
@@ -99,6 +107,10 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
     // Page became visible again (user returned from another page)
     // Refresh auth state in case user logged in
     _checkAuthentication();
+    // Also refresh access state in case subscription was completed
+    setState(() {
+      _hasAccess = widget.course.hasAccess;
+    });
   }
 
   Future<void> _checkAuthentication() async {
@@ -233,25 +245,63 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
                 if (state is PaymentProcessing) {
                   setState(() => _isPaymentLoading = true);
                 } else if (state is PaymentInitiated) {
-                  setState(() => _isPaymentLoading = false);
+                  print('CourseDetailsPage: PaymentInitiated - updating _hasAccess to true');
+                  setState(() {
+                    _isPaymentLoading = false;
+                    _hasAccess = true; // Update access state after payment initiation
+                  });
+                  print('CourseDetailsPage: _hasAccess is now: $_hasAccess');
                   _showPaymentSuccessDialog(state.message);
                 } else if (state is PaymentCompleted) {
-                  setState(() => _isPaymentLoading = false);
+                  print('CourseDetailsPage: PaymentCompleted - updating _hasAccess to true');
+                  setState(() {
+                    _isPaymentLoading = false;
+                    _hasAccess = true; // Update access state after payment completion
+                  });
+                  print('CourseDetailsPage: _hasAccess is now: $_hasAccess');
                   _showPaymentSuccessDialog(state.message);
                 } else if (state is PaymentCheckoutReady) {
                   setState(() => _isPaymentLoading = false);
                   // Payment checkout will be handled by PaymentCheckoutWebViewPage
                 } else if (state is IapVerificationSuccess) {
-                  setState(() => _isPaymentLoading = false);
+                  print('CourseDetailsPage: IapVerificationSuccess - updating _hasAccess to true');
+                  setState(() {
+                    _isPaymentLoading = false;
+                    _hasAccess = true; // Update access state after IAP verification
+                  });
+                  print('CourseDetailsPage: _hasAccess is now: $_hasAccess');
                   _showPaymentSuccessDialog('تم تفعيل اشتراكك بنجاح');
                 } else if (state is PaymentFailed) {
                   setState(() => _isPaymentLoading = false);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(state.message),
-                      backgroundColor: Colors.red,
-                    ),
-                  );
+                  
+                  // Check if the error indicates user already owns the course
+                  final errorMessage = state.message.toLowerCase();
+                  print('CourseDetailsPage: PaymentFailed - error message: $errorMessage');
+                  if (errorMessage.contains('already own') || 
+                      errorMessage.contains('تملك') ||
+                      errorMessage.contains('يمتلك')) {
+                    // User already owns the course - grant access
+                    print('CourseDetailsPage: User already owns course - updating _hasAccess to true');
+                    setState(() {
+                      _hasAccess = true;
+                    });
+                    print('CourseDetailsPage: _hasAccess is now: $_hasAccess');
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('أنت تمتلك هذا الكورس بالفعل!'),
+                        backgroundColor: AppColors.success,
+                        duration: Duration(seconds: 2),
+                      ),
+                    );
+                  } else {
+                    // Other payment errors
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(state.message),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  }
                 } else if (state is IapVerificationFailure) {
                   setState(() => _isPaymentLoading = false);
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -279,17 +329,17 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
                           // Course Info Card
                           _buildCourseInfoCard(),
 
-                          const SizedBox(height: 24),
+                          SizedBox(height: Responsive.spacing(context, 24)),
 
                           // Free Course Banner + Lessons Title
                           _buildLessonsTitleSection(context),
 
-                          const SizedBox(height: 16),
+                          SizedBox(height: Responsive.spacing(context, 16)),
 
                           // Lessons Grid
                           _buildLessonsGrid(context),
 
-                          const SizedBox(height: 100),
+                          SizedBox(height: Responsive.spacing(context, 100)),
                         ],
                       ),
                     ),
@@ -306,21 +356,21 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
     // If intro video URL exists, show video player with thumbnail placeholder
     if (course.introBunnyUrl != null && course.introBunnyUrl!.isNotEmpty) {
       return Container(
-        height: 200,
+        height: Responsive.height(context, 200),
         width: double.infinity,
-        margin: const EdgeInsets.all(16),
+        margin: Responsive.margin(context, all: 16),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(Responsive.radius(context, 20)),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.1),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
+              blurRadius: Responsive.width(context, 10),
+              offset: Offset(0, Responsive.height(context, 4)),
             ),
           ],
         ),
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(Responsive.radius(context, 20)),
           child: GestureDetector(
             onTap: () => _playIntroVideo(context),
             child: Stack(
@@ -353,23 +403,23 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
                   Positioned.fill(
                     child: Center(
                       child: Container(
-                        width: 64,
-                        height: 64,
+                        width: Responsive.width(context, 64),
+                        height: Responsive.width(context, 64),
                         decoration: BoxDecoration(
                           color: AppColors.primary,
                           shape: BoxShape.circle,
                           boxShadow: [
                             BoxShadow(
                               color: AppColors.primary.withOpacity(0.4),
-                              blurRadius: 16,
-                              offset: const Offset(0, 6),
+                              blurRadius: Responsive.width(context, 16),
+                              offset: Offset(0, Responsive.height(context, 6)),
                             ),
                           ],
                         ),
-                        child: const Icon(
+                        child: Icon(
                           Icons.play_arrow_rounded,
                           color: Colors.white,
-                          size: 36,
+                          size: Responsive.iconSize(context, 36),
                         ),
                       ),
                     ),
@@ -380,17 +430,16 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
                     top: 12,
                     right: 12,
                     child: Container(
-                      padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      padding: Responsive.padding(context, horizontal: 12, vertical: 6),
                       decoration: BoxDecoration(
                         color: AppColors.warning,
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(Responsive.radius(context, 8)),
                       ),
-                      child: const Text(
+                      child: Text(
                         'قريباً',
                         style: TextStyle(
                           fontFamily: 'Cairo',
-                          fontSize: 12,
+                          fontSize: Responsive.fontSize(context, 12),
                           fontWeight: FontWeight.bold,
                           color: Colors.white,
                         ),
@@ -408,23 +457,23 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
     return GestureDetector(
       onTap: () => _playIntroVideo(context),
       child: Container(
-        height: 200,
+        height: Responsive.height(context, 200),
         width: double.infinity,
-        margin: const EdgeInsets.all(16),
+        margin: Responsive.margin(context, all: 16),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(Responsive.radius(context, 20)),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.1),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
+              blurRadius: Responsive.width(context, 10),
+              offset: Offset(0, Responsive.height(context, 4)),
             ),
           ],
         ),
         child: Stack(
           children: [
             ClipRRect(
-              borderRadius: BorderRadius.circular(20),
+              borderRadius: BorderRadius.circular(Responsive.radius(context, 20)),
               child: SizedBox(
                 width: double.infinity,
                 height: double.infinity,
@@ -435,23 +484,23 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
             Positioned.fill(
               child: Center(
                 child: Container(
-                  width: 64,
-                  height: 64,
+                  width: Responsive.width(context, 64),
+                  height: Responsive.width(context, 64),
                   decoration: BoxDecoration(
                     color: AppColors.primary,
                     shape: BoxShape.circle,
                     boxShadow: [
                       BoxShadow(
                         color: AppColors.primary.withOpacity(0.4),
-                        blurRadius: 16,
-                        offset: const Offset(0, 6),
+                        blurRadius: Responsive.width(context, 16),
+                        offset: Offset(0, Responsive.height(context, 6)),
                       ),
                     ],
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.play_arrow_rounded,
                     color: Colors.white,
-                    size: 36,
+                    size: Responsive.iconSize(context, 36),
                   ),
                 ),
               ),
@@ -459,20 +508,19 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
             // Soon badge
             if (course.soon)
               Positioned(
-                top: 12,
-                right: 12,
+                top: Responsive.height(context, 12),
+                right: Responsive.width(context, 12),
                 child: Container(
-                  padding:
-                  const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding: Responsive.padding(context, horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
                     color: AppColors.warning,
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(Responsive.radius(context, 8)),
                   ),
-                  child: const Text(
+                  child: Text(
                     'قريباً',
                     style: TextStyle(
                       fontFamily: 'Cairo',
-                      fontSize: 12,
+                      fontSize: Responsive.fontSize(context, 12),
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
                     ),
@@ -519,7 +567,7 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
       child: Center(
         child: Icon(
           Icons.school_outlined,
-          size: 60,
+          size: Responsive.iconSize(context, 60),
           color: Colors.white.withOpacity(0.6),
         ),
       ),
@@ -538,20 +586,20 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
     }
 
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
-      padding: const EdgeInsets.all(20),
+      margin: Responsive.margin(context, horizontal: 16),
+      padding: Responsive.padding(context, all: 20),
       decoration: BoxDecoration(
         color: AppColors.primaryCard,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(Responsive.radius(context, 20)),
       ),
       child: Column(
         children: [
           Text(
             course.about ??
                 'مقدمة ممتعة وشاملة لتعلم، مع التركيز على الأساسيات بطريقة تفاعلية ومبتكرة.',
-            style: const TextStyle(
+            style: TextStyle(
               fontFamily: 'Cairo',
-              fontSize: 14,
+              fontSize: Responsive.fontSize(context, 14),
               color: Colors.black,
               height: 1.6,
             ),
@@ -560,11 +608,11 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
           
           // What You Will Learn Section
           if (learnItems.isNotEmpty) ...[
-            const SizedBox(height: 20),
+            SizedBox(height: Responsive.spacing(context, 20)),
             _buildWhatYouWillLearnList(learnItems),
           ],
           
-          const SizedBox(height: 20),
+          SizedBox(height: Responsive.spacing(context, 20)),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
@@ -585,14 +633,14 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
       children: [
         Text(
           'ما سوف تتعلمه',
-          style: const TextStyle(
+          style: TextStyle(
             fontFamily: 'Cairo',
-            fontSize: 16,
+            fontSize: Responsive.fontSize(context, 16),
             fontWeight: FontWeight.bold,
             color: Colors.black,
           ),
         ),
-        const SizedBox(height: 12),
+        SizedBox(height: Responsive.spacing(context, 12)),
         ...items.asMap().entries.map((entry) {
           final index = entry.key;
           final item = entry.value;
@@ -606,9 +654,9 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
               children: [
                 // Bullet point
                 Container(
-                  margin: const EdgeInsets.only(left: 8, top: 6),
-                  width: 6,
-                  height: 6,
+                  margin: Responsive.margin(context, left: 8, top: 6),
+                  width: Responsive.width(context, 6),
+                  height: Responsive.width(context, 6),
                   decoration: const BoxDecoration(
                     color: AppColors.primary,
                     shape: BoxShape.circle,
@@ -618,9 +666,9 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
                 Expanded(
                   child: Text(
                     item,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontFamily: 'Cairo',
-                      fontSize: 14,
+                      fontSize: Responsive.fontSize(context, 14),
                       color: Colors.black,
                       height: 1.6,
                     ),
@@ -666,14 +714,14 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
         Icon(
           icon,
           color: Colors.black,
-          size: 16,
+          size: Responsive.iconSize(context, 16),
         ),
-        const SizedBox(width: 6),
+        SizedBox(width: Responsive.width(context, 6)),
         Text(
           text,
-          style: const TextStyle(
+          style: TextStyle(
             fontFamily: 'Cairo',
-            fontSize: 14,
+            fontSize: Responsive.fontSize(context, 14),
             color: Colors.black,
             fontWeight: FontWeight.w600,
           ),
@@ -788,46 +836,53 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
                 ),
               ),
             )
-            else if (!course.hasAccess)
+            else if (!_hasAccess)
               // Show Enroll Now button after login only if user doesn't have access
               ElevatedButton(
                 onPressed: _isPaymentLoading
                     ? null
                     : () => _onEnrollFreeCourse(context),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
+                  backgroundColor: const Color(0xFFEDE4FF),
                   disabledBackgroundColor: Colors.grey[300],
-                  padding: Responsive.padding(
-                    context,
-                    horizontal: 20,
-                    vertical: 10,
-                  ),
+                  padding: Responsive.padding(context, horizontal: 20, vertical: 12),
+                  elevation: 2,
+                  shadowColor: AppColors.primary.withOpacity(0.2),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(
-                      Responsive.radius(context, 22),
-                    ),
+                    borderRadius: BorderRadius.circular(Responsive.radius(context, 22)),
                   ),
                 ),
                 child: _isPaymentLoading
                     ? SizedBox(
-                        height: 16,
-                        width: 16,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.white,
-                        ),
-                      )
-                    : Text(
-                        'Enroll Now',
-                        style: TextStyle(
-                          fontFamily: 'Cairo',
-                          fontSize: Responsive.fontSize(context, 14),
-                          fontWeight: FontWeight.w600,
-                          color: Colors.white,
-                        ),
+                  height: Responsive.height(context, 16),
+                  width: Responsive.width(context, 16),
+                  child: CircularProgressIndicator(
+                    strokeWidth: Responsive.width(context, 2),
+                    color: AppColors.primary,
+                  ),
+                )
+                    : Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'انضم مجانًا',
+                      style: TextStyle(
+                        fontFamily: 'Cairo',
+                        fontSize: Responsive.fontSize(context, 14),
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.black,
                       ),
-              ),
-        ],
+                    ),
+                    SizedBox(width: Responsive.width(context, 8)),
+                    Icon(
+                      Icons.lock_open_rounded,
+                      size: Responsive.iconSize(context, 18),
+                      color: AppColors.black,
+                    ),
+
+                  ],
+                ),
+              ),        ],
       ),
     );
   }
@@ -838,21 +893,21 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
     
     if (!hasAnyLessons) {
       return Padding(
-        padding: const EdgeInsets.all(24),
+        padding: Responsive.padding(context, all: 24),
         child: Center(
           child: Column(
             children: [
               Icon(
                 Icons.menu_book_outlined,
-                size: 48,
+                size: Responsive.iconSize(context, 48),
                 color: Colors.grey[400],
               ),
-              const SizedBox(height: 12),
+              SizedBox(height: Responsive.spacing(context, 12)),
               Text(
                 'لا يوجد دروس متاحة حالياً',
                 style: TextStyle(
                   fontFamily: 'Cairo',
-                  fontSize: 16,
+                  fontSize: Responsive.fontSize(context, 16),
                   color: Colors.grey[600],
                 ),
               ),
@@ -870,7 +925,7 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
 
     // Build chapters with their lessons
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: Responsive.padding(context, horizontal: 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: course.chapters.asMap().entries.map((entry) {
@@ -890,6 +945,7 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
             onLessonTap: (lesson) => _onLessonTap(context, lesson, chapter),
             isFreeCourse: _isFreeCourse,
             isAuthenticated: _isAuthenticated,
+            hasAccess: _hasAccess,
           );
         }).toList(),
       ),
@@ -900,7 +956,7 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
     String buttonText;
     if (course.soon) {
       buttonText = 'قريباً';
-    } else if (course.hasAccess) {
+    } else if (_hasAccess) {
       buttonText = 'ابدأ التعلم';
     } else if (_isFreeCourse) {
       buttonText = 'سجل للمشاهدة مجاناً';
@@ -909,14 +965,14 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
     }
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: Responsive.padding(context, all: 16),
       decoration: BoxDecoration(
         color: Colors.white,
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, -4),
+            blurRadius: Responsive.width(context, 10),
+            offset: Offset(0, -Responsive.height(context, 4)),
           ),
         ],
       ),
@@ -932,9 +988,9 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
                   if (course.hasDiscount && !_isFreeCourse)
                     Text(
                       '${course.priceBeforeDiscount} جم',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontFamily: 'Cairo',
-                        fontSize: 12,
+                        fontSize: Responsive.fontSize(context, 12),
                         color: AppColors.textSecondary,
                         decoration: TextDecoration.lineThrough,
                       ),
@@ -943,7 +999,7 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
                     _isFreeCourse ? 'مجاني' : '${course.price} جم',
                     style: TextStyle(
                       fontFamily: 'Cairo',
-                      fontSize: 20,
+                      fontSize: Responsive.fontSize(context, 20),
                       fontWeight: FontWeight.bold,
                       color:
                       _isFreeCourse ? AppColors.success : AppColors.primary,
@@ -961,27 +1017,27 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
                     : () => _onEnrollPressed(context),
                 style: ElevatedButton.styleFrom(
                   backgroundColor:
-                  course.hasAccess ? AppColors.success : AppColors.primary,
+                  _hasAccess ? AppColors.success : AppColors.primary,
                   disabledBackgroundColor: Colors.grey[300],
-                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  padding: Responsive.padding(context, vertical: 14),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(Responsive.radius(context, 12)),
                   ),
                 ),
                 child: _isPaymentLoading
-                    ? const SizedBox(
-                  height: 20,
-                  width: 20,
+                    ? SizedBox(
+                  height: Responsive.height(context, 20),
+                  width: Responsive.width(context, 20),
                   child: CircularProgressIndicator(
-                    strokeWidth: 2,
+                    strokeWidth: Responsive.width(context, 2),
                     color: Colors.white,
                   ),
                 )
                     : Text(
                   buttonText,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontFamily: 'Cairo',
-                    fontSize: 16,
+                    fontSize: Responsive.fontSize(context, 16),
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
                   ),
@@ -1027,11 +1083,11 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
     // Mark lesson as viewed immediately when opening (will be confirmed when video loads)
     _markLessonAsViewed(lesson.id);
     
-    // For paid courses: only allow access if user has subscription (course.hasAccess)
+    // For paid courses: only allow access if user has subscription (_hasAccess)
     // For free courses: allow access if user has subscription OR is authenticated
     final hasFullAccess = _isFreeCourse 
-        ? (course.hasAccess || _isAuthenticated)
-        : course.hasAccess;
+        ? (_hasAccess || _isAuthenticated)
+        : _hasAccess;
     
     if (hasFullAccess) {
       final result = await Navigator.of(context, rootNavigator: true).push(
@@ -1063,7 +1119,7 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
 
     // For paid courses: lock ALL lessons if no access (no preview)
     // For free courses: allow first lesson preview even if not authenticated
-    if (!_isFreeCourse && !course.hasAccess) {
+    if (!_isFreeCourse && !_hasAccess) {
       // Paid course without access - lock everything
       await _handleLockedLessonTap(context);
       return;
@@ -1194,11 +1250,11 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
   }
 
   void _onEnrollPressed(BuildContext context) async {
-    // For paid courses: only allow access if user has subscription (course.hasAccess)
+    // For paid courses: only allow access if user has subscription (_hasAccess)
     // For free courses: allow access if user has subscription OR is authenticated
     final hasFullAccess = _isFreeCourse 
-        ? (course.hasAccess || _isAuthenticated)
-        : course.hasAccess;
+        ? (_hasAccess || _isAuthenticated)
+        : _hasAccess;
     
     if (hasFullAccess) {
       // User has access - start learning
@@ -1243,68 +1299,276 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
   }
 
   void _showPhoneInputDialog() {
-    _phoneController.clear();
+    final isFree = _isFreeCourse;
 
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text(
-          'شراء الكورس',
-          textAlign: TextAlign.center,
-          style: TextStyle(fontFamily: 'Cairo', fontWeight: FontWeight.bold),
+      barrierColor: Colors.black.withOpacity(0.5),
+      builder: (ctx) => Dialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
         ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              '${course.nameAr}\nالسعر: ${course.price} جم',
-              textAlign: TextAlign.center,
-              style: const TextStyle(fontFamily: 'Cairo', fontSize: 14),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: _phoneController,
-              keyboardType: TextInputType.phone,
-              textDirection: TextDirection.ltr,
-              decoration: InputDecoration(
-                hintText: '+201XXXXXXXXX',
-                labelText: 'رقم الهاتف',
-                prefixIcon: const Icon(Icons.phone),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(20),
+            color: AppColors.white,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.1),
+                blurRadius: 20,
+                offset: const Offset(0, 10),
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Header with gradient background for free courses
+              Container(
+                width: double.infinity,
+                padding: Responsive.padding(context, all: 24),
+                decoration: BoxDecoration(
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(20),
+                    topRight: Radius.circular(20),
+                  ),
+                  gradient: isFree
+                      ? LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [
+                            AppColors.primaryCard,
+                            AppColors.primary.withOpacity(0.2),
+                          ],
+                        )
+                      : null,
+                  color: isFree ? null : AppColors.primaryCard,
+                ),
+                child: Column(
+                  children: [
+                    // Icon for free courses
+                    if (isFree)
+                      Container(
+                        padding: Responsive.padding(context, all: 12),
+                        decoration: BoxDecoration(
+                          color: AppColors.primary.withOpacity(0.2),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          Icons.school_outlined,
+                          size: Responsive.iconSize(context, 40),
+                          color: AppColors.primary,
+                        ),
+                      )
+                    else
+                      Container(
+                        padding: Responsive.padding(context, all: 12),
+                        decoration: BoxDecoration(
+                          color: AppColors.primary.withOpacity(0.15),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          Icons.shopping_cart_outlined,
+                          size: Responsive.iconSize(context, 40),
+                          color: AppColors.primary,
+                        ),
+                      ),
+                    SizedBox(height: Responsive.spacing(context, 16)),
+                    // Title
+                    Text(
+                      isFree ? 'انضمام مجاني' : 'شراء الكورس',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontFamily: 'Cairo',
+                        fontSize: Responsive.fontSize(context, 20),
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('إلغاء', style: TextStyle(fontFamily: 'Cairo')),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              final phone = _phoneController.text.trim();
-              if (phone.isEmpty) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('يرجى إدخال رقم الهاتف'),
-                    backgroundColor: Colors.red,
-                  ),
-                );
-                return;
-              }
 
-              Navigator.pop(ctx);
-              _processCoursePurchase(phone);
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-            ),
-            child: const Text('شراء',
-                style: TextStyle(fontFamily: 'Cairo', color: Colors.white)),
+              // Content
+              Padding(
+                padding: Responsive.padding(context, all: 24),
+                child: Column(
+                  children: [
+                    // Course name
+                    Text(
+                      course.nameAr,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontFamily: 'Cairo',
+                        fontSize: Responsive.fontSize(context, 18),
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textPrimary,
+                        height: 1.4,
+                      ),
+                    ),
+                    SizedBox(height: Responsive.spacing(context, 16)),
+
+                    // Price or free badge
+                    if (isFree)
+                      Container(
+                        padding: Responsive.padding(context, horizontal: 20, vertical: 10),
+                        decoration: BoxDecoration(
+                          color: AppColors.success.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: AppColors.success.withOpacity(0.3),
+                            width: 1,
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.check_circle,
+                              size: Responsive.iconSize(context, 20),
+                              color: AppColors.success,
+                            ),
+                            SizedBox(width: Responsive.width(context, 8)),
+                            Text(
+                              'مجاني تماماً',
+                              style: TextStyle(
+                                fontFamily: 'Cairo',
+                                fontSize: Responsive.fontSize(context, 16),
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.success,
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
+                    else
+                      Container(
+                        padding: Responsive.padding(context, horizontal: 20, vertical: 12),
+                        decoration: BoxDecoration(
+                          color: AppColors.primaryCard,
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.attach_money,
+                              size: Responsive.iconSize(context, 20),
+                              color: AppColors.primary,
+                            ),
+                            SizedBox(width: Responsive.width(context, 8)),
+                            Text(
+                              '${course.price} جم',
+                              style: TextStyle(
+                                fontFamily: 'Cairo',
+                                fontSize: Responsive.fontSize(context, 18),
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.primary,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                    SizedBox(height: Responsive.spacing(context, 20)),
+
+                    // Description
+                    Text(
+                      isFree
+                          ? 'انضم الآن وابدأ التعلم مجاناً!'
+                          : 'اكمل عملية الشراء للوصول إلى محتوى الكورس',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontFamily: 'Cairo',
+                        fontSize: Responsive.fontSize(context, 14),
+                        color: AppColors.textSecondary,
+                        height: 1.5,
+                      ),
+                    ),
+
+                    SizedBox(height: Responsive.spacing(context, 24)),
+
+                    // Action buttons
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton(
+                            onPressed: () => Navigator.pop(ctx),
+                            style: OutlinedButton.styleFrom(
+                              padding: Responsive.padding(context, vertical: 14),
+                              side: BorderSide(
+                                color: AppColors.greyLight,
+                                width: 1.5,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            child: Text(
+                              'إلغاء',
+                              style: TextStyle(
+                                fontFamily: 'Cairo',
+                                fontSize: Responsive.fontSize(context, 16),
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.textSecondary,
+                              ),
+                            ),
+                          ),
+                        ),
+                        SizedBox(width: Responsive.width(context, 12)),
+                        Expanded(
+                          flex: 2,
+                          child: ElevatedButton(
+                            onPressed: () {
+                              Navigator.pop(ctx);
+                              _processCoursePurchase('');
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: isFree ? AppColors.success : AppColors.primary,
+                              padding: Responsive.padding(context, vertical: 14),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              elevation: 0,
+                              shadowColor: Colors.transparent,
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                if (isFree)
+                                  Icon(
+                                    Icons.check_circle_outline,
+                                    size: Responsive.iconSize(context, 20),
+                                    color: Colors.white,
+                                  )
+                                else
+                                  Icon(
+                                    Icons.shopping_cart,
+                                    size: Responsive.iconSize(context, 20),
+                                    color: Colors.white,
+                                  ),
+                                SizedBox(width: Responsive.width(context, 8)),
+                                Text(
+                                  isFree ? 'انضم الآن' : 'شراء',
+                                  style: TextStyle(
+                                    fontFamily: 'Cairo',
+                                    fontSize: Responsive.fontSize(context, 16),
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
@@ -1325,48 +1589,48 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
       context: context,
       barrierDismissible: false,
       builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(Responsive.radius(context, 16))),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              padding: const EdgeInsets.all(16),
+              padding: Responsive.padding(context, all: 16),
               decoration: BoxDecoration(
                 color: AppColors.success.withOpacity(0.1),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.check_circle,
                 color: AppColors.success,
-                size: 64,
+                size: Responsive.iconSize(context, 64),
               ),
             ),
-            const SizedBox(height: 16),
-            const Text(
+            SizedBox(height: Responsive.spacing(context, 16)),
+            Text(
               'تم الشراء بنجاح!',
               style: TextStyle(
                 fontFamily: 'Cairo',
-                fontSize: 20,
+                fontSize: Responsive.fontSize(context, 20),
                 fontWeight: FontWeight.bold,
               ),
             ),
-            const SizedBox(height: 8),
+            SizedBox(height: Responsive.spacing(context, 8)),
             Text(
               message,
               textAlign: TextAlign.center,
-              style: const TextStyle(
+              style: TextStyle(
                 fontFamily: 'Cairo',
-                fontSize: 14,
+                fontSize: Responsive.fontSize(context, 14),
                 color: AppColors.textSecondary,
               ),
             ),
-            const SizedBox(height: 8),
-            const Text(
+            SizedBox(height: Responsive.spacing(context, 8)),
+            Text(
               'يمكنك الآن مشاهدة جميع الدروس',
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontFamily: 'Cairo',
-                fontSize: 12,
+                fontSize: Responsive.fontSize(context, 12),
                 color: AppColors.success,
                 fontWeight: FontWeight.w600,
               ),
@@ -1384,16 +1648,16 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
-                padding: const EdgeInsets.symmetric(vertical: 12),
+                padding: Responsive.padding(context, vertical: 12),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(Responsive.radius(context, 12)),
                 ),
               ),
-              child: const Text(
+              child: Text(
                 'ابدأ المشاهدة',
                 style: TextStyle(
                   fontFamily: 'Cairo',
-                  fontSize: 16,
+                  fontSize: Responsive.fontSize(context, 16),
                   fontWeight: FontWeight.bold,
                   color: Colors.white,
                 ),
@@ -1406,12 +1670,14 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
   }
 
   void _onPaymentSuccess() {
-    // Update the course to show access (simulated - in real app would refetch from API)
-    // For now, we'll just rebuild the widget with hasAccess = true
-    setState(() {
-      // The course object will be updated when the page is rebuilt
-      // We trigger a rebuild to show the unlocked state
-    });
+    // Update access state to hide the "انضم مجاناً" button
+    // This is called from the dialog button, but _hasAccess should already be true
+    // from the BlocListener, so we just ensure it's set
+    if (!_hasAccess) {
+      setState(() {
+        _hasAccess = true;
+      });
+    }
 
     // Show snackbar confirming access
     ScaffoldMessenger.of(context).showSnackBar(
@@ -1441,6 +1707,7 @@ class _ChapterSection extends StatelessWidget {
   final void Function(Lesson lesson) onLessonTap;
   final bool isFreeCourse;
   final bool isAuthenticated;
+  final bool hasAccess;
 
   const _ChapterSection({
     required this.chapter,
@@ -1451,6 +1718,7 @@ class _ChapterSection extends StatelessWidget {
     required this.onLessonTap,
     required this.isFreeCourse,
     required this.isAuthenticated,
+    required this.hasAccess,
   });
 
   @override
@@ -1461,8 +1729,8 @@ class _ChapterSection extends StatelessWidget {
         // Chapter Title
         Padding(
           padding: EdgeInsets.only(
-            bottom: 16,
-            top: chapterIndex > 0 ? 24 : 8, // More space if not first chapter
+            bottom: Responsive.spacing(context, 16),
+            top: Responsive.spacing(context, chapterIndex > 0 ? 24 : 8), // More space if not first chapter
           ),
           child: Text(
             ' ${chapter.nameAr}',
@@ -1479,40 +1747,29 @@ class _ChapterSection extends StatelessWidget {
         GridView.builder(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: 2,
-            crossAxisSpacing: 12,
-            mainAxisSpacing: 12,
+            crossAxisSpacing: Responsive.width(context, 12),
+            mainAxisSpacing: Responsive.height(context, 12),
             childAspectRatio: 0.8,
           ),
           itemCount: chapter.lessons.length,
           itemBuilder: (context, index) {
             final lesson = chapter.lessons[index];
             
-            // First lesson in the entire course is available for preview ONLY if:
-            // - Course is free, OR
-            // - User has access (paid course with subscription)
-            final isFirstLessonInCourse = firstLessonInCourse != null && 
-                firstLessonInCourse!.id == lesson.id;
-            
-            // For paid courses: only allow access if user has subscription (course.hasAccess)
-            // For free courses: allow access if user has subscription OR is authenticated
-            final hasFullAccess = isFreeCourse 
-                ? (course.hasAccess || isAuthenticated)
-                : course.hasAccess;
-            
-            // For paid courses: lock ALL lessons (including first) if no access
-            // For free courses: allow first lesson preview even if not authenticated
-            final isAvailable = isFreeCourse
-                ? (hasFullAccess || isFirstLessonInCourse)
-                : hasFullAccess; // Paid courses: no preview, need full access
+            // Only show "متاح" if course.hasAccess is true from backend
+            // hasAccess comes from backend and indicates user has subscription/purchase
             final isViewed = isLessonViewed(lesson.id);
+            
+            // isAvailable should only be true if backend says user has access
+            // No client-side logic for previews - only backend determines availability
+            final isAvailable = hasAccess;
             
             return _LessonCard(
               key: ValueKey('lesson_${lesson.id}_viewed_$isViewed'),
               lesson: lesson,
               isAvailable: isAvailable,
-              hasAccess: hasFullAccess,
+              hasAccess: hasAccess, // Use hasAccess from backend only
               isViewed: isViewed,
               onTap: () => onLessonTap(lesson),
             );
@@ -1542,12 +1799,14 @@ class _LessonCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // If user has access (subscribed), all lessons are available
-    final bool canAccess = hasAccess || isAvailable;
+    // Only allow access if backend says user has access (hasAccess from course.hasAccess)
+    // isAvailable should match hasAccess (both come from backend)
+    final bool canAccess = hasAccess && isAvailable;
     // Show lock if user doesn't have access (regardless of course being free or paid)
     final bool shouldShowLock = !canAccess;
 
     return Padding(
-      padding: const EdgeInsets.all(4),
+      padding: Responsive.padding(context, all: 4),
       child: GestureDetector(
         onTap: canAccess ? onTap : null,
         child: Opacity(
@@ -1555,15 +1814,15 @@ class _LessonCard extends StatelessWidget {
           child: Container(
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(22),
+              borderRadius: BorderRadius.circular(Responsive.radius(context, 22)),
               boxShadow: [
                 BoxShadow(
                   // Black shadow for locked lessons, primary color for accessible ones
                   color: canAccess
                       ? AppColors.primary.withOpacity(0.25)
                       : Colors.grey.withOpacity(0.25),
-                  blurRadius: 8,
-                  offset: const Offset(0, 4),
+                  blurRadius: Responsive.width(context, 8),
+                  offset: Offset(0, Responsive.height(context, 4)),
                   spreadRadius: 0,
                 ),
               ],
@@ -1577,8 +1836,9 @@ class _LessonCard extends StatelessWidget {
                 child: Stack(
                   children: [
                     ClipRRect(
-                      borderRadius:
-                      const BorderRadius.vertical(top: Radius.circular(22)),
+                      borderRadius: BorderRadius.vertical(
+                        top: Radius.circular(Responsive.radius(context, 22)),
+                      ),
                       child: SizedBox(
                         width: double.infinity,
                         height: double.infinity,
@@ -1591,20 +1851,21 @@ class _LessonCard extends StatelessWidget {
                         child: Container(
                           decoration: BoxDecoration(
                             color: Colors.black.withOpacity(0.4),
-                            borderRadius: const BorderRadius.vertical(
-                                top: Radius.circular(22)),
+                            borderRadius: BorderRadius.vertical(
+                              top: Radius.circular(Responsive.radius(context, 22)),
+                            ),
                           ),
                           child: Center(
                             child: Container(
-                              padding: const EdgeInsets.all(12),
+                              padding: Responsive.padding(context, all: 12),
                               decoration: BoxDecoration(
                                 color: Colors.white.withOpacity(0.2),
                                 shape: BoxShape.circle,
                               ),
-                              child: const Icon(
+                              child: Icon(
                                 Icons.lock_outline_rounded,
                                 color: Colors.white,
-                                size: 32,
+                                size: Responsive.iconSize(context, 32),
                               ),
                             ),
                           ),
@@ -1616,21 +1877,20 @@ class _LessonCard extends StatelessWidget {
                     // - Locked: no badge (has lock overlay instead)
                     if (canAccess)
                       Positioned(
-                        top: 10,
-                        right: 10,
+                        top: Responsive.height(context, 10),
+                        right: Responsive.width(context, 10),
                         child: Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 12, vertical: 6),
+                          padding: Responsive.padding(context, horizontal: 12, vertical: 6),
                           decoration: BoxDecoration(
                             color: const Color(
                                 0xFF9B59D0), // Purple for available (matching image)
-                            borderRadius: BorderRadius.circular(14),
+                            borderRadius: BorderRadius.circular(Responsive.radius(context, 14)),
                           ),
                           child: Text(
                             isViewed ? 'تم المشاهدة' : 'متاح',
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontFamily: 'Cairo',
-                              fontSize: 11,
+                              fontSize: Responsive.fontSize(context, 11),
                               fontWeight: FontWeight.bold,
                               color: Colors.white,
                               height: 1.2,
@@ -1646,8 +1906,7 @@ class _LessonCard extends StatelessWidget {
               Expanded(
                 flex: 1,
                 child: Padding(
-                  padding:
-                  const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  padding: Responsive.padding(context, horizontal: 12, vertical: 10),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -1657,7 +1916,7 @@ class _LessonCard extends StatelessWidget {
                           lesson.nameAr,
                           style: TextStyle(
                             fontFamily: 'Cairo',
-                            fontSize: 14,
+                            fontSize: Responsive.fontSize(context, 14),
                             fontWeight: FontWeight.w600,
                             color: (hasAccess || isAvailable)
                                 ? AppColors.textPrimary
@@ -1679,7 +1938,7 @@ class _LessonCard extends StatelessWidget {
                                 lesson.videoDuration ?? lesson.duration!),
                             style: TextStyle(
                               fontFamily: 'Cairo',
-                              fontSize: 11,
+                              fontSize: Responsive.fontSize(context, 11),
                               fontWeight: FontWeight.w500,
                               color: (hasAccess || isAvailable)
                                   ? AppColors.textPrimary

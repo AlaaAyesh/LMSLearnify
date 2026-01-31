@@ -1,8 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:learnify_lms/core/theme/app_text_styles.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/utils/responsive.dart';
 import '../../domain/entities/course.dart';
 
 class PopularCourseCard extends StatelessWidget {
@@ -17,154 +14,119 @@ class PopularCourseCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: Responsive.width(context, 200),
-        margin: Responsive.margin(context, left: 16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(Responsive.radius(context, 16)),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.08),
-              blurRadius: Responsive.width(context, 10),
-              offset: Offset(0, Responsive.height(context, 4)),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final cardWidth = constraints.maxWidth.isInfinite
+            ? MediaQuery.of(context).size.width * 0.42
+            : constraints.maxWidth;
+
+        final radius = cardWidth * 0.09;
+        final imageHeight = cardWidth * 0.75; // 👈 زي الصورة
+        final playSize = cardWidth * 0.26;
+
+        return GestureDetector(
+          onTap: onTap,
+          child: Container(
+            width: cardWidth,
+            margin: EdgeInsets.only(
+              left: cardWidth * 0.04,
+              top: cardWidth * 0.04,
             ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Thumbnail with play button
-            Stack(
-              children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.vertical(
-                    top: Radius.circular(Responsive.radius(context, 16)),
-                  ),
-                  child: _buildThumbnail(context),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(radius),
+              boxShadow: const [
+                BoxShadow(
+                  color: Color(0x21FFBB00),
+                  blurRadius: 7,
+                  offset: Offset(0, 4),
                 ),
-                // Play button overlay
-                Positioned.fill(
-                  child: Center(
-                    child: Container(
-                      padding: Responsive.padding(context, all: 12),
-                      decoration: BoxDecoration(
-                        color: AppColors.primary,
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppColors.primary.withOpacity(0.3),
-                            blurRadius: Responsive.width(context, 8),
-                            offset: Offset(0, Responsive.height(context, 2)),
-                          ),
-                        ],
-                      ),
-                      child: Icon(
-                        Icons.play_arrow,
-                        color: Colors.white,
-                        size: Responsive.iconSize(context, 24),
-                      ),
-                    ),
-                  ),
+                BoxShadow(
+                  color: Color(0x14171A1F),
+                  blurRadius: 2,
                 ),
-                // Badge
-                if (course.soon)
-                  Positioned(
-                    top: Responsive.height(context, 8),
-                    right: Responsive.width(context, 8),
-                    child: Container(
-                      padding: Responsive.padding(context, horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: AppColors.warning,
-                        borderRadius: BorderRadius.circular(Responsive.radius(context, 8)),
-                      ),
-                      child: Text(
-                        'قريباً',
-                        style: TextStyle(
-                          fontFamily: 'Cairo',
-                          fontSize: Responsive.fontSize(context, 10),
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                  ),
               ],
             ),
-            // Content
-            Padding(
-              padding: Responsive.padding(context, all: 12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
+            child: Column(
+              mainAxisSize: MainAxisSize.min, // 👈 مهم
+              children: [
+                /// IMAGE
+                SizedBox(
+                  height: imageHeight,
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.vertical(
+                          top: Radius.circular(radius),
+                        ),
+                        child: _buildThumbnail(),
+                      ),
+
+                      /// PLAY BUTTON
+                      Container(
+                        width: playSize,
+                        height: playSize,
+                        decoration: const BoxDecoration(
+                          color: Color(0xFFFFC107),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          Icons.play_arrow,
+                          color: Colors.white,
+                          size: playSize * 0.55,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                /// TITLE (tight)
+                Padding(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: cardWidth * 0.06,
+                    vertical: cardWidth * 0.05,
+                  ),
+                  child: Text(
                     course.nameAr,
                     maxLines: 2,
+                    textAlign: TextAlign.start,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
                       fontFamily: 'Cairo',
-                      fontSize: Responsive.fontSize(context, 14),
+                      fontSize: cardWidth * 0.075,
                       fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimary,
+                      color: const Color(0xFF171A1F),
                     ),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 
-  Widget _buildThumbnail(BuildContext context) {
+  Widget _buildThumbnail() {
     final thumbnailUrl = course.effectiveThumbnail;
+
     if (thumbnailUrl != null && thumbnailUrl.isNotEmpty) {
       return CachedNetworkImage(
         imageUrl: thumbnailUrl,
-        height: Responsive.height(context, 120),
         width: double.infinity,
-        fit: BoxFit.cover,
-        placeholder: (context, url) => _buildPlaceholder(context),
-        errorWidget: (context, url, error) => _buildPlaceholder(context),
+        height: double.infinity,
+        fit: BoxFit.cover, // 👈 مهم
+        placeholder: (_, __) => _placeholder(),
+        errorWidget: (_, __, ___) => _placeholder(),
       );
     }
-    return _buildPlaceholder(context);
+    return _placeholder();
   }
 
-  Widget _buildPlaceholder(BuildContext context) {
-    final gradientColors = [
-      [const Color(0xFFFFD54F), const Color(0xFFFFB300)],
-      [const Color(0xFF81D4FA), const Color(0xFF29B6F6)],
-      [const Color(0xFFA5D6A7), const Color(0xFF66BB6A)],
-      [const Color(0xFFCE93D8), const Color(0xFFAB47BC)],
-      [const Color(0xFFFFAB91), const Color(0xFFFF7043)],
-    ];
-    final colors = gradientColors[course.id % gradientColors.length];
-    
+  Widget _placeholder() {
     return Container(
-      height: Responsive.height(context, 120),
-      width: double.infinity,
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: colors,
-        ),
-      ),
-      child: Center(
-        child: Icon(
-          Icons.school_outlined,
-          size: Responsive.iconSize(context, 50),
-          color: Colors.white.withOpacity(0.5),
-        ),
-      ),
+      color: const Color(0xFFB4D0F3),
     );
   }
 }
-
-
-
-

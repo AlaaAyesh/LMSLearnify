@@ -28,7 +28,7 @@ class AppColors {
   static const Color greyLight = Color(0xFFDFE6E9);
 
   // Status Colors
-  static const Color success = Color(0xFF00B894);
+  static const Color success = Color(0xFF0078B8);
   static const Color error = Color(0xFFD63031);
   static const Color warning = Color(0xFFFDAA33);
   static const Color info = Color(0xFF0984E3);

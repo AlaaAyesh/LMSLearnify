@@ -193,9 +193,9 @@ class _HomeTabContent extends StatelessWidget {
             if (homeData.popularCourses.isNotEmpty) ...[
               SectionHeader(
                 title: 'الأكثر مشاهدة',
-                onSeeAll: () {
-                  _navigateToPopularCourses(context, homeData.popularCourses);
-                },
+                // onSeeAll: () {
+                //   _navigateToPopularCourses(context, homeData.popularCourses);
+                // },
               ),
               SizedBox(height: Responsive.spacing(context, 12)),
               SizedBox(

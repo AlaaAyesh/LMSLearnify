@@ -297,8 +297,25 @@ class SubscriptionRemoteDataSourceImpl implements SubscriptionRemoteDataSource {
       } else {
         errorMessage = e.response?.data['message'] ?? 'بيانات غير صالحة';
       }
-    } else if (e.response?.data != null && e.response?.data['message'] != null) {
-      errorMessage = e.response?.data['message'];
+    } else if (e.response?.data != null) {
+      // Check for errors field (could be string or Map)
+      final errors = e.response?.data['errors'];
+      if (errors != null) {
+        if (errors is String) {
+          errorMessage = errors;
+        } else if (errors is Map) {
+          final firstError = errors.values.first;
+          if (firstError is List && firstError.isNotEmpty) {
+            errorMessage = firstError.first.toString();
+          } else if (firstError is String) {
+            errorMessage = firstError;
+          }
+        }
+      }
+      // Fallback to message if errors not found or not usable
+      if (errorMessage == defaultMessage && e.response?.data['message'] != null) {
+        errorMessage = e.response!.data['message'];
+      }
     }
 
     return ServerException(

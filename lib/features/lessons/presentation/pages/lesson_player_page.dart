@@ -252,8 +252,8 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     html, body { 
-      width: 100%;
-      height: 100%;
+      width: 100%; 
+      height: 100%; 
       background: #000;
       overflow: hidden;
       margin: 0;
@@ -279,11 +279,11 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
 </head>
 <body>
   <div class="video-wrapper">
-    <iframe 
-      src="$embedUrl"
+  <iframe 
+    src="$embedUrl"
       allow="accelerometer;gyroscope;autoplay;encrypted-media;picture-in-picture;fullscreen"
-      allowfullscreen="true">
-    </iframe>
+    allowfullscreen="true">
+  </iframe>
   </div>
 </body>
 </html>
@@ -397,12 +397,12 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
         elevation: 0,
         leading: IconButton(
           icon: Container(
-            padding: const EdgeInsets.all(8),
+            padding: Responsive.padding(context, all: 8),
             decoration: BoxDecoration(
               color: Colors.white.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(Responsive.radius(context, 12)),
             ),
-            child: const Icon(Icons.arrow_back, color: Colors.white, size: 20),
+            child: Icon(Icons.arrow_back, color: Colors.white, size: Responsive.iconSize(context, 20)),
           ),
           onPressed: () => Navigator.pop(context),
         ),
@@ -508,7 +508,7 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
                   padding: EdgeInsets.all(Responsive.spacing(context, 16)),
                   decoration: BoxDecoration(
                     color: Colors.white.withOpacity(0.05),
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(Responsive.radius(context, 16)),
                     border: Border.all(
                       color: Colors.white.withOpacity(0.1),
                       width: 1,
@@ -561,7 +561,7 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
                         horizontal: Responsive.spacing(context, 32),
                       ),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
+                        borderRadius: BorderRadius.circular(Responsive.radius(context, 16)),
                       ),
                       elevation: 0,
                       shadowColor: AppColors.primary.withOpacity(0.4),
@@ -579,7 +579,7 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
                       mainAxisSize: MainAxisSize.min,
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Icon(Icons.refresh_rounded, size: 22),
+                        Icon(Icons.refresh_rounded, size: Responsive.iconSize(context, 22)),
                         SizedBox(width: Responsive.spacing(context, 8)),
                         Text(
                           'إعادة المحاولة',
@@ -642,7 +642,7 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
     }
 
     // Always show video inline - user can use fullscreen button in video player
-    return Scaffold(
+        return Scaffold(
           backgroundColor: Colors.white,
           body: SafeArea(
             child: Column(
@@ -651,58 +651,58 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
                 AspectRatio(
                   aspectRatio: 16 / 9,
                   child: Stack(
-                    children: [
-                      BunnyVideoPlayer(
-                        videoUrl: videoUrl,
-                        onVideoLoaded: () {
-                          _onVideoLoaded();
-                          // Start progress tracking when video loads
-                          if (widget.lessonId > 0) {
-                            _startProgressTracking(lesson);
-                          }
-                        },
-                      ),
-                      // Back button overlay
-                      Positioned(
-                        top: 8,
-                        left: 8,
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: Colors.black.withOpacity(0.5),
-                            shape: BoxShape.circle,
-                          ),
-                          child: IconButton(
-                            icon: Icon(Icons.arrow_back, color: Colors.white, size: Responsive.iconSize(context, 20)),
-                            onPressed: () {
-                              // Check progress before navigating back
-                              if (widget.lessonId > 0 && _videoStartTime != null && _videoDurationSeconds != null && _videoDurationSeconds! > 0) {
-                                final elapsed = DateTime.now().difference(_videoStartTime!).inSeconds;
-                                final finalProgress = (elapsed / _videoDurationSeconds!).clamp(0.0, 1.0);
-                                
-                                print('LessonPlayerPage: Back button pressed - final progress: ${(finalProgress * 100).toStringAsFixed(1)}%');
-                                
-                                // Lesson should already be marked as viewed when video loaded
-                                // But as a fallback, mark it if it wasn't marked yet
-                                if (!_hasMarkedAsViewed) {
-                                  print('LessonPlayerPage: Marking lesson ${widget.lessonId} as viewed on back (fallback)');
-                                  _hasMarkedAsViewed = true;
-                                  context.read<LessonBloc>().add(MarkLessonViewedEvent(lessonId: widget.lessonId));
-                                }
-                                
-                                // Update parent callback
-                                if (widget.onProgressUpdate != null) {
-                                  widget.onProgressUpdate!(finalProgress);
-                                }
-                                
-                                Navigator.pop(context, finalProgress);
-                              } else {
-                                Navigator.pop(context, _currentProgress);
+                  children: [
+                    BunnyVideoPlayer(
+                      videoUrl: videoUrl,
+                      onVideoLoaded: () {
+                        _onVideoLoaded();
+                        // Start progress tracking when video loads
+                        if (widget.lessonId > 0) {
+                          _startProgressTracking(lesson);
+                        }
+                      },
+                    ),
+                    // Back button overlay
+                    Positioned(
+                      top: 8,
+                      left: 8,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.black.withOpacity(0.5),
+                          shape: BoxShape.circle,
+                        ),
+                        child: IconButton(
+                          icon: Icon(Icons.arrow_back, color: Colors.white, size: Responsive.iconSize(context, 20)),
+                          onPressed: () {
+                            // Check progress before navigating back
+                            if (widget.lessonId > 0 && _videoStartTime != null && _videoDurationSeconds != null && _videoDurationSeconds! > 0) {
+                              final elapsed = DateTime.now().difference(_videoStartTime!).inSeconds;
+                              final finalProgress = (elapsed / _videoDurationSeconds!).clamp(0.0, 1.0);
+                              
+                              print('LessonPlayerPage: Back button pressed - final progress: ${(finalProgress * 100).toStringAsFixed(1)}%');
+                              
+                              // Lesson should already be marked as viewed when video loaded
+                              // But as a fallback, mark it if it wasn't marked yet
+                              if (!_hasMarkedAsViewed) {
+                                print('LessonPlayerPage: Marking lesson ${widget.lessonId} as viewed on back (fallback)');
+                                _hasMarkedAsViewed = true;
+                                context.read<LessonBloc>().add(MarkLessonViewedEvent(lessonId: widget.lessonId));
                               }
-                            },
-                          ),
+                              
+                              // Update parent callback
+                              if (widget.onProgressUpdate != null) {
+                                widget.onProgressUpdate!(finalProgress);
+                              }
+                              
+                              Navigator.pop(context, finalProgress);
+                            } else {
+                              Navigator.pop(context, _currentProgress);
+                            }
+                          },
                         ),
                       ),
-                    ],
+                    ),
+                  ],
                   ),
                 ),
                 // Content Section
@@ -734,7 +734,7 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
               ],
             ),
           ),
-        );
+    );
   }
 
   Widget _buildLessonInfoCard(Lesson lesson) {
@@ -1146,7 +1146,7 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
           style: TextStyle(
             color: AppColors.primary,
             fontFamily: 'Cairo',
-            fontSize: 16,
+            fontSize: Responsive.fontSize(context, 16),
           ),
         ),
       ),
