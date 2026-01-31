@@ -21,17 +21,21 @@ class OptionsRow extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           // Remember Me Section
-          GestureDetector(
+          InkWell(
             onTap: () => onRememberChanged(!rememberMe),
-            child: Row(
-              children: [
-                SizedBox(
-                  width: Responsive.width(context, 8),
-                  height: Responsive.height(context, 8),
-                  child: Padding(
-                    padding: EdgeInsets.all( Responsive.spacing(context, 4)),
+            borderRadius: BorderRadius.circular(8),
+            child: Padding(
+              padding: EdgeInsets.symmetric(
+                vertical: Responsive.spacing(context, 8),
+                horizontal: Responsive.spacing(context, 4),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  SizedBox(
+                    width: Responsive.width(context, 24),
+                    height: Responsive.height(context, 24),
                     child: Checkbox(
-
                       value: rememberMe,
                       onChanged: (v) => onRememberChanged(v ?? false),
                       activeColor: AppColors.primary,
@@ -43,20 +47,21 @@ class OptionsRow extends StatelessWidget {
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(4),
                       ),
+                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     ),
                   ),
-                ),
-                SizedBox(width: Responsive.spacing(context, 8)),
-                Text(
-                  'تذكرني',
-                  style: TextStyle(
-                    fontFamily: 'Cairo',
-                    fontSize: Responsive.fontSize(context, 14),
-                    color: AppColors.black,
-                    fontWeight: FontWeight.w500,
+                  SizedBox(width: Responsive.spacing(context, 8)),
+                  Text(
+                    'تذكرني',
+                    style: TextStyle(
+                      fontFamily: 'Cairo',
+                      fontSize: Responsive.fontSize(context, 14),
+                      color: AppColors.black,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
 

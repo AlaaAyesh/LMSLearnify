@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:learnify_lms/core/theme/app_text_styles.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../authentication/presentation/bloc/auth_bloc.dart';
+import '../../../authentication/presentation/bloc/auth_state.dart';
+import '../../../authentication/presentation/pages/register/complete_profile_page.dart';
 import '../../../menu/presentation/pages/menu_page.dart';
 import '../../../shorts/presentation/pages/shorts_page.dart';
 import '../../../subscriptions/presentation/pages/subscriptions_page.dart';
@@ -70,34 +74,52 @@ class MainNavigationPageState extends State<MainNavigationPage> {
 
   @override
   Widget build(BuildContext context) {
-    return TabIndexProvider(
-      notifier: _tabIndexNotifier,
-      child: PopScope(
-        canPop: false,
-        onPopInvokedWithResult: (didPop, result) {
-          if (didPop) return;
-          // Handle back button - pop the current tab's navigator first
-          final currentNavigator = _navigatorKeys[_selectedIndex].currentState;
-          if (currentNavigator != null && currentNavigator.canPop()) {
-            currentNavigator.pop();
-          } else {
-            // Allow system back if we can't pop
-            Navigator.of(context).maybePop();
-          }
-        },
-        child: Scaffold(
-          body: IndexedStack(
-            index: _selectedIndex,
-            children: [
-              _buildNavigator(0, const HomeTab()),
-              _buildNavigator(1, const ShortsPage()),
-              _buildNavigator(2, const SubscriptionsPage(showBackButton: false)),
-              _buildNavigator(3, const MenuPage()),
-            ],
+    return BlocListener<AuthBloc, AuthState>(
+      listener: (context, state) {
+        // Handle incomplete profile - redirect to complete profile page
+        if (state is SocialLoginNeedsCompletion) {
+          Navigator.of(context, rootNavigator: true).push(
+            MaterialPageRoute(
+              builder: (_) => CompleteProfilePage(
+                email: state.email,
+                name: state.name,
+                providerId: state.providerId,
+                accessToken: state.accessToken,
+                requiresRegistration: state.requiresRegistration,
+              ),
+            ),
+          );
+        }
+      },
+      child: TabIndexProvider(
+        notifier: _tabIndexNotifier,
+        child: PopScope(
+          canPop: false,
+          onPopInvokedWithResult: (didPop, result) {
+            if (didPop) return;
+            // Handle back button - pop the current tab's navigator first
+            final currentNavigator = _navigatorKeys[_selectedIndex].currentState;
+            if (currentNavigator != null && currentNavigator.canPop()) {
+              currentNavigator.pop();
+            } else {
+              // Allow system back if we can't pop
+              Navigator.of(context).maybePop();
+            }
+          },
+          child: Scaffold(
+            body: IndexedStack(
+              index: _selectedIndex,
+              children: [
+                _buildNavigator(0, const HomeTab()),
+                _buildNavigator(1, const ShortsPage()),
+                _buildNavigator(2, const SubscriptionsPage(showBackButton: false)),
+                _buildNavigator(3, const MenuPage()),
+              ],
+            ),
+            bottomNavigationBar: _showBottomNav 
+                ? _buildBottomNavigationBar()
+                : null,
           ),
-          bottomNavigationBar: _showBottomNav 
-              ? _buildBottomNavigationBar()
-              : null,
         ),
       ),
     );

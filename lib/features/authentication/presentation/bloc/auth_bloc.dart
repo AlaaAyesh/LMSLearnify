@@ -5,7 +5,9 @@ import 'package:crypto/crypto.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
+import '../../../../core/di/injection_container.dart';
 import '../../../../core/error/failures.dart';
+import '../../data/datasources/auth_local_datasource.dart';
 import '../../domain/repositories/auth_repository.dart';
 import '../../domain/usecases/login_usecase.dart';
 import '../../domain/usecases/register_usecase.dart';
@@ -152,9 +154,34 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           final userResult = await authRepository.getCurrentUser();
           userResult.fold(
             (failure) => emit(AuthUnauthenticated()),
-            (user) => user != null
-                ? emit(AuthAuthenticated(user))
-                : emit(AuthUnauthenticated()),
+            (user) async {
+              if (user != null) {
+                // Check if user profile is complete
+                if (user.isProfileComplete) {
+                  // User has complete profile - authenticate
+                  emit(AuthAuthenticated(user));
+                } else {
+                  // User exists but profile is incomplete - need to complete profile
+                  // Get access token for profile completion
+                  final localDataSource = sl<AuthLocalDataSource>();
+                  final token = await localDataSource.getAccessToken();
+                  
+                  if (token != null && token.isNotEmpty) {
+                    emit(SocialLoginNeedsCompletion(
+                      email: user.email,
+                      name: user.name,
+                      providerId: 'existing_user',
+                      accessToken: token,
+                      requiresRegistration: false,
+                    ));
+                  } else {
+                    emit(AuthUnauthenticated());
+                  }
+                }
+              } else {
+                emit(AuthUnauthenticated());
+              }
+            },
           );
         } else {
           emit(AuthUnauthenticated());

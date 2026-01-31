@@ -48,10 +48,10 @@ class User extends Equatable {
   String get fullName => name;
 
   /// Check if the user has completed their profile (required for social login users)
+  /// Only checks phone and birthday - specialty_id can be calculated from birthday
   bool get isProfileComplete {
     return phone != null && 
            phone!.isNotEmpty && 
-           specialtyId != null && 
            birthday != null && 
            birthday!.isNotEmpty;
   }
