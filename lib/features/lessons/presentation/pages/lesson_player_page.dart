@@ -397,12 +397,12 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
         elevation: 0,
         leading: IconButton(
           icon: Container(
-            padding: Responsive.padding(context, all: 8),
+            padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
               color: Colors.white.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(Responsive.radius(context, 12)),
+              borderRadius: BorderRadius.circular(12),
             ),
-            child: Icon(Icons.arrow_back, color: Colors.white, size: Responsive.iconSize(context, 20)),
+            child: const Icon(Icons.arrow_back, color: Colors.white, size: 20),
           ),
           onPressed: () => Navigator.pop(context),
         ),
@@ -508,7 +508,7 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
                   padding: EdgeInsets.all(Responsive.spacing(context, 16)),
                   decoration: BoxDecoration(
                     color: Colors.white.withOpacity(0.05),
-                    borderRadius: BorderRadius.circular(Responsive.radius(context, 16)),
+                    borderRadius: BorderRadius.circular(16),
                     border: Border.all(
                       color: Colors.white.withOpacity(0.1),
                       width: 1,
@@ -561,7 +561,7 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
                         horizontal: Responsive.spacing(context, 32),
                       ),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(Responsive.radius(context, 16)),
+                        borderRadius: BorderRadius.circular(16),
                       ),
                       elevation: 0,
                       shadowColor: AppColors.primary.withOpacity(0.4),
@@ -579,7 +579,7 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
                       mainAxisSize: MainAxisSize.min,
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.refresh_rounded, size: Responsive.iconSize(context, 22)),
+                        const Icon(Icons.refresh_rounded, size: 22),
                         SizedBox(width: Responsive.spacing(context, 8)),
                         Text(
                           'إعادة المحاولة',
@@ -1146,7 +1146,7 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
           style: TextStyle(
             color: AppColors.primary,
             fontFamily: 'Cairo',
-            fontSize: Responsive.fontSize(context, 16),
+            fontSize: 16,
           ),
         ),
       ),

@@ -427,8 +427,8 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
                 // Soon badge
                 if (course.soon)
                   Positioned(
-                    top: 12,
-                    right: 12,
+                    top: Responsive.height(context, 12),
+                    right: Responsive.width(context, 12),
                     child: Container(
                       padding: Responsive.padding(context, horizontal: 12, vertical: 6),
                       decoration: BoxDecoration(
@@ -1001,8 +1001,7 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
                       fontFamily: 'Cairo',
                       fontSize: Responsive.fontSize(context, 20),
                       fontWeight: FontWeight.bold,
-                      color:
-                      _isFreeCourse ? AppColors.success : AppColors.primary,
+                      color: AppColors.primary,
                     ),
                   ),
                 ],
@@ -1016,8 +1015,7 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
                     ? null
                     : () => _onEnrollPressed(context),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor:
-                  _hasAccess ? AppColors.success : AppColors.primary,
+                  backgroundColor: AppColors.primary,
                   disabledBackgroundColor: Colors.grey[300],
                   padding: Responsive.padding(context, vertical: 14),
                   shape: RoundedRectangleBorder(
@@ -1413,10 +1411,10 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
                       Container(
                         padding: Responsive.padding(context, horizontal: 20, vertical: 10),
                         decoration: BoxDecoration(
-                          color: AppColors.success.withOpacity(0.1),
+                          color: AppColors.primary.withOpacity(0.1),
                           borderRadius: BorderRadius.circular(16),
                           border: Border.all(
-                            color: AppColors.success.withOpacity(0.3),
+                            color: AppColors.primary.withOpacity(0.3),
                             width: 1,
                           ),
                         ),
@@ -1426,7 +1424,7 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
                             Icon(
                               Icons.check_circle,
                               size: Responsive.iconSize(context, 20),
-                              color: AppColors.success,
+                              color: AppColors.primary,
                             ),
                             SizedBox(width: Responsive.width(context, 8)),
                             Text(
@@ -1435,7 +1433,7 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
                                 fontFamily: 'Cairo',
                                 fontSize: Responsive.fontSize(context, 16),
                                 fontWeight: FontWeight.bold,
-                                color: AppColors.success,
+                                color: AppColors.primary,
                               ),
                             ),
                           ],
@@ -1524,7 +1522,7 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
                               _processCoursePurchase('');
                             },
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: isFree ? AppColors.success : AppColors.primary,
+                              backgroundColor: AppColors.primary,
                               padding: Responsive.padding(context, vertical: 14),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12),
@@ -1589,49 +1587,49 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
       context: context,
       barrierDismissible: false,
       builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(Responsive.radius(context, 16))),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              padding: Responsive.padding(context, all: 16),
+              padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: AppColors.success.withOpacity(0.1),
+                color: AppColors.primary.withOpacity(0.1),
                 shape: BoxShape.circle,
               ),
-              child: Icon(
+              child: const Icon(
                 Icons.check_circle,
-                color: AppColors.success,
-                size: Responsive.iconSize(context, 64),
+                color: AppColors.primary,
+                size: 64,
               ),
             ),
-            SizedBox(height: Responsive.spacing(context, 16)),
-            Text(
-              'تم الشراء بنجاح!',
+            const SizedBox(height: 16),
+            const Text(
+              'تم الانضمام بنجاح!',
               style: TextStyle(
                 fontFamily: 'Cairo',
-                fontSize: Responsive.fontSize(context, 20),
+                fontSize: 20,
                 fontWeight: FontWeight.bold,
               ),
             ),
-            SizedBox(height: Responsive.spacing(context, 8)),
+            const SizedBox(height: 8),
             Text(
               message,
               textAlign: TextAlign.center,
-              style: TextStyle(
+              style: const TextStyle(
                 fontFamily: 'Cairo',
-                fontSize: Responsive.fontSize(context, 14),
+                fontSize: 14,
                 color: AppColors.textSecondary,
               ),
             ),
-            SizedBox(height: Responsive.spacing(context, 8)),
-            Text(
+            const SizedBox(height: 8),
+            const Text(
               'يمكنك الآن مشاهدة جميع الدروس',
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontFamily: 'Cairo',
-                fontSize: Responsive.fontSize(context, 12),
-                color: AppColors.success,
+                fontSize: 12,
+                color: AppColors.primary,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -1648,16 +1646,16 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
-                padding: Responsive.padding(context, vertical: 12),
+                padding: const EdgeInsets.symmetric(vertical: 12),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(Responsive.radius(context, 12)),
+                  borderRadius: BorderRadius.circular(12),
                 ),
               ),
-              child: Text(
+              child: const Text(
                 'ابدأ المشاهدة',
                 style: TextStyle(
                   fontFamily: 'Cairo',
-                  fontSize: Responsive.fontSize(context, 16),
+                  fontSize: 16,
                   fontWeight: FontWeight.bold,
                   color: Colors.white,
                 ),
@@ -1729,8 +1727,8 @@ class _ChapterSection extends StatelessWidget {
         // Chapter Title
         Padding(
           padding: EdgeInsets.only(
-            bottom: Responsive.spacing(context, 16),
-            top: Responsive.spacing(context, chapterIndex > 0 ? 24 : 8), // More space if not first chapter
+            bottom: 16,
+            top: chapterIndex > 0 ? 24 : 8, // More space if not first chapter
           ),
           child: Text(
             ' ${chapter.nameAr}',
@@ -1747,10 +1745,10 @@ class _ChapterSection extends StatelessWidget {
         GridView.builder(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: 2,
-            crossAxisSpacing: Responsive.width(context, 12),
-            mainAxisSpacing: Responsive.height(context, 12),
+            crossAxisSpacing: 12,
+            mainAxisSpacing: 12,
             childAspectRatio: 0.8,
           ),
           itemCount: chapter.lessons.length,
@@ -1806,7 +1804,7 @@ class _LessonCard extends StatelessWidget {
     final bool shouldShowLock = !canAccess;
 
     return Padding(
-      padding: Responsive.padding(context, all: 4),
+      padding: const EdgeInsets.all(4),
       child: GestureDetector(
         onTap: canAccess ? onTap : null,
         child: Opacity(
@@ -1814,15 +1812,15 @@ class _LessonCard extends StatelessWidget {
           child: Container(
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(Responsive.radius(context, 22)),
+              borderRadius: BorderRadius.circular(22),
               boxShadow: [
                 BoxShadow(
                   // Black shadow for locked lessons, primary color for accessible ones
                   color: canAccess
                       ? AppColors.primary.withOpacity(0.25)
                       : Colors.grey.withOpacity(0.25),
-                  blurRadius: Responsive.width(context, 8),
-                  offset: Offset(0, Responsive.height(context, 4)),
+                  blurRadius: 8,
+                  offset: const Offset(0, 4),
                   spreadRadius: 0,
                 ),
               ],
@@ -1836,9 +1834,8 @@ class _LessonCard extends StatelessWidget {
                 child: Stack(
                   children: [
                     ClipRRect(
-                      borderRadius: BorderRadius.vertical(
-                        top: Radius.circular(Responsive.radius(context, 22)),
-                      ),
+                      borderRadius:
+                      const BorderRadius.vertical(top: Radius.circular(22)),
                       child: SizedBox(
                         width: double.infinity,
                         height: double.infinity,
@@ -1851,21 +1848,20 @@ class _LessonCard extends StatelessWidget {
                         child: Container(
                           decoration: BoxDecoration(
                             color: Colors.black.withOpacity(0.4),
-                            borderRadius: BorderRadius.vertical(
-                              top: Radius.circular(Responsive.radius(context, 22)),
-                            ),
+                            borderRadius: const BorderRadius.vertical(
+                                top: Radius.circular(22)),
                           ),
                           child: Center(
                             child: Container(
-                              padding: Responsive.padding(context, all: 12),
+                              padding: const EdgeInsets.all(12),
                               decoration: BoxDecoration(
                                 color: Colors.white.withOpacity(0.2),
                                 shape: BoxShape.circle,
                               ),
-                              child: Icon(
+                              child: const Icon(
                                 Icons.lock_outline_rounded,
                                 color: Colors.white,
-                                size: Responsive.iconSize(context, 32),
+                                size: 32,
                               ),
                             ),
                           ),
@@ -1877,20 +1873,21 @@ class _LessonCard extends StatelessWidget {
                     // - Locked: no badge (has lock overlay instead)
                     if (canAccess)
                       Positioned(
-                        top: Responsive.height(context, 10),
-                        right: Responsive.width(context, 10),
+                        top: 10,
+                        right: 10,
                         child: Container(
-                          padding: Responsive.padding(context, horizontal: 12, vertical: 6),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 6),
                           decoration: BoxDecoration(
                             color: const Color(
                                 0xFF9B59D0), // Purple for available (matching image)
-                            borderRadius: BorderRadius.circular(Responsive.radius(context, 14)),
+                            borderRadius: BorderRadius.circular(14),
                           ),
                           child: Text(
                             isViewed ? 'تم المشاهدة' : 'متاح',
-                            style: TextStyle(
+                            style: const TextStyle(
                               fontFamily: 'Cairo',
-                              fontSize: Responsive.fontSize(context, 11),
+                              fontSize: 11,
                               fontWeight: FontWeight.bold,
                               color: Colors.white,
                               height: 1.2,
@@ -1906,7 +1903,8 @@ class _LessonCard extends StatelessWidget {
               Expanded(
                 flex: 1,
                 child: Padding(
-                  padding: Responsive.padding(context, horizontal: 12, vertical: 10),
+                  padding:
+                  const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -1916,7 +1914,7 @@ class _LessonCard extends StatelessWidget {
                           lesson.nameAr,
                           style: TextStyle(
                             fontFamily: 'Cairo',
-                            fontSize: Responsive.fontSize(context, 14),
+                            fontSize: 14,
                             fontWeight: FontWeight.w600,
                             color: (hasAccess || isAvailable)
                                 ? AppColors.textPrimary
@@ -1938,7 +1936,7 @@ class _LessonCard extends StatelessWidget {
                                 lesson.videoDuration ?? lesson.duration!),
                             style: TextStyle(
                               fontFamily: 'Cairo',
-                              fontSize: Responsive.fontSize(context, 11),
+                              fontSize: 11,
                               fontWeight: FontWeight.w500,
                               color: (hasAccess || isAvailable)
                                   ? AppColors.textPrimary
