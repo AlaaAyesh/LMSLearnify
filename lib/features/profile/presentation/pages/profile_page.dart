@@ -15,6 +15,7 @@ import '../../../authentication/presentation/widgets/EmailField.dart';
 import '../../../authentication/presentation/widgets/PasswordField.dart';
 import '../../../authentication/presentation/widgets/name_field.dart';
 import '../../../authentication/presentation/widgets/phone_field.dart';
+import '../../../authentication/presentation/widgets/birthday_field.dart';
 import '../../../authentication/presentation/widgets/primary_button.dart';
 import '../../../../core/routing/app_router.dart';
 
@@ -256,6 +257,9 @@ class _AuthenticatedProfilePageState extends State<_AuthenticatedProfilePage> {
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
   final confirmPasswordController = TextEditingController();
+  final dayController = TextEditingController();
+  final monthController = TextEditingController();
+  final yearController = TextEditingController();
 
   bool obscurePassword = true;
   bool obscureConfirmPassword = true;
@@ -269,6 +273,9 @@ class _AuthenticatedProfilePageState extends State<_AuthenticatedProfilePage> {
     emailController.dispose();
     passwordController.dispose();
     confirmPasswordController.dispose();
+    dayController.dispose();
+    monthController.dispose();
+    yearController.dispose();
     super.dispose();
   }
 
@@ -283,6 +290,54 @@ class _AuthenticatedProfilePageState extends State<_AuthenticatedProfilePage> {
       countryCode = parsed['countryCode'];
       phoneController.text = parsed['localNumber'] ?? '';
     }
+    
+    // Parse birthday to populate day, month, year fields
+    if (user.birthday != null && user.birthday!.isNotEmpty) {
+      final birthdayParts = _parseBirthday(user.birthday!);
+      dayController.text = birthdayParts['day'] ?? '';
+      monthController.text = birthdayParts['month'] ?? '';
+      yearController.text = birthdayParts['year'] ?? '';
+    }
+  }
+  
+  /// Parse birthday from YYYY-MM-DD format to day, month, year
+  Map<String, String> _parseBirthday(String birthday) {
+    try {
+      final parts = birthday.split('-');
+      if (parts.length == 3) {
+        return {
+          'year': parts[0],
+          'month': parts[1],
+          'day': parts[2],
+        };
+      }
+    } catch (e) {
+      print('Error parsing birthday: $e');
+    }
+    return {'day': '', 'month': '', 'year': ''};
+  }
+  
+  /// Convert day, month, year to YYYY-MM-DD format
+  String? _getBirthdayString() {
+    final day = dayController.text.trim();
+    final month = monthController.text.trim();
+    final year = yearController.text.trim();
+    
+    if (day.isEmpty || month.isEmpty || year.isEmpty) {
+      return null;
+    }
+    
+    // Validate and format
+    final dayInt = int.tryParse(day);
+    final monthInt = int.tryParse(month);
+    final yearInt = int.tryParse(year);
+    
+    if (dayInt == null || monthInt == null || yearInt == null) {
+      return null;
+    }
+    
+    // Format as YYYY-MM-DD
+    return '$year-${month.padLeft(2, '0')}-${day.padLeft(2, '0')}';
   }
   
   Map<String, String?> _parsePhoneNumber(String fullPhone) {
@@ -340,11 +395,15 @@ class _AuthenticatedProfilePageState extends State<_AuthenticatedProfilePage> {
         );
       }
 
+      // Get birthday string
+      final birthday = _getBirthdayString();
+
       // Dispatch update profile event
       context.read<AuthBloc>().add(
         UpdateProfileEvent(
           name: nameController.text.isNotEmpty ? nameController.text : null,
           phone: normalizedPhone,
+          birthday: birthday,
         ),
       );
     }
@@ -453,6 +512,18 @@ class _AuthenticatedProfilePageState extends State<_AuthenticatedProfilePage> {
                   controller: phoneController,
                   countryCode: countryCode,
                   onCountryChanged: (v) => setState(() => countryCode = v),
+                ),
+                SizedBox(height: 16),
+
+                // Birthday Field
+                BirthdayField(
+                  dayController: dayController,
+                  monthController: monthController,
+                  yearController: yearController,
+                  validator: (value) {
+                    // Optional field - no validation required
+                    return null;
+                  },
                 ),
                 SizedBox(height: 16),
 
