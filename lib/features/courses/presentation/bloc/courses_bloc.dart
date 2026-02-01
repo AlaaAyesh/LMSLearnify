@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../../core/utils/debouncer.dart';
 import '../../domain/usecases/get_course_by_id_usecase.dart';
 import '../../domain/usecases/get_courses_usecase.dart';
 import '../../domain/usecases/get_my_courses_usecase.dart';
@@ -15,6 +16,9 @@ class CoursesBloc extends Bloc<CoursesEvent, CoursesState> {
   int? _currentSpecialtyId;
   int _currentPage = 1;
   static const int _perPage = 10;
+  
+  // Debouncer for filter changes to avoid excessive API calls
+  final Debouncer _filterDebouncer = Debouncer(delay: const Duration(milliseconds: 300));
 
   CoursesBloc({
     required this.getCoursesUseCase,
@@ -150,7 +154,11 @@ class CoursesBloc extends Bloc<CoursesEvent, CoursesState> {
   ) async {
     _currentCategoryId = event.categoryId;
     _currentPage = 1;
-    add(const LoadCoursesEvent(refresh: true));
+    
+    // Debounce filter changes to avoid excessive API calls
+    _filterDebouncer.call(() {
+      add(const LoadCoursesEvent(refresh: true));
+    });
   }
 
   Future<void> _onFilterBySpecialty(
@@ -159,7 +167,17 @@ class CoursesBloc extends Bloc<CoursesEvent, CoursesState> {
   ) async {
     _currentSpecialtyId = event.specialtyId;
     _currentPage = 1;
-    add(const LoadCoursesEvent(refresh: true));
+    
+    // Debounce filter changes to avoid excessive API calls
+    _filterDebouncer.call(() {
+      add(const LoadCoursesEvent(refresh: true));
+    });
+  }
+  
+  @override
+  Future<void> close() {
+    _filterDebouncer.dispose();
+    return super.close();
   }
 
   Future<void> _onClearFilters(

@@ -33,7 +33,7 @@ class AllCoursesPage extends StatelessWidget {
         // Load user's owned courses from myCourses endpoint
         ..add(const LoadMyCoursesEvent()),
       child: _AllCoursesPageContent(
-        title: title ?? 'جميع الكورسات',
+        title: title ?? ' كورساتي',
         categoryId: categoryId,
         specialtyId: specialtyId,
       ),
@@ -194,7 +194,7 @@ class _AllCoursesPageContent extends StatelessWidget {
             onPressed: () {
               context.read<CoursesBloc>().add(const LoadMyCoursesEvent());
             },
-            icon: Icon(Icons.refresh, size: Responsive.iconSize(context, 20)),
+            // icon: Icon(Icons.refresh, size: Responsive.iconSize(context, 20)),
             label: const Text('تحديث'),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primary,

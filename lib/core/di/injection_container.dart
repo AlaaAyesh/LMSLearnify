@@ -63,9 +63,15 @@ import '../../features/banners/data/repositories/banners_repository_impl.dart';
 import '../../features/banners/domain/repositories/banners_repository.dart';
 import '../../features/banners/domain/usecases/get_site_banners_usecase.dart';
 import '../../features/banners/domain/usecases/record_banner_click_usecase.dart';
+import '../../features/transactions/data/datasources/transactions_remote_datasource.dart';
+import '../../features/transactions/data/repositories/transactions_repository_impl.dart';
+import '../../features/transactions/domain/repositories/transactions_repository.dart';
+import '../../features/transactions/domain/usecases/get_my_transactions_usecase.dart';
+import '../../features/transactions/presentation/bloc/transactions_bloc.dart';
 import '../network/dio_client.dart';
 import '../storage/hive_service.dart';
 import '../storage/secure_storage_service.dart';
+import '../services/realtime_update_service.dart';
 
 final sl = GetIt.instance;
 
@@ -81,6 +87,7 @@ Future<void> initDependencies() async {
   sl.registerLazySingleton(() => SecureStorageService(sl()));
   sl.registerLazySingleton(() => HiveService());
   sl.registerLazySingleton(() => DioClient(sl()));
+  sl.registerLazySingleton(() => RealtimeUpdateService());
 
 
   // Features
@@ -93,6 +100,7 @@ Future<void> initDependencies() async {
   _initChapters();
   _initReels();
   _initBanners();
+  _initTransactions();
 }
 
 void _initAuth() {
@@ -341,6 +349,28 @@ void _initBanners() {
   // Use Cases
   sl.registerLazySingleton(() => GetSiteBannersUseCase(sl()));
   sl.registerLazySingleton(() => RecordBannerClickUseCase(sl()));
+}
+
+void _initTransactions() {
+  // Data Sources
+  sl.registerLazySingleton<TransactionsRemoteDataSource>(
+        () => TransactionsRemoteDataSourceImpl(sl()),
+  );
+
+  // Repository
+  sl.registerLazySingleton<TransactionsRepository>(
+        () => TransactionsRepositoryImpl(remoteDataSource: sl()),
+  );
+
+  // Use Cases
+  sl.registerLazySingleton(() => GetMyTransactionsUseCase(sl()));
+
+  // Bloc
+  sl.registerFactory(
+        () => TransactionsBloc(
+      getMyTransactionsUseCase: sl(),
+    ),
+  );
 }
 
 

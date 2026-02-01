@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import '../../../../core/constants/api_constants.dart';
 import '../../../../core/error/exceptions.dart';
 import '../../../../core/network/dio_client.dart';
+import '../../../../core/network/cache_service.dart';
 import '../../../home/data/models/course_model.dart';
 
 abstract class CourseRemoteDataSource {
@@ -53,9 +54,11 @@ class CourseRemoteDataSourceImpl implements CourseRemoteDataSource {
         queryParams['search'] = searchParts.join(';');
       }
 
+      // Cache is handled automatically by DioCacheInterceptor
       final response = await dioClient.get(
         ApiConstants.courses,
         queryParameters: queryParams.isNotEmpty ? queryParams : null,
+        cancelTag: 'courses_${categoryId}_${specialtyId}_$page', // Cancel previous requests
       );
 
       if (response.statusCode == 200) {
@@ -96,6 +99,7 @@ class CourseRemoteDataSourceImpl implements CourseRemoteDataSource {
   @override
   Future<CourseModel> getCourseById(int id) async {
     try {
+      // Cache is handled automatically by DioCacheInterceptor
       final response = await dioClient.get('${ApiConstants.courses}/$id');
 
       if (response.statusCode == 200) {

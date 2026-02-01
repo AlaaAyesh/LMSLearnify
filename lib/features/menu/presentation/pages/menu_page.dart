@@ -16,6 +16,7 @@ import '../../../courses/presentation/pages/all_courses_page.dart';
 import '../../../home/presentation/pages/main_navigation_page.dart';
 import '../../../profile/presentation/pages/profile_page.dart';
 import '../../../subscriptions/presentation/pages/subscriptions_page.dart';
+import '../../../transactions/presentation/pages/transactions_page.dart';
 
 class MenuPage extends StatefulWidget {
   const MenuPage({super.key});
@@ -111,7 +112,7 @@ class _MenuPageContent extends StatelessWidget {
                   ),
 
                   MenuButton(
-                    text: 'جميع الكورسات',
+                    text: ' كورساتي',
                     onTap: () {
                       print('🔵 All courses button tapped');
                       context.pushWithNav(const AllCoursesPage());
@@ -123,6 +124,14 @@ class _MenuPageContent extends StatelessWidget {
                     onTap: () {
                       print('🔵 Certificates button tapped');
                       context.pushWithNav(const CertificatesPage());
+                    },
+                  ),
+
+                  MenuButton(
+                    text: 'اشتراكاتي',
+                    onTap: () {
+                      print('🔵 My Transactions button tapped');
+                      context.pushWithNav(const TransactionsPage());
                     },
                   ),
 

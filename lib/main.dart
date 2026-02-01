@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'app.dart';
 import 'core/di/injection_container.dart';
 import 'core/storage/hive_service.dart';
+import 'core/network/cache_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -18,6 +19,9 @@ void main() async {
     ]),
     _setSystemUI(),
   ]);
+  
+  // Initialize cache service for HTTP caching
+  await CacheService.init();
   
   await initDependencies();
 

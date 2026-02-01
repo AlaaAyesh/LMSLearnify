@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import '../../../../core/constants/api_constants.dart';
 import '../../../../core/error/exceptions.dart';
 import '../../../../core/network/dio_client.dart';
+import '../../../../core/network/cache_service.dart';
 import '../models/home_data_model.dart';
 
 abstract class HomeRemoteDataSource {
@@ -18,6 +19,7 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
   @override
   Future<HomeDataModel> getHomeData() async {
     try {
+      // Cache is handled automatically by DioCacheInterceptor
       final response = await dioClient.get(ApiConstants.homeApi);
 
       if (response.statusCode == 200) {

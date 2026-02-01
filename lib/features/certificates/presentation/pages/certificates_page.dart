@@ -380,7 +380,7 @@ class _CertificatesPageContent extends StatelessWidget {
                 onPressed: () {
                   context.read<CertificateBloc>().add(LoadOwnedCertificatesEvent());
                 },
-                icon: const Icon(Icons.refresh),
+                // icon: const Icon(Icons.refresh),
                 label: const Text('تحديث'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFFFFC107),

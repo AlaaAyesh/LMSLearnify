@@ -100,6 +100,10 @@ class _HomeTabContent extends StatelessWidget {
             child: BlocBuilder<HomeBloc, HomeState>(
               builder: (context, state) {
                 if (state is HomeLoading) {
+                  // Show cached data if available, otherwise show loading
+                  if (state.cachedData != null) {
+                    return _buildContent(context, state.cachedData!);
+                  }
                   return const Center(
                     child: CircularProgressIndicator(
                       color: AppColors.primary,
@@ -108,6 +112,10 @@ class _HomeTabContent extends StatelessWidget {
                 }
 
                 if (state is HomeError) {
+                  // Show cached data if available, otherwise show error
+                  if (state.cachedData != null) {
+                    return _buildContent(context, state.cachedData!);
+                  }
                   return _buildErrorState(context, state.message);
                 }
 

@@ -1,13 +1,16 @@
 import 'package:dio/dio.dart';
+import 'package:dio_cache_interceptor/dio_cache_interceptor.dart';
 import 'package:flutter/foundation.dart';
 import 'package:pretty_dio_logger/pretty_dio_logger.dart';
 import '../constants/api_constants.dart';
 import '../constants/app_constants.dart';
 import '../storage/secure_storage_service.dart';
+import 'cache_service.dart';
 
 class DioClient {
   late final Dio _dio;
   final SecureStorageService _secureStorage;
+  final Map<String, CancelToken> _cancelTokens = {};
 
   DioClient(this._secureStorage) {
     _dio = Dio(
@@ -18,9 +21,20 @@ class DioClient {
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
+          'Connection': 'keep-alive', // Enable connection pooling
         },
+        // Enable connection pooling and reuse
+        persistentConnection: true,
+        followRedirects: true,
+        maxRedirects: 5,
       ),
     );
+
+    // Add cache interceptor if available
+    final cacheOptions = CacheService.cacheOptions;
+    if (cacheOptions != null) {
+      _dio.interceptors.add(DioCacheInterceptor(options: cacheOptions));
+    }
 
     _dio.interceptors.add(_AuthInterceptor(_secureStorage));
     
@@ -41,17 +55,60 @@ class DioClient {
 
   Dio get dio => _dio;
 
-  // GET Request
+  /// Cancel a specific request by tag
+  void cancelRequest(String tag) {
+    _cancelTokens[tag]?.cancel('Request cancelled');
+    _cancelTokens.remove(tag);
+  }
+
+  /// Cancel all pending requests
+  void cancelAllRequests() {
+    for (final token in _cancelTokens.values) {
+      token.cancel('All requests cancelled');
+    }
+    _cancelTokens.clear();
+  }
+
+  // GET Request with caching support (cache is handled automatically by interceptor)
   Future<Response> get(
       String path, {
         Map<String, dynamic>? queryParameters,
         Options? options,
+        String? cancelTag,
       }) async {
-    return await _dio.get(
-      path,
-      queryParameters: queryParameters,
-      options: options,
-    );
+    // Create cancel token if tag provided
+    CancelToken? cancelToken;
+    if (cancelTag != null) {
+      // Cancel previous request with same tag
+      cancelRequest(cancelTag);
+      cancelToken = CancelToken();
+      _cancelTokens[cancelTag] = cancelToken;
+    }
+
+    // Merge options - cache is handled by interceptor automatically
+    final mergedOptions = options ?? Options();
+
+    try {
+      final response = await _dio.get(
+        path,
+        queryParameters: queryParameters,
+        options: mergedOptions,
+        cancelToken: cancelToken,
+      );
+      
+      // Remove cancel token on success
+      if (cancelTag != null) {
+        _cancelTokens.remove(cancelTag);
+      }
+      
+      return response;
+    } catch (e) {
+      // Remove cancel token on error
+      if (cancelTag != null) {
+        _cancelTokens.remove(cancelTag);
+      }
+      rethrow;
+    }
   }
 
   // POST Request
@@ -60,13 +117,35 @@ class DioClient {
         dynamic data,
         Map<String, dynamic>? queryParameters,
         Options? options,
+        String? cancelTag,
       }) async {
-    return await _dio.post(
-      path,
-      data: data,
-      queryParameters: queryParameters,
-      options: options,
-    );
+    CancelToken? cancelToken;
+    if (cancelTag != null) {
+      cancelRequest(cancelTag);
+      cancelToken = CancelToken();
+      _cancelTokens[cancelTag] = cancelToken;
+    }
+
+    try {
+      final response = await _dio.post(
+        path,
+        data: data,
+        queryParameters: queryParameters,
+        options: options,
+        cancelToken: cancelToken,
+      );
+      
+      if (cancelTag != null) {
+        _cancelTokens.remove(cancelTag);
+      }
+      
+      return response;
+    } catch (e) {
+      if (cancelTag != null) {
+        _cancelTokens.remove(cancelTag);
+      }
+      rethrow;
+    }
   }
 
   // PUT Request
@@ -75,13 +154,35 @@ class DioClient {
         dynamic data,
         Map<String, dynamic>? queryParameters,
         Options? options,
+        String? cancelTag,
       }) async {
-    return await _dio.put(
-      path,
-      data: data,
-      queryParameters: queryParameters,
-      options: options,
-    );
+    CancelToken? cancelToken;
+    if (cancelTag != null) {
+      cancelRequest(cancelTag);
+      cancelToken = CancelToken();
+      _cancelTokens[cancelTag] = cancelToken;
+    }
+
+    try {
+      final response = await _dio.put(
+        path,
+        data: data,
+        queryParameters: queryParameters,
+        options: options,
+        cancelToken: cancelToken,
+      );
+      
+      if (cancelTag != null) {
+        _cancelTokens.remove(cancelTag);
+      }
+      
+      return response;
+    } catch (e) {
+      if (cancelTag != null) {
+        _cancelTokens.remove(cancelTag);
+      }
+      rethrow;
+    }
   }
 
   // DELETE Request
@@ -90,13 +191,35 @@ class DioClient {
         dynamic data,
         Map<String, dynamic>? queryParameters,
         Options? options,
+        String? cancelTag,
       }) async {
-    return await _dio.delete(
-      path,
-      data: data,
-      queryParameters: queryParameters,
-      options: options,
-    );
+    CancelToken? cancelToken;
+    if (cancelTag != null) {
+      cancelRequest(cancelTag);
+      cancelToken = CancelToken();
+      _cancelTokens[cancelTag] = cancelToken;
+    }
+
+    try {
+      final response = await _dio.delete(
+        path,
+        data: data,
+        queryParameters: queryParameters,
+        options: options,
+        cancelToken: cancelToken,
+      );
+      
+      if (cancelTag != null) {
+        _cancelTokens.remove(cancelTag);
+      }
+      
+      return response;
+    } catch (e) {
+      if (cancelTag != null) {
+        _cancelTokens.remove(cancelTag);
+      }
+      rethrow;
+    }
   }
 }
 
