@@ -10,7 +10,7 @@ class PromoCodeTextField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: Responsive.height(context, 48),
+      height: Responsive.height(context, 44),
       child: TextField(
         controller: controller,
         textAlign: TextAlign.right,

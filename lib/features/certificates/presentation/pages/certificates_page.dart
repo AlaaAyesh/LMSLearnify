@@ -93,10 +93,18 @@ class _UnauthenticatedCertificatesPage extends StatelessWidget {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(
-                      Icons.lock_outline,
-                      size: Responsive.iconSize(context, 80),
-                      color: AppColors.primary,
+                    // Lock Icon
+                    Container(
+                      padding: EdgeInsets.all(Responsive.width(context, 32)),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary.withOpacity(0.1),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        Icons.lock_outline,
+                        size: Responsive.iconSize(context, 80),
+                        color: AppColors.primary,
+                      ),
                     ),
                     SizedBox(height: Responsive.spacing(context, 24)),
                     Text(

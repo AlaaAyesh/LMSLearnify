@@ -19,6 +19,7 @@ import '../../features/reels/presentation/bloc/reels_event.dart';
 import '../../features/reels/presentation/pages/reels_feed_page.dart';
 import '../../features/splash/presentation/pages/splash_page.dart';
 import '../../features/subscriptions/presentation/pages/subscriptions_page.dart';
+import '../../features/transactions/presentation/pages/transactions_page.dart';
 import '../di/injection_container.dart';
 
 class AppRouter {
@@ -36,6 +37,7 @@ class AppRouter {
   static const String profile = '/profile';
   static const String subscriptions = '/subscriptions';
   static const String certificates = '/certificates';
+  static const String transactions = '/transactions';
   static const String courses = '/courses';
   static const String lesson = '/lesson';
   static const String about = '/about';
@@ -113,6 +115,9 @@ class AppRouter {
 
       case certificates:
         return MaterialPageRoute(builder: (_) => const CertificatesPage());
+
+      case transactions:
+        return MaterialPageRoute(builder: (_) => const TransactionsPage());
 
       case courses:
         final args = settings.arguments as Map<String, dynamic>?;

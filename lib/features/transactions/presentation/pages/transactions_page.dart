@@ -107,43 +107,137 @@ class _UnauthenticatedTransactionsPage extends StatelessWidget {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(
-                      Icons.lock_outline,
-                      size: Responsive.iconSize(context, 80),
-                      color: AppColors.primary,
+                    // Lock Icon
+                    Container(
+                      padding: EdgeInsets.all(Responsive.width(context, 32)),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary.withOpacity(0.1),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        Icons.lock_outline,
+                        size: Responsive.iconSize(context, 80),
+                        color: AppColors.primary,
+                      ),
                     ),
                     SizedBox(height: Responsive.spacing(context, 24)),
                     Text(
-                      'يجب تسجيل الدخول',
-                      style: AppTextStyles.headlineLarge.copyWith(
-                        color: AppColors.primary,
+                      'تسجيل الدخول مطلوب',
+                      style: AppTextStyles.displayMedium.copyWith(
+                        fontSize: Responsive.fontSize(context, 24),
                       ),
                       textAlign: TextAlign.center,
                     ),
-                    SizedBox(height: Responsive.spacing(context, 16)),
+                    SizedBox(height: Responsive.spacing(context, 12)),
                     Text(
-                      'يجب تسجيل الدخول لعرض معاملاتك',
+                      'للوصول إلى اشتراكاتك ومعاملاتك، يرجى تسجيل الدخول أو إنشاء حساب جديد',
                       style: AppTextStyles.bodyLarge.copyWith(
-                        color: AppColors.textSecondary,
+                        fontSize: Responsive.fontSize(context, 16),
+                        height: 1.4,
                       ),
                       textAlign: TextAlign.center,
                     ),
-                    SizedBox(height: Responsive.spacing(context, 32)),
-                    ElevatedButton(
-                      onPressed: () {
-                        Navigator.of(context, rootNavigator: true).pushNamed('/login');
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
-                        padding: Responsive.padding(
-                          context,
-                          horizontal: 32,
-                          vertical: 16,
+                    SizedBox(height: Responsive.spacing(context, 28)),
+                    // Login Button
+                    SizedBox(
+                      width: double.infinity,
+                      height: Responsive.height(context, 56),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(22),
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppColors.primary.withOpacity(0.2),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: ElevatedButton(
+                          onPressed: () async {
+                            final result = await Navigator.of(
+                              context,
+                              rootNavigator: true,
+                            ).pushNamed(
+                              AppRouter.login,
+                              arguments: {'returnTo': 'transactions'},
+                            );
+
+                            if (result == true && context.mounted) {
+                              // After successful login, reload the transactions page
+                              Navigator.of(context, rootNavigator: true)
+                                  .pushReplacementNamed(AppRouter.transactions);
+                            }
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primary,
+                            elevation: 0,
+                            padding: EdgeInsets.zero,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(22),
+                            ),
+                          ),
+                          child: Text(
+                            'تسجيل الدخول',
+                            style: TextStyle(
+                              fontFamily: 'Cairo',
+                              fontSize: Responsive.fontSize(context, 18),
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                         ),
                       ),
-                      child: Text(
-                        'تسجيل الدخول',
-                        style: AppTextStyles.button.copyWith(color: Colors.white),
+                    ),
+                    SizedBox(height: Responsive.spacing(context, 24)),
+                    // Register Button
+                    SizedBox(
+                      width: double.infinity,
+                      height: Responsive.height(context, 56),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(22),
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppColors.primary.withOpacity(0.15),
+                              blurRadius: 8,
+                              offset: const Offset(0, 3),
+                            ),
+                          ],
+                        ),
+                        child: OutlinedButton(
+                          onPressed: () async {
+                            final result = await Navigator.of(
+                              context,
+                              rootNavigator: true,
+                            ).pushNamed(
+                              AppRouter.register,
+                              arguments: {'returnTo': 'transactions'},
+                            );
+
+                            if (result == true && context.mounted) {
+                              // After successful registration, reload the transactions page
+                              Navigator.of(context, rootNavigator: true)
+                                  .pushReplacementNamed(AppRouter.transactions);
+                            }
+                          },
+                          style: OutlinedButton.styleFrom(
+                            padding: EdgeInsets.zero,
+                            side: const BorderSide(color: AppColors.primary),
+                            backgroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(22),
+                            ),
+                          ),
+                          child: Text(
+                            'إنشاء حساب جديد',
+                            style: TextStyle(
+                              fontFamily: 'Cairo',
+                              fontSize: Responsive.fontSize(context, 18),
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.primary,
+                            ),
+                          ),
+                        ),
                       ),
                     ),
                   ],

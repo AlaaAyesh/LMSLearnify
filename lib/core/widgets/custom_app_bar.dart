@@ -56,23 +56,26 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
 
 
             if (showBackButton)
-              GestureDetector(
-                onTap: onBack ?? () => Navigator.pop(context),
-                child: Container(
-                  width: Responsive.width(context, 26),
-                  height: Responsive.width(context, 26),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(Responsive.radius(context, 5)),
-                    border: Border.all(
-                      color: AppColors.primary,
-                      width: Responsive.width(context, 2.5),
+              Padding(
+                padding: EdgeInsets.all(Responsive.width(context, 8)),
+                child: GestureDetector(
+                  onTap: onBack ?? () => Navigator.pop(context),
+                  child: Container(
+                    width: Responsive.width(context, 26),
+                    height: Responsive.width(context, 26),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(Responsive.radius(context, 5)),
+                      border: Border.all(
+                        color: AppColors.primary,
+                        width: Responsive.width(context, 2.5),
+                      ),
                     ),
-                  ),
-                  alignment: Alignment.center,
-                  child: Icon(
-                    Icons.arrow_forward_ios,
-                    size: Responsive.iconSize(context, 18),
-                    color: AppColors.primary,
+                    alignment: Alignment.center,
+                    child: Icon(
+                      Icons.arrow_forward_ios,
+                      size: Responsive.iconSize(context, 18),
+                      color: AppColors.primary,
+                    ),
                   ),
                 ),
               ),
