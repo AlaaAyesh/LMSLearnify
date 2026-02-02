@@ -86,8 +86,10 @@ class Responsive {
 
   /// Check if device is tablet
   static bool isTablet(BuildContext context) {
-    final width = MediaQuery.of(context).size.width;
-    return width >= 600;
+    final mediaQuery = MediaQuery.of(context);
+    final shortestSide = mediaQuery.size.shortestSide;
+
+    return shortestSide >= 600;
   }
 
   /// Check if device is phone
@@ -95,9 +97,24 @@ class Responsive {
     return !isTablet(context);
   }
 
+  /// Check if device is in portrait orientation
+  static bool isPortrait(BuildContext context) {
+    final mediaQuery = MediaQuery.of(context);
+    return mediaQuery.orientation == Orientation.portrait;
+  }
+
+  /// Check if device is in landscape orientation
+  static bool isLandscape(BuildContext context) {
+    return !isPortrait(context);
+  }
+
   /// Get responsive icon size
   static double iconSize(BuildContext context, double size) {
-    return width(context, size);
+    final screenWidth = MediaQuery.of(context).size.width;
+    final scaleFactor = screenWidth / _baseWidth;
+    // Clamp حتى لا تكبر الأيقونات جدًا على التابلت أو تصغر كثيرًا على الشاشات الصغيرة
+    final clampedScale = scaleFactor.clamp(0.9, 1.4);
+    return size * clampedScale;
   }
 
   /// Get screen width
@@ -129,4 +146,6 @@ extension ResponsiveExtension on BuildContext {
   double get sh => Responsive.screenHeight(this);
   bool get isTablet => Responsive.isTablet(this);
   bool get isPhone => Responsive.isPhone(this);
+  bool get isPortrait => Responsive.isPortrait(this);
+  bool get isLandscape => Responsive.isLandscape(this);
 }

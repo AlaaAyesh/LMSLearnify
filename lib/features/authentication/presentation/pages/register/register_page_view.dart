@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:learnify_lms/core/theme/app_text_styles.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../../core/utils/responsive.dart';
 import 'package:learnify_lms/features/authentication/presentation/pages/register/widgets/have_account_row.dart';
@@ -169,6 +168,15 @@ class RegisterPageViewState extends State<RegisterPageView> {
 
   @override
   Widget build(BuildContext context) {
+    if (Responsive.isTablet(context)) {
+      return _buildTabletLayout(context);
+    } else {
+      return _buildPhoneLayout(context);
+    }
+  }
+
+  /// تصميم الهاتف (الحالي) كما هو
+  Widget _buildPhoneLayout(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.white,
       body: Stack(
@@ -196,7 +204,8 @@ class RegisterPageViewState extends State<RegisterPageView> {
                       if (calculatedAge != null) ...[
                         SizedBox(height: Responsive.spacing(context, 8)),
                         _buildAgeSpecialtyInfo(context),
-                      ],SizedBox(height: Responsive.spacing(context, 16)),
+                      ],
+                      SizedBox(height: Responsive.spacing(context, 16)),
                       PhoneField(
                         controller: phoneController,
                         countryCode: countryCode,
@@ -205,7 +214,6 @@ class RegisterPageViewState extends State<RegisterPageView> {
                       ),
                       SizedBox(height: Responsive.spacing(context, 16)),
                       EmailField(controller: emailController),
-
                       SizedBox(height: Responsive.spacing(context, 16)),
                       PasswordField(
                         controller: passwordController,
@@ -234,6 +242,489 @@ class RegisterPageViewState extends State<RegisterPageView> {
                       SizedBox(height: Responsive.spacing(context, 30)),
                     ],
                   ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// تصميم خاص بالتابلت: عمود فورم أنيق داخل Card مع معلومات في الأعلى
+  Widget _buildTabletLayout(BuildContext context) {
+    final isPortrait = Responsive.isPortrait(context);
+    
+    return GestureDetector(
+      behavior: HitTestBehavior.translucent,
+      onTap: () {
+        // إغلاق الكيبورد عند الضغط خارج الحقول
+        FocusScope.of(context).unfocus();
+      },
+      child: Scaffold(
+        backgroundColor: AppColors.backgroundLight,
+        resizeToAvoidBottomInset: false,
+        body: BlocListener<AuthBloc, AuthState>(
+          listener: authListener,
+          child: SafeArea(
+            child: Center(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                maxWidth: isPortrait ? 600 : 1000,
+              ),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: AppColors.white,
+                  borderRadius: BorderRadius.circular(28),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.blackOpacity30,
+                      blurRadius: 26,
+                      offset: const Offset(0, 14),
+                    ),
+                  ],
+                ),
+                child: Directionality(
+                  textDirection: TextDirection.ltr,
+                  child: isPortrait ? _buildPortraitTabletLayout(context) : _buildLandscapeTabletLayout(context),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+      ),
+    );
+  }
+
+  /// تصميم التابلت في الوضع الأفقي (Row)
+  Widget _buildLandscapeTabletLayout(BuildContext context) {
+    return Row(
+      children: [
+                      // الفورم (يمين في التابلت)
+                      Expanded(
+                        flex: 6,
+                        child: Directionality(
+                          textDirection: TextDirection.rtl,
+                          child: SingleChildScrollView(
+                            padding: EdgeInsets.fromLTRB(
+                              32,
+                              32,
+                              32,
+                              MediaQuery.of(context).viewInsets.bottom + 32,
+                            ),
+                            child: Form(
+                              key: formKey,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    'إنشاء حساب',
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .headlineSmall
+                                        ?.copyWith(
+                                      color: AppColors.textPrimary,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: Responsive.fontSize(context, 26),
+                                    ),
+                                    textAlign: TextAlign.right,
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    'املأ البيانات التالية لإنشاء حساب لطفلك وبدء رحلة التعلم.',
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .bodyMedium
+                                        ?.copyWith(
+                                      color: AppColors.textSecondary,
+                                      fontSize: Responsive.fontSize(context, 15),
+                                      height: 1.4,
+                                    ),
+                                    textAlign: TextAlign.right,
+                                  ),
+                                  const SizedBox(height: 24),
+                                  SizedBox(
+                                    width: double.infinity,
+                                    child: NameField(controller: nameController),
+                                  ),
+                                  const SizedBox(height: 16),
+                                  SizedBox(
+                                    width: double.infinity,
+                                    child: BirthdayField(
+                                      dayController: dayController,
+                                      monthController: monthController,
+                                      yearController: yearController,
+                                    ),
+                                  ),
+                                  if (calculatedAge != null) ...[
+                                    const SizedBox(height: 8),
+                                    SizedBox(
+                                      width: double.infinity,
+                                      child: _buildAgeSpecialtyInfo(context),
+                                    ),
+                                  ],
+                                  const SizedBox(height: 16),
+                                  SizedBox(
+                                    width: double.infinity,
+                                    child: PhoneField(
+                                      controller: phoneController,
+                                      countryCode: countryCode,
+                                      onCountryChanged: (v) =>
+                                          setState(() => countryCode = v),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 16),
+                                  SizedBox(
+                                    width: double.infinity,
+                                    child: EmailField(controller: emailController),
+                                  ),
+                                  const SizedBox(height: 16),
+                                  SizedBox(
+                                    width: double.infinity,
+                                    child: PasswordField(
+                                      controller: passwordController,
+                                      obscure: obscurePassword,
+                                      onToggleVisibility: () => setState(
+                                              () => obscurePassword =
+                                          !obscurePassword),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 24),
+                                  SizedBox(
+                                    width: double.infinity,
+                                    child: BlocBuilder<AuthBloc, AuthState>(
+                                      builder: (context, state) {
+                                        final isLoading = state is AuthLoading;
+
+                                        return PrimaryButton(
+                                          text: 'تسجيل الحساب',
+                                          isLoading: isLoading,
+                                          onPressed: isLoading
+                                              ? null
+                                              : onRegisterPressed,
+                                        );
+                                      },
+                                    ),
+                                  ),
+                                  const SizedBox(height: 16),
+                                  const SizedBox(
+                                    width: double.infinity,
+                                    child: HaveAccountRow(),
+                                  ),
+                                  const SizedBox(height: 16),
+                                  const SizedBox(
+                                    width: double.infinity,
+                                    child: CustomDividerWithText(
+                                      text: "أو التسجيل بواسطة",
+                                    ),
+                                  ),
+                                  const SizedBox(height: 20),
+                                  const SocialLoginButtons(),
+                                  const SizedBox(height: 8),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      // بانل الترحيب الصفراء (يسار في التابلت)
+                      Expanded(
+                        flex: 4,
+                        child: MediaQuery(
+                          data: MediaQuery.of(context).removeViewInsets(removeBottom: true),
+                          child: LayoutBuilder(
+                            builder: (context, constraints) {
+                              return Container(
+                                height: constraints.maxHeight,
+                                decoration: const BoxDecoration(
+                                  color: AppColors.primaryCard,
+                                  borderRadius: BorderRadius.only(
+                                    topLeft: Radius.circular(28),
+                                    bottomLeft: Radius.circular(28),
+                                  ),
+                                ),
+                                child: Directionality(
+                                  textDirection: TextDirection.rtl,
+                                  child: Stack(
+                                    children: [
+                                      // Decorative circles
+                                      Positioned(
+                                        top: 40,
+                                        right: 20,
+                                        child: Container(
+                                          width: 120,
+                                          height: 120,
+                                          decoration: BoxDecoration(
+                                            shape: BoxShape.circle,
+                                            color: AppColors.primary.withOpacity(0.1),
+                                          ),
+                                        ),
+                                      ),
+                                      Positioned(
+                                        bottom: 80,
+                                        left: 30,
+                                        child: Container(
+                                          width: 80,
+                                          height: 80,
+                                          decoration: BoxDecoration(
+                                            shape: BoxShape.circle,
+                                            color: AppColors.primary.withOpacity(0.15),
+                                          ),
+                                        ),
+                                      ),
+                                      // Content - ثابت لا يتأثر بالكيبورد
+                                      Align(
+                                        alignment: Alignment.center,
+                                        child: Padding(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 32,
+                                            vertical: 24,
+                                          ),
+                                          child: Column(
+                                            mainAxisSize: MainAxisSize.min,
+                                            crossAxisAlignment: CrossAxisAlignment.end,
+                                            children: [
+                                              const RegisterHeader(),
+                                              SizedBox(height: Responsive.spacing(context, 24)),
+                                              Icon(
+                                                Icons.rocket_launch_outlined,
+                                                size: Responsive.iconSize(context, 56),
+                                                color: AppColors.primary,
+                                              ),
+                                              SizedBox(height: Responsive.spacing(context, 20)),
+                                              SizedBox(height: Responsive.spacing(context, 10)),
+                                              Text(
+                                                'أنشئ حسابك وابدأ رحلة التعلّم المميزة مع ليرنيفاى.',
+                                                style: Theme.of(context)
+                                                    .textTheme
+                                                    .bodyMedium
+                                                    ?.copyWith(
+                                                      color: AppColors.textSecondary,
+                                                      fontSize: Responsive.fontSize(context, 15),
+                                                      height: 1.4,
+                                                    ),
+                                                textAlign: TextAlign.center,
+                                                maxLines: 2,
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                      ),
+
+                    ],
+
+    );
+  }
+
+  /// تصميم التابلت في الوضع الرأسي (Column)
+  Widget _buildPortraitTabletLayout(BuildContext context) {
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          // بانل الترحيب الصفراء (أعلى في الوضع الرأسي)
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 40),
+            decoration: const BoxDecoration(
+              color: AppColors.primaryCard,
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(28),
+                topRight: Radius.circular(28),
+              ),
+            ),
+            child: Directionality(
+              textDirection: TextDirection.rtl,
+              child: Stack(
+                children: [
+                  // Decorative circles
+                  Positioned(
+                    top: 20,
+                    right: 20,
+                    child: Container(
+                      width: 100,
+                      height: 100,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: AppColors.primary.withOpacity(0.1),
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    bottom: 20,
+                    left: 30,
+                    child: Container(
+                      width: 70,
+                      height: 70,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: AppColors.primary.withOpacity(0.15),
+                      ),
+                    ),
+                  ),
+                  // Content
+                  Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      const RegisterHeader(),
+                      SizedBox(height: Responsive.spacing(context, 20)),
+                      Icon(
+                        Icons.rocket_launch_outlined,
+                        size: Responsive.iconSize(context, 50),
+                        color: AppColors.primary,
+                      ),
+                      SizedBox(height: Responsive.spacing(context, 16)),
+                      Text(
+                        'أنشئ حسابك وابدأ رحلة التعلّم المميزة مع ليرنيفاى.',
+                        style: Theme.of(context)
+                            .textTheme
+                            .bodyMedium
+                            ?.copyWith(
+                              color: AppColors.textSecondary,
+                              fontSize: Responsive.fontSize(context, 15),
+                              height: 1.4,
+                            ),
+                        textAlign: TextAlign.center,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+          // الفورم (أسفل في الوضع الرأسي)
+          Directionality(
+            textDirection: TextDirection.rtl,
+            child: SingleChildScrollView(
+              padding: EdgeInsets.fromLTRB(
+                32,
+                32,
+                32,
+                MediaQuery.of(context).viewInsets.bottom + 32,
+              ),
+              child: Form(
+                key: formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 8),
+                    Text(
+                      'إنشاء حساب',
+                      style: Theme.of(context)
+                          .textTheme
+                          .headlineSmall
+                          ?.copyWith(
+                        color: AppColors.textPrimary,
+                        fontWeight: FontWeight.bold,
+                        fontSize: Responsive.fontSize(context, 26),
+                      ),
+                      textAlign: TextAlign.right,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'املأ البيانات التالية لإنشاء حساب لطفلك وبدء رحلة التعلم.',
+                      style: Theme.of(context)
+                          .textTheme
+                          .bodyMedium
+                          ?.copyWith(
+                        color: AppColors.textSecondary,
+                        fontSize: Responsive.fontSize(context, 15),
+                        height: 1.4,
+                      ),
+                      textAlign: TextAlign.right,
+                    ),
+                    const SizedBox(height: 24),
+                    SizedBox(
+                      width: double.infinity,
+                      child: NameField(controller: nameController),
+                    ),
+                    const SizedBox(height: 16),
+                    SizedBox(
+                      width: double.infinity,
+                      child: BirthdayField(
+                        dayController: dayController,
+                        monthController: monthController,
+                        yearController: yearController,
+                      ),
+                    ),
+                    if (calculatedAge != null) ...[
+                      const SizedBox(height: 8),
+                      SizedBox(
+                        width: double.infinity,
+                        child: _buildAgeSpecialtyInfo(context),
+                      ),
+                    ],
+                    const SizedBox(height: 16),
+                    SizedBox(
+                      width: double.infinity,
+                      child: PhoneField(
+                        controller: phoneController,
+                        countryCode: countryCode,
+                        onCountryChanged: (v) =>
+                            setState(() => countryCode = v),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    SizedBox(
+                      width: double.infinity,
+                      child: EmailField(controller: emailController),
+                    ),
+                    const SizedBox(height: 16),
+                    SizedBox(
+                      width: double.infinity,
+                      child: PasswordField(
+                        controller: passwordController,
+                        obscure: obscurePassword,
+                        onToggleVisibility: () => setState(
+                                () => obscurePassword =
+                            !obscurePassword),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    SizedBox(
+                      width: double.infinity,
+                      child: BlocBuilder<AuthBloc, AuthState>(
+                        builder: (context, state) {
+                          final isLoading = state is AuthLoading;
+
+                          return PrimaryButton(
+                            text: 'تسجيل الحساب',
+                            isLoading: isLoading,
+                            onPressed: isLoading
+                                ? null
+                                : onRegisterPressed,
+                          );
+                        },
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    const SizedBox(
+                      width: double.infinity,
+                      child: HaveAccountRow(),
+                    ),
+                    const SizedBox(height: 16),
+                    const SizedBox(
+                      width: double.infinity,
+                      child: CustomDividerWithText(
+                        text: "أو التسجيل بواسطة",
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    const SocialLoginButtons(),
+                    const SizedBox(height: 8),
+                  ],
                 ),
               ),
             ),

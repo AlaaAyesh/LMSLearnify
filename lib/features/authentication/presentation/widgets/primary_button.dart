@@ -21,6 +21,10 @@ class PrimaryButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final bool isTablet = Responsive.isTablet(context);
+    final double buttonFontSize =
+        isTablet ? Responsive.fontSize(context, 18) : Responsive.fontSize(context, 20);
+
     return Container(
       width: width ?? double.infinity,
       height: Responsive.height(context, height),
@@ -52,21 +56,21 @@ class PrimaryButton extends StatelessWidget {
         ),
         child: isLoading
             ? SizedBox(
-          height: Responsive.height(context, 28),
-          width: Responsive.width(context, 26),
-          child: CircularProgressIndicator(
-            strokeWidth: Responsive.width(context, 2.5),
-            valueColor:
-            AlwaysStoppedAnimation<Color>(AppColors.white),
-          ),
-        )
+                height: Responsive.height(context, 28),
+                width: Responsive.width(context, 26),
+                child: CircularProgressIndicator(
+                  strokeWidth: Responsive.width(context, 2.5),
+                  valueColor:
+                      AlwaysStoppedAnimation<Color>(AppColors.white),
+                ),
+              )
             : Text(
-          text,
-          style: AppTextStyles.button.copyWith(
-              fontSize: Responsive.fontSize(context, 24),
-              fontWeight: FontWeight.w800
-          ),
-        ),
+                text,
+                style: AppTextStyles.button.copyWith(
+                  fontSize: buttonFontSize,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
       ),
     );
   }

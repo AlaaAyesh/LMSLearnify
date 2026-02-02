@@ -8,35 +8,49 @@ class BenefitItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final bool isTablet = Responsive.isTablet(context);
+
+    // ضبط النِسَب في التابلت: أيقونة أصغر، مسافة أقل، خط أكبر قليلاً
+    final double circleSize =
+        isTablet ? 26 : Responsive.width(context, 22);
+    final double iconSize =
+        isTablet ? 14 : Responsive.iconSize(context, 16);
+    final double horizontalSpacing =
+        isTablet ? 8 : Responsive.width(context, 10);
+    final double fontSize =
+        isTablet ? Responsive.fontSize(context, 16) : Responsive.fontSize(context, 14);
+    final EdgeInsets verticalPadding =
+        isTablet ? const EdgeInsets.symmetric(vertical: 4) : Responsive.padding(context, vertical: 6);
+
     return Padding(
-      padding: Responsive.padding(context, vertical: 6),
+      padding: verticalPadding,
       child: Row(
         textDirection: TextDirection.rtl,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Container(
-            width: Responsive.width(context, 22),
-            height: Responsive.width(context, 22),
+            width: circleSize,
+            height: circleSize,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               border: Border.all(
                 color: const Color(0xFFFFB300),
-                width: Responsive.width(context, 2),
+                width: isTablet ? 2 : Responsive.width(context, 2),
               ),
             ),
             child: Icon(
               Icons.check,
-              size: Responsive.iconSize(context, 16),
+              size: iconSize,
               color: const Color(0xFFFFB300),
             ),
           ),
-          SizedBox(width: Responsive.width(context, 10)),
+          SizedBox(width: horizontalSpacing),
           Expanded(
             child: Text(
               text,
               textAlign: TextAlign.right,
               style: AppTextStyles.bodyLarge.copyWith(
-                fontSize: Responsive.fontSize(context, 14),
+                fontSize: fontSize,
                 color: Colors.black87,
               ),
             ),

@@ -21,6 +21,7 @@ import '../../features/splash/presentation/pages/splash_page.dart';
 import '../../features/subscriptions/presentation/pages/subscriptions_page.dart';
 import '../../features/transactions/presentation/pages/transactions_page.dart';
 import '../di/injection_container.dart';
+import '../utils/responsive.dart';
 
 class AppRouter {
   static const String splash = '/';
@@ -50,10 +51,16 @@ class AppRouter {
         return MaterialPageRoute(builder: (_) => const SplashPage());
 
       case login:
-        return MaterialPageRoute(builder: (_) => const LoginPage());
+        return _buildAuthPageRoute(
+          const LoginPage(),
+          fromRight: false,
+        );
 
       case register:
-        return MaterialPageRoute(builder: (_) => const RegisterPage());
+        return _buildAuthPageRoute(
+          const RegisterPage(),
+          fromRight: true,
+        );
 
       case forgotPassword:
         return MaterialPageRoute(builder: (_) => const ForgotPasswordPage());
@@ -176,6 +183,34 @@ class AppRouter {
           ),
         );
     }
+  }
+
+  /// انتقال مخصص لصفحات تسجيل الدخول / إنشاء الحساب على التابلت فقط
+  static PageRoute _buildAuthPageRoute(
+    Widget child, {
+    required bool fromRight,
+  }) {
+    return PageRouteBuilder(
+      pageBuilder: (_, animation, secondaryAnimation) => child,
+      transitionDuration: const Duration(milliseconds: 400),
+      reverseTransitionDuration: const Duration(milliseconds: 400),
+      transitionsBuilder: (ctx, animation, secondaryAnimation, child) {
+        // على الموبايل: بدون أنميشن خاص (إرجاع الطفل مباشرة)
+        if (!Responsive.isTablet(ctx)) {
+          return child;
+        }
+
+        final beginOffset = Offset(fromRight ? 1.0 : -1.0, 0);
+        final endOffset = Offset.zero;
+        final tween = Tween(begin: beginOffset, end: endOffset)
+            .chain(CurveTween(curve: Curves.easeInOut));
+
+        return SlideTransition(
+          position: animation.drive(tween),
+          child: child,
+        );
+      },
+    );
   }
 }
 

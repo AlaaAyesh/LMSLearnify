@@ -354,13 +354,18 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
 
   Widget _buildCourseThumbnail(BuildContext context) {
     // If intro video URL exists, show video player with thumbnail placeholder
+    final bool isTablet = Responsive.isTablet(context);
+    // في التابلت نقلل نصف القطر حتى لا يبدو الفيديو كبسولة مبالغ فيها
+    final double thumbRadius =
+        isTablet ? 26.0 : Responsive.radius(context, 20);
+
     if (course.introBunnyUrl != null && course.introBunnyUrl!.isNotEmpty) {
       return Container(
         height: Responsive.height(context, 200),
         width: double.infinity,
         margin: Responsive.margin(context, all: 16),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(Responsive.radius(context, 20)),
+          borderRadius: BorderRadius.circular(thumbRadius),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.1),
@@ -370,7 +375,7 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
           ],
         ),
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(Responsive.radius(context, 20)),
+          borderRadius: BorderRadius.circular(thumbRadius),
           child: GestureDetector(
             onTap: () => _playIntroVideo(context),
             child: Stack(
@@ -461,7 +466,7 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
         width: double.infinity,
         margin: Responsive.margin(context, all: 16),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(Responsive.radius(context, 20)),
+          borderRadius: BorderRadius.circular(thumbRadius),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.1),
@@ -473,7 +478,7 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
         child: Stack(
           children: [
             ClipRRect(
-              borderRadius: BorderRadius.circular(Responsive.radius(context, 20)),
+              borderRadius: BorderRadius.circular(thumbRadius),
               child: SizedBox(
                 width: double.infinity,
                 height: double.infinity,
@@ -585,12 +590,17 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
           .toList();
     }
 
+    final bool isTablet = Responsive.isTablet(context);
+    // في التابلت نقلل نصف القطر للكارد ليكون أقل دائرية
+    final double infoRadius =
+        isTablet ? 26.0 : Responsive.radius(context, 20);
+
     return Container(
       margin: Responsive.margin(context, horizontal: 16),
       padding: Responsive.padding(context, all: 20),
       decoration: BoxDecoration(
         color: AppColors.primaryCard,
-        borderRadius: BorderRadius.circular(Responsive.radius(context, 20)),
+        borderRadius: BorderRadius.circular(infoRadius),
       ),
       child: Column(
         children: [
@@ -1306,6 +1316,11 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
         ),
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxWidth: Responsive.isTablet(context) ? 500 : double.infinity,
+            maxHeight: Responsive.isTablet(context) ? 600 : double.infinity,
+        ),
         child: Container(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(20),
@@ -1324,7 +1339,10 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
               // Header with gradient background for free courses
               Container(
                 width: double.infinity,
-                padding: Responsive.padding(context, all: 24),
+                  padding: Responsive.padding(
+                    context,
+                    all: Responsive.isTablet(context) ? 20 : 24,
+                  ),
                 decoration: BoxDecoration(
                   borderRadius: const BorderRadius.only(
                     topLeft: Radius.circular(20),
@@ -1354,31 +1372,31 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
                         ),
                         child: Icon(
                           Icons.school_outlined,
-                          size: Responsive.iconSize(context, 40),
+                          size: Responsive.iconSize(context, Responsive.isTablet(context) ? 32 : 40),
                           color: AppColors.primary,
                         ),
                       )
                     else
                       Container(
-                        padding: Responsive.padding(context, all: 12),
+                        padding: Responsive.padding(context, all: Responsive.isTablet(context) ? 10 : 12),
                         decoration: BoxDecoration(
                           color: AppColors.primary.withOpacity(0.15),
                           shape: BoxShape.circle,
                         ),
                         child: Icon(
                           Icons.shopping_cart_outlined,
-                          size: Responsive.iconSize(context, 40),
+                          size: Responsive.iconSize(context, Responsive.isTablet(context) ? 32 : 40),
                           color: AppColors.primary,
                         ),
                       ),
-                    SizedBox(height: Responsive.spacing(context, 16)),
+                    SizedBox(height: Responsive.spacing(context, Responsive.isTablet(context) ? 12 : 16)),
                     // Title
                     Text(
                       isFree ? 'انضمام مجاني' : 'شراء الكورس',
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontFamily: 'Cairo',
-                        fontSize: Responsive.fontSize(context, 20),
+                        fontSize: Responsive.fontSize(context, Responsive.isTablet(context) ? 18 : 20),
                         fontWeight: FontWeight.bold,
                         color: AppColors.textPrimary,
                       ),
@@ -1388,9 +1406,14 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
               ),
 
               // Content
-              Padding(
-                padding: Responsive.padding(context, all: 24),
+              Flexible(
+                child: SingleChildScrollView(
+                  padding: Responsive.padding(
+                    context,
+                    all: Responsive.isTablet(context) ? 20 : 24,
+                  ),
                 child: Column(
+                    mainAxisSize: MainAxisSize.min,
                   children: [
                     // Course name
                     Text(
@@ -1398,18 +1421,22 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontFamily: 'Cairo',
-                        fontSize: Responsive.fontSize(context, 18),
+                          fontSize: Responsive.fontSize(context, Responsive.isTablet(context) ? 16 : 18),
                         fontWeight: FontWeight.w600,
                         color: AppColors.textPrimary,
                         height: 1.4,
                       ),
                     ),
-                    SizedBox(height: Responsive.spacing(context, 16)),
+                      SizedBox(height: Responsive.spacing(context, Responsive.isTablet(context) ? 12 : 16)),
 
                     // Price or free badge
                     if (isFree)
                       Container(
-                        padding: Responsive.padding(context, horizontal: 20, vertical: 10),
+                        padding: Responsive.padding(
+                          context,
+                          horizontal: Responsive.isTablet(context) ? 16 : 20,
+                          vertical: Responsive.isTablet(context) ? 8 : 10,
+                        ),
                         decoration: BoxDecoration(
                           color: AppColors.primary.withOpacity(0.1),
                           borderRadius: BorderRadius.circular(16),
@@ -1423,7 +1450,7 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
                           children: [
                             Icon(
                               Icons.check_circle,
-                              size: Responsive.iconSize(context, 20),
+                              size: Responsive.iconSize(context, Responsive.isTablet(context) ? 18 : 20),
                               color: AppColors.primary,
                             ),
                             SizedBox(width: Responsive.width(context, 8)),
@@ -1431,7 +1458,7 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
                               'مجاني تماماً',
                               style: TextStyle(
                                 fontFamily: 'Cairo',
-                                fontSize: Responsive.fontSize(context, 16),
+                                fontSize: Responsive.fontSize(context, Responsive.isTablet(context) ? 14 : 16),
                                 fontWeight: FontWeight.bold,
                                 color: AppColors.primary,
                               ),
@@ -1441,7 +1468,11 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
                       )
                     else
                       Container(
-                        padding: Responsive.padding(context, horizontal: 20, vertical: 12),
+                        padding: Responsive.padding(
+                          context,
+                          horizontal: Responsive.isTablet(context) ? 16 : 20,
+                          vertical: Responsive.isTablet(context) ? 10 : 12,
+                        ),
                         decoration: BoxDecoration(
                           color: AppColors.primaryCard,
                           borderRadius: BorderRadius.circular(16),
@@ -1451,7 +1482,7 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
                           children: [
                             Icon(
                               Icons.attach_money,
-                              size: Responsive.iconSize(context, 20),
+                              size: Responsive.iconSize(context, Responsive.isTablet(context) ? 18 : 20),
                               color: AppColors.primary,
                             ),
                             SizedBox(width: Responsive.width(context, 8)),
@@ -1459,7 +1490,7 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
                               '${course.price} جم',
                               style: TextStyle(
                                 fontFamily: 'Cairo',
-                                fontSize: Responsive.fontSize(context, 18),
+                                fontSize: Responsive.fontSize(context, Responsive.isTablet(context) ? 16 : 18),
                                 fontWeight: FontWeight.bold,
                                 color: AppColors.primary,
                               ),
@@ -1468,7 +1499,7 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
                         ),
                       ),
 
-                    SizedBox(height: Responsive.spacing(context, 20)),
+                    SizedBox(height: Responsive.spacing(context, Responsive.isTablet(context) ? 16 : 20)),
 
                     // Description
                     Text(
@@ -1478,13 +1509,13 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontFamily: 'Cairo',
-                        fontSize: Responsive.fontSize(context, 14),
+                        fontSize: Responsive.fontSize(context, Responsive.isTablet(context) ? 13 : 14),
                         color: AppColors.textSecondary,
                         height: 1.5,
                       ),
                     ),
 
-                    SizedBox(height: Responsive.spacing(context, 24)),
+                    SizedBox(height: Responsive.spacing(context, Responsive.isTablet(context) ? 20 : 24)),
 
                     // Action buttons
                     Row(
@@ -1493,7 +1524,10 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
                           child: OutlinedButton(
                             onPressed: () => Navigator.pop(ctx),
                             style: OutlinedButton.styleFrom(
-                              padding: Responsive.padding(context, vertical: 14),
+                              padding: Responsive.padding(
+                                context,
+                                vertical: Responsive.isTablet(context) ? 12 : 14,
+                              ),
                               side: BorderSide(
                                 color: AppColors.greyLight,
                                 width: 1.5,
@@ -1506,7 +1540,7 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
                               'إلغاء',
                               style: TextStyle(
                                 fontFamily: 'Cairo',
-                                fontSize: Responsive.fontSize(context, 16),
+                                fontSize: Responsive.fontSize(context, Responsive.isTablet(context) ? 14 : 16),
                                 fontWeight: FontWeight.w600,
                                 color: AppColors.textSecondary,
                               ),
@@ -1523,7 +1557,10 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
                             },
                             style: ElevatedButton.styleFrom(
                               backgroundColor: AppColors.primary,
-                              padding: Responsive.padding(context, vertical: 14),
+                              padding: Responsive.padding(
+                                context,
+                                vertical: Responsive.isTablet(context) ? 12 : 14,
+                              ),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12),
                               ),
@@ -1536,13 +1573,13 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
                                 if (isFree)
                                   Icon(
                                     Icons.check_circle_outline,
-                                    size: Responsive.iconSize(context, 20),
+                                    size: Responsive.iconSize(context, Responsive.isTablet(context) ? 18 : 20),
                                     color: Colors.white,
                                   )
                                 else
                                   Icon(
                                     Icons.shopping_cart,
-                                    size: Responsive.iconSize(context, 20),
+                                    size: Responsive.iconSize(context, Responsive.isTablet(context) ? 18 : 20),
                                     color: Colors.white,
                                   ),
                                 SizedBox(width: Responsive.width(context, 8)),
@@ -1550,7 +1587,7 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
                                   isFree ? 'انضم الآن' : 'شراء',
                                   style: TextStyle(
                                     fontFamily: 'Cairo',
-                                    fontSize: Responsive.fontSize(context, 16),
+                                    fontSize: Responsive.fontSize(context, Responsive.isTablet(context) ? 14 : 16),
                                     fontWeight: FontWeight.bold,
                                     color: Colors.white,
                                   ),
@@ -1562,9 +1599,11 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
                       ],
                     ),
                   ],
+                  ),
                 ),
               ),
             ],
+          ),
           ),
         ),
       ),
@@ -1745,11 +1784,12 @@ class _ChapterSection extends StatelessWidget {
         GridView.builder(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: Responsive.isTablet(context) ? 3 : 2,
             crossAxisSpacing: 12,
             mainAxisSpacing: 12,
-            childAspectRatio: 0.8,
+            // في التابلت نجعل الكارد أكثر تربيعًا ليبدو أصغر ارتفاعًا
+            childAspectRatio: Responsive.isTablet(context) ? 0.9 : 0.8,
           ),
           itemCount: chapter.lessons.length,
           itemBuilder: (context, index) {
@@ -1796,6 +1836,7 @@ class _LessonCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final bool isTablet = Responsive.isTablet(context);
     // If user has access (subscribed), all lessons are available
     // Only allow access if backend says user has access (hasAccess from course.hasAccess)
     // isAvailable should match hasAccess (both come from backend)
@@ -1812,7 +1853,7 @@ class _LessonCard extends StatelessWidget {
           child: Container(
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(22),
+              borderRadius: BorderRadius.circular(isTablet ? 20 : 22),
               boxShadow: [
                 BoxShadow(
                   // Black shadow for locked lessons, primary color for accessible ones
@@ -1887,7 +1928,7 @@ class _LessonCard extends StatelessWidget {
                             isViewed ? 'تم المشاهدة' : 'متاح',
                             style: const TextStyle(
                               fontFamily: 'Cairo',
-                              fontSize: 11,
+                              fontSize: 12,
                               fontWeight: FontWeight.bold,
                               color: Colors.white,
                               height: 1.2,
@@ -1914,7 +1955,9 @@ class _LessonCard extends StatelessWidget {
                           lesson.nameAr,
                           style: TextStyle(
                             fontFamily: 'Cairo',
-                            fontSize: 14,
+                            fontSize: isTablet
+                                ? Responsive.fontSize(context, 15)
+                                : 14,
                             fontWeight: FontWeight.w600,
                             color: (hasAccess || isAvailable)
                                 ? AppColors.textPrimary
@@ -1936,7 +1979,7 @@ class _LessonCard extends StatelessWidget {
                                 lesson.videoDuration ?? lesson.duration!),
                             style: TextStyle(
                               fontFamily: 'Cairo',
-                              fontSize: 11,
+                              fontSize: isTablet ? 12 : 11,
                               fontWeight: FontWeight.w500,
                               color: (hasAccess || isAvailable)
                                   ? AppColors.textPrimary

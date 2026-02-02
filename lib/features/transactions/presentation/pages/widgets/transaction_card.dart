@@ -49,6 +49,7 @@ class TransactionCard extends StatelessWidget {
                       transaction.purchasableName ??
                           transaction.purchasableType,
                       style: AppTextStyles.bodyLarge.copyWith(
+                        fontSize: AppTextStyles.bodyLarge.fontSize! + 2,
                         fontWeight: FontWeight.w700,
                         color: AppColors.textPrimary,
                       ),
@@ -67,6 +68,7 @@ class TransactionCard extends StatelessWidget {
                 DateFormat('yyyy-MM-dd HH:mm')
                     .format(transaction.createdAt),
                 style: AppTextStyles.labelMedium.copyWith(
+                  fontSize: AppTextStyles.labelMedium.fontSize! + 2,
                   color: AppColors.textSecondary,
                 ),
               ),
@@ -121,6 +123,7 @@ class TransactionCard extends StatelessWidget {
                     Text(
                       'عرض الإيصال',
                       style: AppTextStyles.bodyMedium.copyWith(
+                        fontSize: AppTextStyles.bodyMedium.fontSize! + 2,
                         color: AppColors.primary,
                         fontWeight: FontWeight.w600,
                       ),
@@ -168,6 +171,7 @@ class TransactionCard extends StatelessWidget {
       child: Text(
         statusText,
         style: AppTextStyles.labelMedium.copyWith(
+          fontSize: AppTextStyles.labelMedium.fontSize! + 2,
           color: textColor,
           fontWeight: FontWeight.w600,
         ),
@@ -199,6 +203,7 @@ class TransactionCard extends StatelessWidget {
               Text(
                 label,
                 style: AppTextStyles.labelMedium.copyWith(
+                  fontSize: AppTextStyles.labelMedium.fontSize! + 2,
                   color: AppColors.textSecondary,
                 ),
               ),
@@ -206,6 +211,7 @@ class TransactionCard extends StatelessWidget {
               Text(
                 value,
                 style: AppTextStyles.bodyMedium.copyWith(
+                  fontSize: AppTextStyles.bodyMedium.fontSize! + 2,
                   fontWeight: FontWeight.w600,
                   color: AppColors.textPrimary,
                 ),

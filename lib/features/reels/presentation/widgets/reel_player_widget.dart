@@ -517,118 +517,135 @@ class _ReelPlayerWidgetState extends State<ReelPlayerWidget> with WidgetsBinding
             left: Responsive.width(context, 16),
             right: Responsive.width(context, 16),
             bottom: bottomPadding + Responsive.height(context, 40),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                // LEFT - Profile Info + Subscribe Button
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
+            child: Builder(
+              builder: (context) {
+                final isTablet = Responsive.isTablet(context);
+
+                return Row(
+                  crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    GestureDetector(
-                      onTap: widget.onLogoTap,
-                      child: Row(
+                    // LEFT - Profile Info + Subscribe Button
+                    Padding(
+                      padding: EdgeInsetsDirectional.only(
+                        start: isTablet ? Responsive.width(context, 8) : 0,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          _buildAvatar(context),
-                          SizedBox(width: Responsive.width(context, 8)),
-                          Text(
-                            widget.reel.owner.name.isNotEmpty
-                                ? widget.reel.owner.name
-                                : 'ليرنفاي',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: Responsive.fontSize(context, 16),
-                              fontWeight: FontWeight.bold,
+                          // الصف: صورة البروفايل + الاسم
+                          GestureDetector(
+                            onTap: widget.onLogoTap,
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                _buildAvatar(context),
+                                // المسافة بين الصورة والاسم (تبقى كما عدّلتها أنت على الموبايل)
+                                // في التابلت نزيد الفراغ قليلاً إذا احتجت
+                                if (isTablet)
+                                  SizedBox(width: Responsive.width(context, 8)),
+                                Text(
+                                  widget.reel.owner.name.isNotEmpty
+                                      ? widget.reel.owner.name
+                                      : 'ليرنفاي',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: Responsive.fontSize(context, 16),
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          // تحت الصف: الوصف
+                          SizedBox(height: Responsive.spacing(context, 6)),
+                          IgnorePointer(
+                            child: Text(
+                              widget.reel.description.isNotEmpty
+                                  ? widget.reel.description
+                                  : 'تعلم كيفية نطق الحروف',
+                              style: TextStyle(
+                                color: Colors.white.withOpacity(0.7),
+                                fontSize: Responsive.fontSize(context, 13),
+                              ),
+                              textAlign: TextAlign.left,
+                            ),
+                          ),
+                          // تحت الوصف: زر الاشتراك
+                          SizedBox(height: Responsive.spacing(context, 14)),
+                          GestureDetector(
+                            onTap: widget.onRedirect,
+                            child: Container(
+                              padding: Responsive.padding(context, horizontal: 24, vertical: 12),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFFFC107),
+                                borderRadius: BorderRadius.circular(Responsive.radius(context, 16)),
+                              ),
+                              child: Text(
+                                'اشترك من هنا',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: Responsive.fontSize(context, 14),
+                                ),
+                              ),
                             ),
                           ),
                         ],
                       ),
                     ),
-                    SizedBox(height: Responsive.spacing(context, 6)),
-                    IgnorePointer(
-                      child: Text(
-                        widget.reel.description.isNotEmpty
-                            ? widget.reel.description
-                            : 'تعلم كيفية نطق الحروف',
-                        style: TextStyle(
-                          color: Colors.white.withOpacity(0.7),
-                          fontSize: Responsive.fontSize(context, 13),
-                        ),
-                        textAlign: TextAlign.left,
-                      ),
-                    ),
-                    SizedBox(height: Responsive.spacing(context, 14)),
-                    GestureDetector(
-                      onTap: widget.onRedirect,
-                      child: Container(
-                        padding: Responsive.padding(context, horizontal: 24, vertical: 12),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFFFC107),
-                          borderRadius: BorderRadius.circular(Responsive.radius(context, 16)),
-                        ),
-                        child: Text(
-                          'اشترك من هنا',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: Responsive.fontSize(context, 14),
+                    const Spacer(),
+                    // RIGHT - Actions
+                    Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        GestureDetector(
+                          onTap: widget.onLike,
+                          child: Icon(
+                            Icons.favorite,
+                            color: widget.isLiked ? Colors.red : Colors.white,
+                            size: Responsive.iconSize(context, 38),
                           ),
                         ),
-                      ),
+                        SizedBox(height: Responsive.spacing(context, 4)),
+                        IgnorePointer(
+                          child: Text(
+                            _formatCount(widget.likeCount),
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: Responsive.fontSize(context, 13),
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                        SizedBox(height: Responsive.spacing(context, 20)),
+                        GestureDetector(
+                          onTap: widget.onShare,
+                          child: Transform(
+                            alignment: Alignment.center,
+                            transform: Matrix4.rotationY(3.14159),
+                            child: Icon(
+                              Icons.reply,
+                              color: Colors.white,
+                              size: Responsive.iconSize(context, 32),
+                            ),
+                          ),
+                        ),
+                        SizedBox(height: Responsive.spacing(context, 4)),
+                        IgnorePointer(
+                          child: Text(
+                            'مشاركة',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: Responsive.fontSize(context, 11),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ],
-                ),
-                const Spacer(),
-                // RIGHT - Actions
-                Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    GestureDetector(
-                      onTap: widget.onLike,
-                      child: Icon(
-                        Icons.favorite,
-                        color: widget.isLiked ? Colors.red : Colors.white,
-                        size: Responsive.iconSize(context, 38),
-                      ),
-                    ),
-                    SizedBox(height: Responsive.spacing(context, 4)),
-                    IgnorePointer(
-                      child: Text(
-                        _formatCount(widget.likeCount),
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: Responsive.fontSize(context, 13),
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ),
-                    SizedBox(height: Responsive.spacing(context, 20)),
-                    GestureDetector(
-                      onTap: widget.onShare,
-                      child: Transform(
-                        alignment: Alignment.center,
-                        transform: Matrix4.rotationY(3.14159),
-                        child: Icon(
-                          Icons.reply,
-                          color: Colors.white,
-                          size: Responsive.iconSize(context, 32),
-                        ),
-                      ),
-                    ),
-                    SizedBox(height: Responsive.spacing(context, 4)),
-                    IgnorePointer(
-                      child: Text(
-                        'مشاركة',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: Responsive.fontSize(context, 11),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
+                );
+              },
             ),
           ),
         ],

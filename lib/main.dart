@@ -13,9 +13,12 @@ void main() async {
   // Run initialization in parallel for faster startup
   await Future.wait([
     HiveService.init(),
+    // Allow both portrait and landscape; tablet layouts will adapt using Responsive.isTablet
     SystemChrome.setPreferredOrientations([
       DeviceOrientation.portraitUp,
       DeviceOrientation.portraitDown,
+      DeviceOrientation.landscapeLeft,
+      DeviceOrientation.landscapeRight,
     ]),
     _setSystemUI(),
   ]);

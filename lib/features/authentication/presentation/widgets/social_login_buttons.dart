@@ -49,23 +49,31 @@ class SocialLoginButtons extends StatelessWidget {
           );
         }
       },
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          SocialButton(
-            asset: 'assets/icons/apple.svg',
-            onTap: () {
-              context.read<AuthBloc>().add(NativeAppleSignInEvent());
-            },
-          ),
-          SizedBox(width: Responsive.width(context, 24)),
-          SocialButton(
-            asset: 'assets/icons/google.svg',
-            onTap: () {
-              context.read<AuthBloc>().add(NativeGoogleSignInEvent());
-            },
-          ),
-        ],
+      child: Builder(
+        builder: (context) {
+          final isTablet = Responsive.isTablet(context);
+          final spacing = isTablet ? 16.0 : Responsive.width(context, 24);
+          
+          return Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SocialButton(
+                asset: 'assets/icons/apple.svg',
+                onTap: () {
+                  context.read<AuthBloc>().add(NativeAppleSignInEvent());
+                },
+              ),
+              SizedBox(width: spacing),
+              SocialButton(
+                asset: 'assets/icons/google.svg',
+                onTap: () {
+                  context.read<AuthBloc>().add(NativeGoogleSignInEvent());
+                },
+              ),
+            ],
+          );
+        },
       ),
     );
   }

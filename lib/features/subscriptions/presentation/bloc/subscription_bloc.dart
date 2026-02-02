@@ -1,5 +1,6 @@
 // في ملف subscription_bloc.dart
 import 'dart:io';
+import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 import '../../data/models/payment_model.dart';
@@ -26,6 +27,7 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
   late final GooglePlayBillingService _billingService;
   bool _billingInitialized = false;
   int? _pendingPurchaseId; // حفظ purchase ID من الباك إند
+  Timer? _paymentTimeoutTimer; // Timer لإغلاق الـ loading بعد 5 ثواني
 
   SubscriptionBloc({
     required this.getSubscriptionsUseCase,
@@ -140,6 +142,7 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
 
     result.fold(
       (failure) {
+        _paymentTimeoutTimer?.cancel(); // إلغاء الـ timeout عند الفشل
         print('Verification failed: ${failure.message}');
         emit(IapVerificationFailure(failure.message));
         // إكمال الشراء حتى في حالة الفشل لتجنب تكرار المحاولات
@@ -149,6 +152,7 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
         _pendingPurchaseId = null; // إعادة تعيين
       },
       (_) async {
+        _paymentTimeoutTimer?.cancel(); // إلغاء الـ timeout عند النجاح
         print('Verification successful');
         // إكمال الشراء بعد التحقق الناجح
         if (event.purchaseDetails != null && event.purchaseDetails!.pendingCompletePurchase) {
@@ -469,7 +473,20 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
       ProcessPaymentEvent event,
       Emitter<SubscriptionState> emit,
       ) async {
+    // إلغاء أي timer سابق
+    _paymentTimeoutTimer?.cancel();
+    
     emit(PaymentProcessing());
+    
+    // إضافة timeout بعد 5 ثواني لإغلاق الـ loading
+    _paymentTimeoutTimer = Timer(const Duration(seconds: 5), () {
+      final currentState = state;
+      // إذا كانت العملية لا تزال قيد الانتظار، أغلق الـ loading
+      if (currentState is PaymentProcessing || currentState is PaymentInitiated) {
+        // إعادة تحميل الاشتراكات لإظهار الحالة الحالية
+        add(const LoadSubscriptionsEvent());
+      }
+    });
 
     // إذا كان الدفع عبر Google Play
     if (event.service == PaymentService.gplay) {
@@ -499,6 +516,7 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
         
         await paymentResult.fold(
           (failure) {
+            _paymentTimeoutTimer?.cancel(); // إلغاء الـ timeout عند الفشل
             print('Failed to create payment record: ${failure.message}');
             emit(PaymentFailed('فشل إنشاء سجل الدفع: ${failure.message}'));
           },
@@ -561,6 +579,7 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
             await _billingService.purchaseProduct(product);
 
             // في انتظار تأكيد الشراء
+            _paymentTimeoutTimer?.cancel(); // إلغاء الـ timeout عند بدء العملية
             emit(PaymentInitiated(
               purchase: response.purchase,
               message: 'جارٍ معالجة عملية الشراء عبر Google Play...',
@@ -569,6 +588,7 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
         );
 
       } catch (e) {
+        _paymentTimeoutTimer?.cancel(); // إلغاء الـ timeout عند الخطأ
         print('Google Play payment error: $e');
         emit(PaymentFailed('فشل عملية الشراء: $e'));
         _pendingPurchaseId = null; // إعادة تعيين في حالة الخطأ
@@ -605,8 +625,12 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
     final result = await subscriptionRepository.processPayment(request: request);
 
     result.fold(
-          (failure) => emit(PaymentFailed(failure.message)),
+          (failure) {
+            _paymentTimeoutTimer?.cancel(); // إلغاء الـ timeout عند الفشل
+            emit(PaymentFailed(failure.message));
+          },
           (response) {
+        _paymentTimeoutTimer?.cancel(); // إلغاء الـ timeout عند اكتمال العملية
         if (response.isSuccess) {
           if (response.isFreeSubscription ||
               (finalPrice == 0 && response.subscriptionData != null)) {
@@ -673,7 +697,9 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
     );
   }
   @override
+  @override
   Future<void> close() {
+    _paymentTimeoutTimer?.cancel(); // إلغاء الـ timer عند إغلاق الـ bloc
     _billingService.dispose();
     return super.close();
   }

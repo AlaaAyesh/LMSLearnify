@@ -429,6 +429,7 @@ class _TransactionsPageContent extends StatelessWidget {
                   child: Text(
                     'إجمالي المعاملات: $total',
                     style: AppTextStyles.bodyLarge.copyWith(
+                      fontSize: AppTextStyles.bodyLarge.fontSize! + 2,
                       color: AppColors.textSecondary,
                       fontWeight: FontWeight.w600,
                     ),

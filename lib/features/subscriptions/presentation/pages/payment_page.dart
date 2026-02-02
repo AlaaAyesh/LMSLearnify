@@ -8,6 +8,7 @@ import '../../../../core/services/currency_service.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/custom_app_bar.dart';
 import '../../../../core/widgets/custom_background.dart';
+import '../../../../core/utils/responsive.dart';
 import '../../data/models/payment_model.dart';
 import '../../domain/entities/subscription.dart';
 import '../bloc/subscription_bloc.dart';
@@ -441,14 +442,20 @@ class _PaymentPageContentState extends State<_PaymentPageContent> {
         ? widget.finalPriceAfterCoupon! 
         : widget.subscription.price;
 
+    final isTablet = Responsive.isTablet(context);
+    final double fontSize =
+        isTablet ? Responsive.fontSize(context, 18) : Responsive.fontSize(context, 20);
+    final double verticalPadding = isTablet ? 14 : 16;
+    final double borderRadius = isTablet ? 22 : 12;
+
     return ElevatedButton(
       onPressed: _isLoading ? null : _processPayment,
       style: ElevatedButton.styleFrom(
         backgroundColor: AppColors.primary,
         disabledBackgroundColor: AppColors.primary.withOpacity(0.6),
-        padding: const EdgeInsets.symmetric(vertical: 16),
+        padding: EdgeInsets.symmetric(vertical: verticalPadding),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(borderRadius),
         ),
         elevation: 2,
       ),
@@ -465,7 +472,7 @@ class _PaymentPageContentState extends State<_PaymentPageContent> {
               'ادفع $displayPrice $_currencySymbol',
               style: TextStyle(
                 fontFamily: 'Cairo',
-                fontSize: 18,
+                fontSize: fontSize,
                 fontWeight: FontWeight.bold,
                 color: Colors.white,
               ),

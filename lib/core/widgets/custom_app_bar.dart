@@ -22,6 +22,19 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
+    final bool isTablet = Responsive.isTablet(context);
+
+    // أحجام مخصصة للتابلت حتى لا تكبر الأيقونة بشكل مبالغ فيه
+    final double backButtonSize =
+        isTablet ? 32 : Responsive.width(context, 26);
+    final double backIconSize =
+        isTablet ? 16 : Responsive.iconSize(context, 18);
+    final double backBorderWidth =
+        isTablet ? 2 : Responsive.width(context, 2.5);
+    final EdgeInsets backPadding = isTablet
+        ? const EdgeInsets.all(4)
+        : EdgeInsets.all(Responsive.width(context, 8));
+
     return AppBar(
       backgroundColor: Colors.white,
       elevation: 0,
@@ -57,23 +70,27 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
 
             if (showBackButton)
               Padding(
-                padding: EdgeInsets.all(Responsive.width(context, 8)),
+                padding: backPadding,
                 child: GestureDetector(
                   onTap: onBack ?? () => Navigator.pop(context),
                   child: Container(
-                    width: Responsive.width(context, 26),
-                    height: Responsive.width(context, 26),
+                    width: backButtonSize,
+                    height: backButtonSize,
                     decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(Responsive.radius(context, 5)),
+                      borderRadius: BorderRadius.circular(
+                        isTablet
+                            ? 6
+                            : Responsive.radius(context, 5),
+                      ),
                       border: Border.all(
                         color: AppColors.primary,
-                        width: Responsive.width(context, 2.5),
+                        width: backBorderWidth,
                       ),
                     ),
                     alignment: Alignment.center,
                     child: Icon(
                       Icons.arrow_forward_ios,
-                      size: Responsive.iconSize(context, 18),
+                      size: backIconSize,
                       color: AppColors.primary,
                     ),
                   ),

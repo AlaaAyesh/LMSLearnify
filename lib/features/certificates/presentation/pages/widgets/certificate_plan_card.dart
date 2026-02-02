@@ -62,7 +62,11 @@ class CertificatePlanCard extends StatelessWidget {
           LayoutBuilder(
             builder: (context, constraints) {
               final isCompact = constraints.maxWidth < 360;
+              final isTablet = Responsive.isTablet(context);
               final spacing = Responsive.width(context, 10);
+              final buttonPadding = isTablet 
+                  ? Responsive.width(context, 16) 
+                  : horizontalPadding;
 
               Widget buildButton({
                 required Color background,
@@ -81,7 +85,7 @@ class CertificatePlanCard extends StatelessWidget {
                       foregroundColor: foreground,
                       elevation: 0,
                       padding: EdgeInsets.symmetric(
-                        horizontal: horizontalPadding,
+                        horizontal: buttonPadding,
                       ),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -89,6 +93,7 @@ class CertificatePlanCard extends StatelessWidget {
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
                           label,
@@ -112,16 +117,47 @@ class CertificatePlanCard extends StatelessWidget {
                 return Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    buildButton(
+                    Expanded(
+                      child: buildButton(
+                        background: AppColors.greyLight,
+                        foreground: Colors.black,
+                        label: 'مشاهدة',
+                        icon: Icons.visibility_outlined,
+                        onTap: onView,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    SizedBox(width: spacing),
+                    Expanded(
+                      child: buildButton(
+                        background: AppColors.primary,
+                        foreground: Colors.white,
+                        label: 'تحميل',
+                        icon: Icons.download_outlined,
+                        onTap: onDownload,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                );
+              }
+
+              return Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: buildButton(
                       background: AppColors.greyLight,
                       foreground: Colors.black,
                       label: 'مشاهدة',
                       icon: Icons.visibility_outlined,
                       onTap: onView,
                       fontWeight: FontWeight.w700,
-
                     ),
-                    buildButton(
+                  ),
+                  SizedBox(width: spacing),
+                  Expanded(
+                    child: buildButton(
                       background: AppColors.primary,
                       foreground: Colors.white,
                       label: 'تحميل',
@@ -129,28 +165,6 @@ class CertificatePlanCard extends StatelessWidget {
                       onTap: onDownload,
                       fontWeight: FontWeight.w700,
                     ),
-                  ],
-                );
-              }
-
-              return   Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  buildButton(
-                    background: AppColors.greyLight,
-                    foreground: Colors.black,
-                    label: 'مشاهدة',
-                    icon: Icons.visibility_outlined,
-                    onTap: onView,
-                    fontWeight: FontWeight.w700,
-                  ),
-                  buildButton(
-                    background: AppColors.primary,
-                    foreground: Colors.white,
-                    label: 'تحميل',
-                    icon: Icons.download_outlined,
-                    onTap: onDownload,
-                    fontWeight: FontWeight.w700,
                   ),
                 ],
               );

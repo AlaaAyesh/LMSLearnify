@@ -14,15 +14,23 @@ class SocialButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isTablet = Responsive.isTablet(context);
+    
+    // على التابلت: أحجام أصغر لتجنب overflow
+    final buttonWidth = isTablet ? 70.0 : Responsive.width(context, 89);
+    final buttonHeight = isTablet ? 50.0 : Responsive.height(context, 44);
+    final iconHeight = isTablet ? 22.0 : Responsive.height(context, 18);
+    final borderRadius = isTablet ? 12.0 : Responsive.radius(context, 18);
+    
     return InkWell(
-      borderRadius: BorderRadius.circular(Responsive.radius(context, 18)),
+      borderRadius: BorderRadius.circular(borderRadius),
       onTap: onTap,
       child: Container(
-        width: Responsive.width(context, 89),
-        height: Responsive.height(context, 44),
+        width: buttonWidth,
+        height: buttonHeight,
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(Responsive.radius(context, 18)),
+          borderRadius: BorderRadius.circular(borderRadius),
           border: Border.all(
             color: AppColors.inputBorder,
             width: Responsive.width(context, 1),
@@ -31,7 +39,7 @@ class SocialButton extends StatelessWidget {
         child: Center(
           child: SvgPicture.asset(
             asset,
-            height: Responsive.height(context, 18),
+            height: iconHeight,
           ),
         ),
       ),

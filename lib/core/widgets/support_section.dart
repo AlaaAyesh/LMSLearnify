@@ -44,19 +44,22 @@ class SupportSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final bool isTablet =
+        MediaQuery.of(context).size.shortestSide >= 600;
+
     return Column(
       children: [
-        const Text(
+        Text(
           'لديك مشاكل أو استفسارات ؟',
           style: TextStyle(
             fontFamily: 'Cairo',
-            fontSize: 16,
+            fontSize: isTablet ? 18 : 16,
             color: AppColors.textPrimary,
           ),
         ),
         GestureDetector(
           onTap: () => _openWhatsApp(context),
-          child: const Row(
+          child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
 
@@ -64,13 +67,15 @@ class SupportSection extends StatelessWidget {
                 'تواصل معنا من هنا',
                 style: TextStyle(
                   fontFamily: 'Cairo',
-                  fontSize: 14,
+                  fontSize: isTablet ? 16 : 14,
                   color: AppColors.textPrimary,
                 ),
               ),
-              SizedBox(width: 6),
+              const SizedBox(width: 8),
               PaymentMethodIcon(
                 imagePath: 'assets/images/whatsapp.png',
+                width: isTablet ? 26 : null,
+                height: isTablet ? 26 : null,
               ),
             ],
           ),

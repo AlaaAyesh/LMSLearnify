@@ -125,10 +125,16 @@ class _AllCoursesPageContent extends StatelessWidget {
             // Circular course items in a grid
             SliverPadding(
               padding: Responsive.padding(context, all: 16),
-              sliver: SliverGrid(
+              sliver: SliverLayoutBuilder(
+                builder: (context, constraints) {
+                  final isTablet = Responsive.isTablet(context);
+                  final crossAxisCount = isTablet ? 3 : 2;
+
+                  return SliverGrid(
                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
+                      crossAxisCount: crossAxisCount,
                   crossAxisSpacing: Responsive.width(context, 8),
+                      mainAxisSpacing: Responsive.height(context, 12),
                 ),
                 delegate: SliverChildBuilderDelegate(
                   (context, index) {
@@ -140,6 +146,8 @@ class _AllCoursesPageContent extends StatelessWidget {
                   },
                   childCount: state.courses.length,
                 ),
+                  );
+                },
               ),
             ),
             if (state.isLoadingMore)

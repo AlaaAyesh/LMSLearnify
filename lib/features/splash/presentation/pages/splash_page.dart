@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:learnify_lms/core/theme/app_text_styles.dart';
 
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/di/injection_container.dart';
 import '../../../../core/storage/hive_service.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/utils/responsive.dart';
 import '../../../authentication/presentation/bloc/auth_bloc.dart';
 import '../../../authentication/presentation/bloc/auth_event.dart';
 import '../../../authentication/presentation/bloc/auth_state.dart';
@@ -94,9 +94,6 @@ class _SplashPageState extends State<SplashPage>
 
   @override
   Widget build(BuildContext context) {
-    final screenHeight = MediaQuery.of(context).size.height;
-    final topPadding = MediaQuery.of(context).padding.top;
-
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
         // Auth state changes are handled in _checkFirstTime
@@ -107,20 +104,31 @@ class _SplashPageState extends State<SplashPage>
         body: FadeTransition(
           opacity: _fadeAnimation,
           child: SafeArea(
-            child: Column(
-              children: [
-                // First quarter - empty space
-                SizedBox(height: (screenHeight - topPadding) * 0.15),
+            child: Responsive.isTablet(context)
+                ? _buildTabletContent(context)
+                : _buildPhoneContent(context),
+          ),
+        ),
+      ),
+    );
+  }
 
-                // Logo and text
+  /// تصميم السلاش للهاتف (التصميم الحالي)
+  Widget _buildPhoneContent(BuildContext context) {
+    final screenHeight = MediaQuery.of(context).size.height;
+    final topPadding = MediaQuery.of(context).padding.top;
+
+    return Column(
+              children: [
+                SizedBox(height: (screenHeight - topPadding) * 0.15),
                 const AnimatedLogo(),
-                SizedBox(height: 30),
+        const SizedBox(height: 30),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 50),
                   child: RichText(
                     textAlign: TextAlign.center,
                     textDirection: TextDirection.rtl,
-                    text: TextSpan(
+            text: const TextSpan(
                       children: [
                         TextSpan(
                           text: 'مستقبل ابنك يبدأ\n',
@@ -146,12 +154,50 @@ class _SplashPageState extends State<SplashPage>
                     ),
                   ),
                 ),
-
-                // Remaining space
                 const Spacer(),
+      ],
+    );
+  }
+
+  /// تصميم خاص بالتابلت: محتوى متمركز داخل Card لطيف
+  Widget _buildTabletContent(BuildContext context) {
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 700),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const AnimatedLogo(),
+            const SizedBox(height: 32),
+            RichText(
+              textAlign: TextAlign.center,
+              textDirection: TextDirection.rtl,
+              text: const TextSpan(
+                children: [
+                  TextSpan(
+                    text: 'مستقبل ابنك يبدأ\n',
+                    style: TextStyle(
+                      fontFamily: 'Cairo',
+                      fontSize: 34,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF000000),
+                      height: 1.5,
+                    ),
+                  ),
+                  TextSpan(
+                    text: 'هنا 👋',
+                    style: TextStyle(
+                      fontFamily: 'Cairo',
+                      fontSize: 34,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFFFFFFFF),
+                      height: 1.5,
+                    ),
+                  ),
               ],
             ),
           ),
+          ],
         ),
       ),
     );

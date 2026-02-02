@@ -15,6 +15,7 @@ class AssetsRes {
   static const String PEN011 = 'assets/icons/pen011.svg';
   static const String SUN1 = 'assets/icons/sun1.svg';
   static const String APP_LOGO = 'assets/images/app_logo.png';
+  static const String APPLOGO = 'assets/images/applogo.png';
   static const String INSTAPAY = 'assets/images/instaPay.png';
   static const String LANGUAGE = 'assets/images/language.png';
   static const String LANGUAGE2 = 'assets/images/language2.png';

@@ -64,10 +64,10 @@ class ReelsGrid extends StatelessWidget {
       child: GridView.builder(
         padding: Responsive.padding(context, horizontal: 16),
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 3,
+          crossAxisCount: Responsive.isTablet(context) ? 5 : 3,
           mainAxisSpacing: Responsive.height(context, 8),
           crossAxisSpacing: Responsive.width(context, 8),
-          childAspectRatio: 0.65,
+          childAspectRatio: Responsive.isTablet(context) ? 0.7 : 0.65,
         ),
         // Add cacheExtent for smoother scrolling
         cacheExtent: Responsive.width(context, 500),

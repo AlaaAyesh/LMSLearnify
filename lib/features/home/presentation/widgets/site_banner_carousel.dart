@@ -91,22 +91,30 @@ class _SiteBannerCarouselState extends State<SiteBannerCarousel> {
       return const SizedBox.shrink();
     }
 
+    final bool isTablet = Responsive.isTablet(context);
+    final double bannerHeight = isTablet 
+        ? Responsive.height(context, 200) // تقليل الارتفاع في التابلت لتجنب overflow
+        : Responsive.height(context, 210);
+    
     return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
         SizedBox(
-          height: Responsive.height(context, 210),
-          child: GestureDetector(
-            onPanDown: (_) => _stopAutoScroll(),
-            onPanEnd: (_) => _onUserInteraction(),
-            onPanCancel: () => _onUserInteraction(),
-            child: PageView.builder(
-              controller: _pageController,
-              itemCount: activeBanners.length,
-              onPageChanged: _onPageChanged,
-              itemBuilder: (context, index) {
-                final banner = activeBanners[index];
-                return _buildBannerCard(context, banner, activeBanners.length);
-              },
+          height: bannerHeight,
+          child: ClipRect(
+            child: GestureDetector(
+              onPanDown: (_) => _stopAutoScroll(),
+              onPanEnd: (_) => _onUserInteraction(),
+              onPanCancel: () => _onUserInteraction(),
+              child: PageView.builder(
+                controller: _pageController,
+                itemCount: activeBanners.length,
+                onPageChanged: _onPageChanged,
+                itemBuilder: (context, index) {
+                  final banner = activeBanners[index];
+                  return _buildBannerCard(context, banner, activeBanners.length);
+                },
+              ),
             ),
           ),
         ),
@@ -115,12 +123,16 @@ class _SiteBannerCarouselState extends State<SiteBannerCarousel> {
   }
 
   Widget _buildBannerCard(BuildContext context, banner_entity.Banner banner, int totalBanners) {
+    final bool isTablet = Responsive.isTablet(context);
+    // في التابلت نقلل نصف القطر ليتناسب مع ارتفاع البانر ولا يكون شبه كبسولة
+    final double cardRadius = isTablet ? 26.0 : Responsive.radius(context, 22);
+
     return GestureDetector(
       onTap: () => _handleBannerTap(banner),
       child: Container(
-        margin: Responsive.margin(context, horizontal: 16, vertical: 10),
+        margin: Responsive.margin(context, horizontal: 16, vertical: Responsive.isTablet(context) ? 4 : 10),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(Responsive.radius(context, 22)),
+          borderRadius: BorderRadius.circular(cardRadius),
           boxShadow: const [
             BoxShadow(
               color: Color(0x38171a1f),
@@ -135,7 +147,7 @@ class _SiteBannerCarouselState extends State<SiteBannerCarousel> {
           ],
         ),
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(Responsive.radius(context, 22)),
+          borderRadius: BorderRadius.circular(cardRadius),
           child: Stack(
             fit: StackFit.expand,
             children: [
