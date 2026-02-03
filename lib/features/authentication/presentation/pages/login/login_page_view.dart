@@ -207,7 +207,7 @@ class LoginPageViewState extends State<LoginPageView> {
                     borderRadius: BorderRadius.circular(28),
                     boxShadow: [
                       BoxShadow(
-                        color: AppColors.blackOpacity30,
+                        color: AppColors.primaryOpacity10,
                         blurRadius: 26,
                         offset: const Offset(0, 14),
                       ),
