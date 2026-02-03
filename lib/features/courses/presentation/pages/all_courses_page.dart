@@ -54,6 +54,7 @@ class _AllCoursesPageContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+
     return Scaffold(
       backgroundColor: AppColors.white,
       appBar: CustomAppBar(title: title),
@@ -105,6 +106,10 @@ class _AllCoursesPageContent extends StatelessWidget {
   }
 
   Widget _buildCoursesList(BuildContext context, CoursesLoaded state) {
+    final media = MediaQuery.of(context);
+    final isPortrait = media.orientation == Orientation.portrait;
+    final isTabletPortrait =
+        isPortrait && media.size.shortestSide >= 600;
     return NotificationListener<ScrollNotification>(
       onNotification: (scrollInfo) {
         if (scrollInfo.metrics.pixels >= scrollInfo.metrics.maxScrollExtent - 200 &&
@@ -128,7 +133,7 @@ class _AllCoursesPageContent extends StatelessWidget {
               sliver: SliverLayoutBuilder(
                 builder: (context, constraints) {
                   final isTablet = Responsive.isTablet(context);
-                  final crossAxisCount = isTablet ? 3 : 2;
+                  final crossAxisCount = isTablet ?isTabletPortrait?2: 3 : 2;
 
                   return SliverGrid(
                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(

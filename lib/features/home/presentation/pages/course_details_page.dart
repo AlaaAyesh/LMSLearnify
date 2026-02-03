@@ -596,7 +596,7 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
         isTablet ? 26.0 : Responsive.radius(context, 20);
 
     return Container(
-      margin: Responsive.margin(context, horizontal: 16),
+      margin:  isTablet ? Responsive.margin(context, horizontal: 10): Responsive.margin(context, horizontal: 16),
       padding: Responsive.padding(context, all: 20),
       decoration: BoxDecoration(
         color: AppColors.primaryCard,
