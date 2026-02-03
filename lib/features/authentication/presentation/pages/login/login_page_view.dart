@@ -311,7 +311,7 @@ class LoginPageViewState extends State<LoginPageView> {
                       ),
                     ),
                     const SizedBox(height: 16),
-                    const SocialLoginButtons(),
+                    Center(child: const SocialLoginButtons()),
                     const SizedBox(height: 20),
                     Center(child: const CreateAccountButton()),
                     const SizedBox(height: 8),

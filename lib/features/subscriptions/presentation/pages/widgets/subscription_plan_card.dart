@@ -44,13 +44,16 @@ class SubscriptionPlanCard extends StatelessWidget {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-
-                PlanDetailsSection(
-                  title: plan.title,
-                  description: plan.description,
-                  isSelected: isSelected,
+                // استخدام Flexible لضمان عدم الـ overflow
+                Flexible(
+                  flex: 1,
+                  child: PlanDetailsSection(
+                    title: plan.title,
+                    description: plan.description,
+                    isSelected: isSelected,
+                  ),
                 ),
-                const Spacer(),
+                SizedBox(width: Responsive.width(context, 8)),
                 PriceSection(
                   originalPrice: plan.originalPrice,
                   discountedPrice: plan.discountedPrice,

@@ -40,7 +40,8 @@ class ReelPlayerWidget extends StatefulWidget {
   State<ReelPlayerWidget> createState() => _ReelPlayerWidgetState();
 }
 
-class _ReelPlayerWidgetState extends State<ReelPlayerWidget> with WidgetsBindingObserver {
+class _ReelPlayerWidgetState extends State<ReelPlayerWidget>
+    with WidgetsBindingObserver {
   WebViewController? _controller;
   bool _isLoading = true;
   bool _showThumbnail = true;
@@ -51,64 +52,56 @@ class _ReelPlayerWidgetState extends State<ReelPlayerWidget> with WidgetsBinding
   TabIndexNotifier? _tabNotifier;
   Timer? _tabCheckTimer;
 
-  // View tracking
   Timer? _viewTimer;
   bool _hasRecordedView = false;
   static const _viewDuration = Duration(seconds: 3);
 
-  // Double tap detection
   DateTime? _lastTapTime;
   static const _doubleTapDuration = Duration(milliseconds: 300);
 
-  /// Check if the Shorts tab is currently active (index 1)
   bool get _isShortsTabActive {
     if (_tabNotifier != null) {
       return _tabNotifier!.value == 1;
     }
-    return widget.isActive; // Fallback to widget prop
+    return widget.isActive;
   }
 
-  /// Check if we're currently on a page that should pause videos (like Profile)
+
   bool get _isOnPausePage {
     if (!mounted) return false;
-    
+
     try {
-      // Check the current route
       final route = ModalRoute.of(context);
       if (route == null) return false;
-      
-      // Get the current route's settings name
+
       final routeName = route.settings.name;
       if (routeName != null) {
-        // List of routes that should pause videos
-        const pauseRoutes = ['/profile', '/subscriptions', '/certificates', '/courses', '/about'];
+        const pauseRoutes = [
+          '/profile',
+          '/subscriptions',
+          '/certificates',
+          '/courses',
+          '/about'
+        ];
         if (pauseRoutes.contains(routeName)) {
           return true;
         }
       }
-      
-      // Also check if there are any routes on top of the current route
-      // This handles cases where pages are pushed without named routes (like Profile from Menu)
-      // Only check this if we're on the Shorts tab, because if we're on another tab,
-      // _isShortsTabActive will already be false
+
       if (_isShortsTabActive) {
         final navigator = Navigator.of(context, rootNavigator: false);
         if (navigator.canPop()) {
-          // There's a route on top of the Shorts page, pause videos
           return true;
         }
       }
-      
+
       return false;
     } catch (e) {
-      // If we can't determine, err on the side of caution and don't pause
       return false;
     }
   }
 
-  /// Combined check: widget says active AND shorts tab is active AND not on a pause page
   bool get _shouldPlay {
-    // Don't play if we're on a page that should pause videos
     if (_isOnPausePage) return false;
     return widget.isActive && _isShortsTabActive;
   }
@@ -117,8 +110,7 @@ class _ReelPlayerWidgetState extends State<ReelPlayerWidget> with WidgetsBinding
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    
-    // Start a timer to periodically check tab state (failsafe)
+
     _tabCheckTimer = Timer.periodic(const Duration(milliseconds: 500), (_) {
       _checkAndStopIfNeeded();
     });
@@ -127,15 +119,13 @@ class _ReelPlayerWidgetState extends State<ReelPlayerWidget> with WidgetsBinding
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // Subscribe to tab changes
     final notifier = TabIndexProvider.of(context);
     if (notifier != null && _tabNotifier != notifier) {
       _tabNotifier?.removeListener(_onTabChanged);
       _tabNotifier = notifier;
       _tabNotifier!.addListener(_onTabChanged);
     }
-    
-    // Initialize player if active
+
     if (_shouldPlay && widget.reel.bunnyUrl.isNotEmpty && !_isInitialized) {
       _initializePlayer();
       _startViewTimer();
@@ -148,8 +138,7 @@ class _ReelPlayerWidgetState extends State<ReelPlayerWidget> with WidgetsBinding
 
   void _checkAndStopIfNeeded() {
     if (!mounted) return;
-    
-    // If video is playing but shouldn't be, stop it
+
     if (!_shouldPlay && !_isPaused && _controller != null) {
       _stopVideo();
     }
@@ -158,8 +147,7 @@ class _ReelPlayerWidgetState extends State<ReelPlayerWidget> with WidgetsBinding
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
-    // Pause video when app goes to background
-    if (state == AppLifecycleState.paused || 
+    if (state == AppLifecycleState.paused ||
         state == AppLifecycleState.inactive ||
         state == AppLifecycleState.hidden) {
       _wasActiveBeforeBackground = _shouldPlay && !_isPaused;
@@ -167,7 +155,6 @@ class _ReelPlayerWidgetState extends State<ReelPlayerWidget> with WidgetsBinding
         _stopVideo();
       }
     } else if (state == AppLifecycleState.resumed) {
-      // Resume only if was active before going to background
       if (_wasActiveBeforeBackground && _shouldPlay && _isPaused) {
         _playVideo();
       }
@@ -181,10 +168,8 @@ class _ReelPlayerWidgetState extends State<ReelPlayerWidget> with WidgetsBinding
     final wasActive = oldWidget.isActive;
     final nowActive = widget.isActive;
 
-    // Check if active state changed OR if tab state changed
     if (wasActive != nowActive || !_shouldPlay) {
       if (_shouldPlay) {
-        // Becoming active - initialize or resume
         if (!_isInitialized && widget.reel.bunnyUrl.isNotEmpty) {
           _initializePlayer();
         } else if (_controller != null && _isPaused) {
@@ -192,7 +177,6 @@ class _ReelPlayerWidgetState extends State<ReelPlayerWidget> with WidgetsBinding
         }
         _startViewTimer();
       } else {
-        // Becoming inactive - STOP video immediately (not just pause)
         _stopVideo();
         _cancelViewTimer();
       }
@@ -205,7 +189,6 @@ class _ReelPlayerWidgetState extends State<ReelPlayerWidget> with WidgetsBinding
     _tabNotifier?.removeListener(_onTabChanged);
     _tabCheckTimer?.cancel();
     _cancelViewTimer();
-    // Ensure video is stopped before disposing
     if (_controller != null) {
       _controller!.runJavaScript('''
         var iframe = document.getElementById('bunny-player');
@@ -328,8 +311,10 @@ class _ReelPlayerWidgetState extends State<ReelPlayerWidget> with WidgetsBinding
         ),
       );
 
-    if (Platform.isAndroid && _controller!.platform is AndroidWebViewController) {
-      final androidController = _controller!.platform as AndroidWebViewController;
+    if (Platform.isAndroid &&
+        _controller!.platform is AndroidWebViewController) {
+      final androidController =
+          _controller!.platform as AndroidWebViewController;
       androidController.setMediaPlaybackRequiresUserGesture(false);
     }
 
@@ -360,7 +345,8 @@ class _ReelPlayerWidgetState extends State<ReelPlayerWidget> with WidgetsBinding
   }
 
   void _playVideo() {
-    if (_controller == null || !_shouldPlay) return; // Don't play if not on Shorts tab
+    if (_controller == null || !_shouldPlay)
+      return;
     setState(() => _isPaused = false);
 
     final playUrl = _getEmbedUrl(widget.reel.bunnyUrl);
@@ -384,12 +370,10 @@ class _ReelPlayerWidgetState extends State<ReelPlayerWidget> with WidgetsBinding
     ''');
   }
 
-  /// Completely stops the video - used when navigating away from the page
   void _stopVideo() {
     if (_controller == null) return;
     setState(() => _isPaused = true);
 
-    // Set iframe src to about:blank to completely stop video playback and audio
     _controller!.runJavaScript('''
       var iframe = document.getElementById('bunny-player');
       if (iframe) {
@@ -441,14 +425,14 @@ class _ReelPlayerWidgetState extends State<ReelPlayerWidget> with WidgetsBinding
       child: Stack(
         fit: StackFit.expand,
         children: [
-          // VIDEO PLAYER or THUMBNAIL
           AbsorbPointer(
-            child: widget.reel.bunnyUrl.isNotEmpty && _controller != null && !_showThumbnail
+            child: widget.reel.bunnyUrl.isNotEmpty &&
+                    _controller != null &&
+                    !_showThumbnail
                 ? WebViewWidget(controller: _controller!)
                 : _buildThumbnail(context),
           ),
 
-          // Pause icon overlay
           if (_isPaused)
             IgnorePointer(
               child: Center(
@@ -467,7 +451,6 @@ class _ReelPlayerWidgetState extends State<ReelPlayerWidget> with WidgetsBinding
               ),
             ),
 
-          // Like heart animation
           if (_showLikeHeart)
             IgnorePointer(
               child: Center(
@@ -479,7 +462,6 @@ class _ReelPlayerWidgetState extends State<ReelPlayerWidget> with WidgetsBinding
               ),
             ),
 
-          // Loading indicator
           if (_isLoading && widget.reel.bunnyUrl.isNotEmpty && _shouldPlay)
             IgnorePointer(
               child: Center(
@@ -490,7 +472,6 @@ class _ReelPlayerWidgetState extends State<ReelPlayerWidget> with WidgetsBinding
               ),
             ),
 
-          // Bottom Gradient
           Positioned(
             left: 0,
             right: 0,
@@ -512,7 +493,6 @@ class _ReelPlayerWidgetState extends State<ReelPlayerWidget> with WidgetsBinding
             ),
           ),
 
-          // BOTTOM CONTENT
           Positioned(
             left: Responsive.width(context, 16),
             right: Responsive.width(context, 16),
@@ -524,78 +504,77 @@ class _ReelPlayerWidgetState extends State<ReelPlayerWidget> with WidgetsBinding
                 return Row(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    // LEFT - Profile Info + Subscribe Button
-                    Padding(
-                      padding: EdgeInsetsDirectional.only(
-                        start: isTablet ? Responsive.width(context, 8) : 0,
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          // الصف: صورة البروفايل + الاسم
-                          GestureDetector(
-                            onTap: widget.onLogoTap,
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                _buildAvatar(context),
-                                // المسافة بين الصورة والاسم (تبقى كما عدّلتها أنت على الموبايل)
-                                // في التابلت نزيد الفراغ قليلاً إذا احتجت
-                                if (isTablet)
-                                  SizedBox(width: Responsive.width(context, 8)),
-                                Text(
-                                  widget.reel.owner.name.isNotEmpty
-                                      ? widget.reel.owner.name
-                                      : 'ليرنفاي',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: Responsive.fontSize(context, 16),
-                                    fontWeight: FontWeight.bold,
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        GestureDetector(
+                          onTap: widget.onLogoTap,
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              _buildAvatar(context),
+                              SizedBox(width: Responsive.width(context, 8)),
+                              Column(
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    widget.reel.owner.name.isNotEmpty
+                                        ? widget.reel.owner.name
+                                        : 'ليرنفاي',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize:
+                                          Responsive.fontSize(context, 16),
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
-                                ),
-                              ],
-                            ),
+                                  SizedBox(
+                                      height: Responsive.spacing(context, 6)),
+                                  IgnorePointer(
+                                    child: Text(
+                                      widget.reel.description.isNotEmpty
+                                          ? widget.reel.description
+                                          : 'تعلم كيفية نطق الحروف',
+                                      style: TextStyle(
+                                        color: Colors.white.withOpacity(0.7),
+                                        fontSize:
+                                            Responsive.fontSize(context, 13),
+                                      ),
+                                      textAlign: TextAlign.left,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
                           ),
-                          // تحت الصف: الوصف
-                          SizedBox(height: Responsive.spacing(context, 6)),
-                          IgnorePointer(
+                        ),
+
+                        SizedBox(height: Responsive.spacing(context, 14)),
+                        GestureDetector(
+                          onTap: widget.onRedirect,
+                          child: Container(
+                            padding: Responsive.padding(context,
+                                horizontal: 24, vertical: 12),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFFFC107),
+                              borderRadius: BorderRadius.circular(
+                                  Responsive.radius(context, 16)),
+                            ),
                             child: Text(
-                              widget.reel.description.isNotEmpty
-                                  ? widget.reel.description
-                                  : 'تعلم كيفية نطق الحروف',
+                              'اشترك من هنا',
                               style: TextStyle(
-                                color: Colors.white.withOpacity(0.7),
-                                fontSize: Responsive.fontSize(context, 13),
-                              ),
-                              textAlign: TextAlign.left,
-                            ),
-                          ),
-                          // تحت الوصف: زر الاشتراك
-                          SizedBox(height: Responsive.spacing(context, 14)),
-                          GestureDetector(
-                            onTap: widget.onRedirect,
-                            child: Container(
-                              padding: Responsive.padding(context, horizontal: 24, vertical: 12),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFFFC107),
-                                borderRadius: BorderRadius.circular(Responsive.radius(context, 16)),
-                              ),
-                              child: Text(
-                                'اشترك من هنا',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: Responsive.fontSize(context, 14),
-                                ),
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: Responsive.fontSize(context, 14),
                               ),
                             ),
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
                     const Spacer(),
-                    // RIGHT - Actions
                     Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
@@ -618,7 +597,7 @@ class _ReelPlayerWidgetState extends State<ReelPlayerWidget> with WidgetsBinding
                             ),
                           ),
                         ),
-                        SizedBox(height: Responsive.spacing(context, 20)),
+                        SizedBox(height: Responsive.spacing(context, isTablet?5:20)),
                         GestureDetector(
                           onTap: widget.onShare,
                           child: Transform(
@@ -693,39 +672,43 @@ class _ReelPlayerWidgetState extends State<ReelPlayerWidget> with WidgetsBinding
   }
 
   Widget _buildAvatar(BuildContext context) {
-    final defaultAvatar = Container(
-      width: Responsive.width(context, 40),
-      height: Responsive.height(context, 40),
-      decoration: const BoxDecoration(
-        shape: BoxShape.circle,
-        color: Colors.white,
-      ),
-      padding: Responsive.padding(context, all: 6),
-      child: Image.asset(
-        'assets/images/app_logo.png',
-        fit: BoxFit.contain,
-      ),
-    );
+    final media = MediaQuery.of(context);
+    final isPortrait = media.orientation == Orientation.portrait;
+    final isTabletPortrait =
+        isPortrait && media.size.shortestSide >= 600;
 
-    if (widget.reel.owner.avatarUrl.isEmpty) {
-      return defaultAvatar;
+    final size = isTabletPortrait
+        ? Responsive.width(context, 36)
+        : Responsive.width(context, 24);
+
+    Widget defaultAvatar() {
+      return ClipOval(
+        child: Container(
+          width: size,
+          height: size,
+          color: Colors.white,
+          child: Image.asset(
+            'assets/images/app_logo.png',
+            fit: BoxFit.cover,
+          ),
+        ),
+      );
     }
 
-    return Container(
-      width: Responsive.width(context, 40),
-      height: Responsive.height(context, 40),
-      decoration: const BoxDecoration(
-        shape: BoxShape.circle,
+    if (widget.reel.owner.avatarUrl.isEmpty) {
+      return defaultAvatar();
+    }
+
+    return ClipOval(
+      child: Container(
+        width: size,
+        height: size,
         color: Colors.white,
-      ),
-      child: ClipOval(
         child: CachedNetworkImage(
           imageUrl: widget.reel.owner.avatarUrl,
-          width: Responsive.width(context, 40),
-          height: Responsive.height(context, 40),
           fit: BoxFit.cover,
-          placeholder: (context, url) => defaultAvatar,
-          errorWidget: (context, url, error) => defaultAvatar,
+          placeholder: (context, url) => defaultAvatar(),
+          errorWidget: (context, url, error) => defaultAvatar(),
         ),
       ),
     );

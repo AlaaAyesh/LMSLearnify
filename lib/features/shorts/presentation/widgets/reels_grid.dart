@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:learnify_lms/core/theme/app_text_styles.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/responsive.dart';
@@ -10,8 +9,7 @@ class ReelsGrid extends StatelessWidget {
   final Function(Reel reel, int index) onReelTap;
   final VoidCallback? onLoadMore;
   final bool isLoadingMore;
-  
-  // Real-time state maps
+
   final Map<int, bool> likedReels;
   final Map<int, int> viewCounts;
   final Map<int, int> likeCounts;
@@ -29,6 +27,10 @@ class ReelsGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final media = MediaQuery.of(context);
+    final isPortrait = media.orientation == Orientation.portrait;
+    final isTabletPortrait =
+        isPortrait && media.size.shortestSide >= 600;
     if (reels.isEmpty) {
       return Center(
         child: Column(
@@ -64,12 +66,11 @@ class ReelsGrid extends StatelessWidget {
       child: GridView.builder(
         padding: Responsive.padding(context, horizontal: 16),
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: Responsive.isTablet(context) ? 5 : 3,
+          crossAxisCount: Responsive.isTablet(context) ? isTabletPortrait? 3: 5 : 3,
           mainAxisSpacing: Responsive.height(context, 8),
           crossAxisSpacing: Responsive.width(context, 8),
           childAspectRatio: Responsive.isTablet(context) ? 0.7 : 0.65,
         ),
-        // Add cacheExtent for smoother scrolling
         cacheExtent: Responsive.width(context, 500),
         itemCount: reels.length + (isLoadingMore ? 1 : 0),
         itemBuilder: (context, index) {
@@ -86,7 +87,6 @@ class ReelsGrid extends StatelessWidget {
           }
 
           final reel = reels[index];
-          // Get real-time values from state, fallback to original values
           final isLiked = likedReels[reel.id] ?? reel.liked;
           final viewCount = viewCounts[reel.id] ?? reel.viewsCount;
 
@@ -133,11 +133,10 @@ class _ReelTile extends StatelessWidget {
         child: Stack(
           fit: StackFit.expand,
           children: [
-            // Thumbnail - with memory optimization
             CachedNetworkImage(
               imageUrl: reel.thumbnailUrl,
               fit: BoxFit.cover,
-              memCacheWidth: (Responsive.width(context, 240)).toInt(), // Optimize memory for grid thumbnails
+              memCacheWidth: (Responsive.width(context, 240)).toInt(),
               placeholder: (context, url) => ColoredBox(
                 color: AppColors.primaryOpacity10,
                 child: Center(
@@ -156,7 +155,6 @@ class _ReelTile extends StatelessWidget {
                 ),
               ),
             ),
-            // Gradient overlay at bottom - wrapped in RepaintBoundary
             Positioned(
               bottom: 0,
               left: 0,
@@ -199,7 +197,6 @@ class _ReelTile extends StatelessWidget {
                 ),
               ),
             ),
-            // Liked indicator - uses real-time isLiked value
             if (isLiked)
               Positioned(
                 top: Responsive.height(context, 8),

@@ -9,11 +9,17 @@ class RecommendedBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bool isTablet = Responsive.isTablet(context);
+    final screenWidth = Responsive.screenWidth(context);
+    
+    // جعل موضع البادجت responsive بناءً على عرض الشاشة
+    final double topOffset = isTablet 
+        ? -Responsive.height(context, 12) 
+        : -Responsive.height(context, 10);
+    final double rightOffset = (screenWidth * 0.06).clamp(16.0, 32.0).toDouble();
 
     return Positioned(
-      // في التابلت نقلل الإزاحة للأعلى ونحافظ على موضع مناسب على الحافة اليمنى
-      top: isTablet ? -12 : -Responsive.height(context, 10),
-      right: isTablet ? 24 : Responsive.width(context, 20),
+      top: topOffset,
+      right: rightOffset,
       child: Container(
         padding: EdgeInsets.symmetric(
           horizontal: isTablet ? 16 : 12,

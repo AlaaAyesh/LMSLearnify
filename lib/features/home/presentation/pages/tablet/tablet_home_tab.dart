@@ -131,6 +131,29 @@ class _TabletHomeTabContent extends StatelessWidget {
   }
 
   Widget _buildContent(BuildContext context, HomeData homeData) {
+    // Responsive helpers based on current tablet size
+    final contentWidth = context.sw;
+    final contentHeight = context.sh;
+    final isLandscape = context.isLandscape;
+
+    // Padding scales slightly with screen size to keep same visual proportions
+    final double horizontalPadding =
+        (contentWidth * 0.035).clamp(24.0, 48.0).toDouble();
+    final double verticalPadding =
+        (contentHeight * 0.025).clamp(20.0, 40.0).toDouble();
+
+    // Banner heights scale with screen height but stay within reasonable bounds
+    final double siteBannerHeight =
+        (contentHeight * (isLandscape ? 0.25 : 0.3)).clamp(260.0, 420.0).toDouble();
+    final double defaultBannerHeight =
+        (contentHeight * (isLandscape ? 0.3 : 0.35)).clamp(230.0, 380.0).toDouble();
+
+    // Categories section dimensions
+    final double categoriesSectionHeight =
+        (contentHeight * (isLandscape ? 0.32 : 0.28)).clamp(210.0, 320.0).toDouble();
+    final double categoryCardWidth =
+        (contentWidth * (isLandscape ? 0.26 : 0.24)).clamp(200.0, 320.0).toDouble();
+
     return RefreshIndicator(
       onRefresh: () async {
         context.read<HomeBloc>().add(RefreshHomeDataEvent());
@@ -138,7 +161,10 @@ class _TabletHomeTabContent extends StatelessWidget {
       color: AppColors.primary,
       child: SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
+        padding: EdgeInsets.symmetric(
+          horizontal: horizontalPadding,
+          vertical: verticalPadding,
+        ),
         child: Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 1200),
@@ -148,23 +174,21 @@ class _TabletHomeTabContent extends StatelessWidget {
                 // Site Banners
                 if (!isLoadingBanners && siteBanners.isNotEmpty) ...[
                   SizedBox(
-                    height: 300,
+                    height: siteBannerHeight,
                     child: SiteBannerCarousel(
                       banners: siteBanners,
                       autoScrollDuration: const Duration(seconds: 20),
                     ),
                   ),
-                  const SizedBox(height: 32),
                 ] else if (homeData.banners.isNotEmpty) ...[
                   SizedBox(
-                    height: 300,
+                    height: defaultBannerHeight,
                     child: BannerCarousel(
                       banners: homeData.banners,
                       autoScrollDuration: const Duration(seconds: 3),
                       onBannerTap: (banner) {},
                     ),
                   ),
-                  const SizedBox(height: 32),
                 ],
 
                 // Categories Section - Grid layout for tablet
@@ -176,7 +200,7 @@ class _TabletHomeTabContent extends StatelessWidget {
                   const SizedBox(height: 16),
                   // على التابلت نجعل التصنيفات في سطر واحد مع سكرول أفقي
                   SizedBox(
-                    height: Responsive.isLandscape(context) ? 280 : 230,
+                    height: categoriesSectionHeight,
                     child: ListView.separated(
                       scrollDirection: Axis.horizontal,
                       physics: const BouncingScrollPhysics(),
@@ -185,7 +209,7 @@ class _TabletHomeTabContent extends StatelessWidget {
                       itemBuilder: (context, index) {
                         final category = homeData.categories[index];
                         return SizedBox(
-                          width: Responsive.isLandscape(context) ? 280 : 220,
+                          width: categoryCardWidth,
                           child: _TabletCategoryItem(
                             category: category,
                             onTap: () => _onCategoryTap(context, category, homeData),
@@ -205,14 +229,32 @@ class _TabletHomeTabContent extends StatelessWidget {
                   const SizedBox(height: 16),
                   LayoutBuilder(
                     builder: (context, constraints) {
+                      final maxWidth = constraints.maxWidth;
+                      final isLandscape = context.isLandscape;
+
+                      // Make grid responsive based on available width
+                      int crossAxisCount;
+                      if (maxWidth >= 1100) {
+                        crossAxisCount = 4;
+                      } else if (maxWidth >= 800) {
+                        crossAxisCount = 3;
+                      } else {
+                        crossAxisCount = 2;
+                      }
+
+                      final double spacing =
+                          (maxWidth * 0.02).clamp(16.0, 28.0).toDouble();
+                      final double childAspectRatio = isLandscape ? 1.0 : 0.9;
+
                       return GridView.builder(
                         shrinkWrap: true,
                         physics: const NeverScrollableScrollPhysics(),
-                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 3,
-                          crossAxisSpacing: 24,
-                          mainAxisSpacing: 24,
-                          childAspectRatio: 0.8, // Adjusted to prevent overflow
+                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: crossAxisCount,
+                          crossAxisSpacing: spacing,
+                          mainAxisSpacing: spacing,
+                          // Keep cards close to square while adapting to height
+                          childAspectRatio: childAspectRatio,
                         ),
                         itemCount: homeData.popularCourses.length,
                         itemBuilder: (context, index) {
@@ -247,14 +289,30 @@ class _TabletHomeTabContent extends StatelessWidget {
                   const SizedBox(height: 16),
                   LayoutBuilder(
                     builder: (context, constraints) {
+                      final maxWidth = constraints.maxWidth;
+                      final isLandscape = context.isLandscape;
+
+                      int crossAxisCount;
+                      if (maxWidth >= 1100) {
+                        crossAxisCount = 5;
+                      } else if (maxWidth >= 900) {
+                        crossAxisCount = 4;
+                      } else {
+                        crossAxisCount = 3;
+                      }
+
+                      final double spacing =
+                          (maxWidth * 0.018).clamp(14.0, 24.0).toDouble();
+                      final double childAspectRatio = isLandscape ? 0.95 : 0.9;
+
                       return GridView.builder(
                         shrinkWrap: true,
                         physics: const NeverScrollableScrollPhysics(),
-                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 4,
-                          crossAxisSpacing: 20,
-                          mainAxisSpacing: 20,
-                          childAspectRatio: 0.9, // Adjusted to prevent overflow
+                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: crossAxisCount,
+                          crossAxisSpacing: spacing,
+                          mainAxisSpacing: spacing,
+                          childAspectRatio: childAspectRatio,
                         ),
                         itemCount: homeData.freeCourses.length,
                         itemBuilder: (context, index) {
@@ -292,14 +350,30 @@ class _TabletHomeTabContent extends StatelessWidget {
         const SizedBox(height: 16),
         LayoutBuilder(
           builder: (context, constraints) {
+            final maxWidth = constraints.maxWidth;
+            final isLandscape = context.isLandscape;
+
+            int crossAxisCount;
+            if (maxWidth >= 1100) {
+              crossAxisCount = 5;
+            } else if (maxWidth >= 900) {
+              crossAxisCount = 4;
+            } else {
+              crossAxisCount = 3;
+            }
+
+            final double spacing =
+                (maxWidth * 0.018).clamp(14.0, 24.0).toDouble();
+            final double childAspectRatio = isLandscape ? 0.95 : 0.9;
+
             return GridView.builder(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 4,
-                crossAxisSpacing: 20,
-                mainAxisSpacing: 20,
-                childAspectRatio: 0.9, // Adjusted to prevent overflow
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: crossAxisCount,
+                crossAxisSpacing: spacing,
+                mainAxisSpacing: spacing,
+                childAspectRatio: childAspectRatio,
               ),
               itemCount: block.courses.length,
               itemBuilder: (context, index) {
@@ -330,14 +404,30 @@ class _TabletHomeTabContent extends StatelessWidget {
         const SizedBox(height: 16),
         LayoutBuilder(
           builder: (context, constraints) {
+            final maxWidth = constraints.maxWidth;
+            final isLandscape = context.isLandscape;
+
+            int crossAxisCount;
+            if (maxWidth >= 1100) {
+              crossAxisCount = 5;
+            } else if (maxWidth >= 900) {
+              crossAxisCount = 4;
+            } else {
+              crossAxisCount = 3;
+            }
+
+            final double spacing =
+                (maxWidth * 0.018).clamp(14.0, 24.0).toDouble();
+            final double childAspectRatio = isLandscape ? 0.95 : 0.9;
+
             return GridView.builder(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 4,
-                crossAxisSpacing: 20,
-                mainAxisSpacing: 20,
-                childAspectRatio: 0.9, // Adjusted to prevent overflow
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: crossAxisCount,
+                crossAxisSpacing: spacing,
+                mainAxisSpacing: spacing,
+                childAspectRatio: childAspectRatio,
               ),
               itemCount: courses.length,
               itemBuilder: (context, index) {
@@ -691,8 +781,15 @@ class _TabletCourseGridCard extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         final cardWidth = constraints.maxWidth;
-        // تقليل حجم الصورة لتجنب الـ overflow
-        final imageSize = (constraints.maxHeight - 56).clamp(0.0, cardWidth * 0.65);
+        final isLandscape = context.isLandscape;
+
+        // حجم الدائرة يعتمد على عرض الكارت لكن مع حد أقصى حتى لا تكبر جدًا على التابلت
+        final availableHeight = (constraints.maxHeight - 32).clamp(70.0, double.infinity);
+        double targetSize = cardWidth * (isLandscape ? 0.27 : 0.32);
+        // تكبير بسيط مع حدود منطقية
+        targetSize = targetSize.clamp(90.0, 180.0);
+        // +6 لزيادة الحجم قليلاً مع احترام المساحة المتاحة
+        final imageSize = (targetSize + 6).clamp(0.0, availableHeight);
 
         return GestureDetector(
           onTap: onTap,
@@ -756,7 +853,7 @@ class _TabletCourseGridCard extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
                       fontFamily: 'Cairo',
-                      fontSize: 12,
+              fontSize: 14.5,
                       fontWeight: FontWeight.w600,
                       color: AppColors.textPrimary,
                       height: 1.2,

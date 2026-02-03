@@ -116,8 +116,12 @@ class _TabletMainNavigationPageState extends State<TabletMainNavigationPage> {
   }
 
   Widget _buildSidebar(BuildContext context) {
+    // Make sidebar a bit narrower on tablets by using a percentage of screen width
+    final screenWidth = context.sw;
+    final sidebarWidth = (screenWidth * 0.20).clamp(220.0, 260.0);
+
     return Container(
-      width: 280,
+      width: sidebarWidth.toDouble(),
       decoration: BoxDecoration(
         color: Colors.white,
         boxShadow: [
@@ -136,11 +140,11 @@ class _TabletMainNavigationPageState extends State<TabletMainNavigationPage> {
               padding: const EdgeInsets.all(24.0),
               child: Image.asset(
                 'assets/images/app_logo.png',
-                height: 80,
+                height: 120,
                 fit: BoxFit.contain,
                 errorBuilder: (context, error, stackTrace) {
                   return Container(
-                    height: 80,
+                    height: 100,
                     alignment: Alignment.center,
                     child: Text(
                       'Learnify',

@@ -1760,6 +1760,9 @@ class _ChapterSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final bool isTablet = Responsive.isTablet(context);
+    final bool isLandscape = Responsive.isLandscape(context);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1780,36 +1783,63 @@ class _ChapterSection extends StatelessWidget {
             ),
           ),
         ),
-        // Lessons Grid for this chapter
-        GridView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: Responsive.isTablet(context) ? 3 : 2,
-            crossAxisSpacing: 12,
-            mainAxisSpacing: 12,
-            // في التابلت نجعل الكارد أكثر تربيعًا ليبدو أصغر ارتفاعًا
-            childAspectRatio: Responsive.isTablet(context) ? 0.9 : 0.8,
-          ),
-          itemCount: chapter.lessons.length,
-          itemBuilder: (context, index) {
-            final lesson = chapter.lessons[index];
-            
-            // Only show "متاح" if course.hasAccess is true from backend
-            // hasAccess comes from backend and indicates user has subscription/purchase
-            final isViewed = isLessonViewed(lesson.id);
-            
-            // isAvailable should only be true if backend says user has access
-            // No client-side logic for previews - only backend determines availability
-            final isAvailable = hasAccess;
-            
-            return _LessonCard(
-              key: ValueKey('lesson_${lesson.id}_viewed_$isViewed'),
-              lesson: lesson,
-              isAvailable: isAvailable,
-              hasAccess: hasAccess, // Use hasAccess from backend only
-              isViewed: isViewed,
-              onTap: () => onLessonTap(lesson),
+        // Lessons Grid for this chapter (responsive for phones & tablets)
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final double maxWidth = constraints.maxWidth;
+
+            // عدد الأعمدة حسب نوع الجهاز والاتجاه
+            int crossAxisCount;
+            if (isTablet) {
+              // على التابلت: 2 في الوضع الرأسي للحفاظ على نفس شكل التصميم، و3 في العرضي
+              crossAxisCount = isLandscape ? 3 : 2;
+            } else {
+              // على الموبايل: 2 في الرأسي و3 في العرضي
+              crossAxisCount = isLandscape ? 3 : 2;
+            }
+
+            // المسافات تتناسب مع العرض
+            final double spacing =
+                (maxWidth * 0.03).clamp(10.0, 18.0).toDouble();
+
+            // نسبة الأبعاد للحفاظ على ارتفاع الكارد مناسب في كل الأوضاع
+            final double childAspectRatio;
+            if (isTablet) {
+              childAspectRatio = isLandscape ? 1.0 : 0.9;
+            } else {
+              childAspectRatio = isLandscape ? 0.95 : 0.8;
+            }
+
+            return GridView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: crossAxisCount,
+                crossAxisSpacing: spacing,
+                mainAxisSpacing: spacing,
+                childAspectRatio: childAspectRatio,
+              ),
+              itemCount: chapter.lessons.length,
+              itemBuilder: (context, index) {
+                final lesson = chapter.lessons[index];
+
+                // Only show "متاح" if course.hasAccess is true from backend
+                // hasAccess comes from backend and indicates user has subscription/purchase
+                final isViewed = isLessonViewed(lesson.id);
+
+                // isAvailable should only be true if backend says user has access
+                // No client-side logic for previews - only backend determines availability
+                final isAvailable = hasAccess;
+
+                return _LessonCard(
+                  key: ValueKey('lesson_${lesson.id}_viewed_$isViewed'),
+                  lesson: lesson,
+                  isAvailable: isAvailable,
+                  hasAccess: hasAccess, // Use hasAccess from backend only
+                  isViewed: isViewed,
+                  onTap: () => onLessonTap(lesson),
+                );
+              },
             );
           },
         ),
@@ -1944,42 +1974,45 @@ class _LessonCard extends StatelessWidget {
               Expanded(
                 flex: 1,
                 child: Padding(
-                  padding:
-                  const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 10,
+                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    mainAxisSize: MainAxisSize.max,
                     children: [
+                      // العنوان: على التابلت في الوضع الرأسي نكتفي بسطر واحد لتفادي الـ overflow
                       Align(
                         alignment: Alignment.topRight,
                         child: Text(
                           lesson.nameAr,
                           style: TextStyle(
                             fontFamily: 'Cairo',
-                            fontSize: isTablet
-                                ? Responsive.fontSize(context, 15)
-                                : 14,
+                            fontSize:
+                                isTablet ? Responsive.fontSize(context, 14) : 14,
                             fontWeight: FontWeight.w600,
                             color: (hasAccess || isAvailable)
                                 ? AppColors.textPrimary
                                 : Colors.grey[500],
-                            height: 1.4,
+                            height: 1.3,
                           ),
                           textAlign: TextAlign.right,
-                          maxLines: 2,
+                          maxLines: isTablet ? 1 : 2,
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                      const Spacer(),
-                      if (lesson.duration != null ||
-                          lesson.videoDuration != null)
+                      if (lesson.duration != null || lesson.videoDuration != null)
                         Align(
                           alignment: Alignment.bottomLeft,
                           child: Text(
                             _formatDuration(
-                                lesson.videoDuration ?? lesson.duration!),
+                              lesson.videoDuration ?? lesson.duration!,
+                            ),
                             style: TextStyle(
                               fontFamily: 'Cairo',
-                              fontSize: isTablet ? 12 : 11,
+                              fontSize: isTablet ? 11.5 : 11,
                               fontWeight: FontWeight.w500,
                               color: (hasAccess || isAvailable)
                                   ? AppColors.textPrimary

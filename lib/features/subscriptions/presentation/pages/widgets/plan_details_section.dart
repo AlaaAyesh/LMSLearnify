@@ -26,19 +26,22 @@ class PlanDetailsSection extends StatelessWidget {
           children: [
             RadioIndicator(isSelected: isSelected),
             SizedBox(width: Responsive.width(context, 8)),
-
-            Text(
-              title,
-              style: TextStyle(
-                fontFamily: 'Cairo',
-                fontSize: Responsive.fontSize(context, 20),
-                fontWeight: FontWeight.bold,
-                color: Colors.black,
-                height: 1.2,
+            // استخدام Flexible للنص لضمان عدم الـ overflow
+            Flexible(
+              child: Text(
+                title,
+                style: TextStyle(
+                  fontFamily: 'Cairo',
+                  fontSize: Responsive.fontSize(context, 20),
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                  height: 1.2,
+                ),
+                textAlign: TextAlign.right,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
               ),
-              textAlign: TextAlign.right,
             ),
-
           ],
         ),
         SizedBox(height: Responsive.spacing(context, 4)),

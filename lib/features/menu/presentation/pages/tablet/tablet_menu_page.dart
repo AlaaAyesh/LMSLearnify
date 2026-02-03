@@ -44,6 +44,11 @@ class _TabletMenuPageContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final media = MediaQuery.of(context);
+    final isPortrait = media.orientation == Orientation.portrait;
+    final isTabletPortrait =
+        isPortrait && media.size.shortestSide >= 600;
+
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
@@ -55,26 +60,6 @@ class _TabletMenuPageContent extends StatelessWidget {
               child: Column(
                 children: [
                   // Logo
-                  Image.asset(
-                    'assets/images/app_logo.png',
-                    height: 120,
-                    fit: BoxFit.contain,
-                    errorBuilder: (context, error, stackTrace) {
-                      return Container(
-                        height: 120,
-                        alignment: Alignment.center,
-                        child: Text(
-                          'Learnify',
-                          style: TextStyle(
-                            fontFamily: 'Cairo',
-                            fontSize: 36,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.primary,
-                          ),
-                        ),
-                      );
-                    },
-                  ),
 
                   const SizedBox(height: 40),
 
@@ -82,9 +67,9 @@ class _TabletMenuPageContent extends StatelessWidget {
                   GridView.count(
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
-                    crossAxisCount: 2,
-                    crossAxisSpacing: 20,
-                    mainAxisSpacing: 16,
+                    crossAxisCount: isTabletPortrait? 1: 2,
+                    crossAxisSpacing: isTabletPortrait ?2:20,
+                    mainAxisSpacing: isTabletPortrait ?0:16,
                     childAspectRatio: 3.5,
                     children: [
                       MenuButton(
