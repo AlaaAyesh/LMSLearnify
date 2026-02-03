@@ -96,15 +96,14 @@ class LoginPageViewState extends State<LoginPageView> {
   void _onLoginPressed() {
     if (_formKey.currentState!.validate()) {
       context.read<AuthBloc>().add(
-        LoginEvent(
-          email: _emailController.text.trim(),
-          // Avoid treating trailing spaces as part of the password
-          password: _passwordController.text.trimRight(),
-        ),
-      );
+            LoginEvent(
+              email: _emailController.text.trim(),
+              // Avoid treating trailing spaces as part of the password
+              password: _passwordController.text.trimRight(),
+            ),
+          );
     }
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -184,7 +183,7 @@ class LoginPageViewState extends State<LoginPageView> {
   /// تصميم خاص بالتابلت: تقسيم الشاشة إلى جزء معلومات وجزء فورم
   Widget _buildTabletLayout(BuildContext context) {
     final isPortrait = Responsive.isPortrait(context);
-    
+
     return GestureDetector(
       behavior: HitTestBehavior.translucent,
       onTap: () {
@@ -197,32 +196,34 @@ class LoginPageViewState extends State<LoginPageView> {
         body: BlocListener<AuthBloc, AuthState>(
           listener: _authListener,
           child: SafeArea(
-          child: Center(
-            child: ConstrainedBox(
-              constraints: BoxConstraints(
-                maxWidth: isPortrait ? 600 : 1000,
-              ),
-              child: Container(
-                decoration: BoxDecoration(
-                  color: AppColors.white,
-                  borderRadius: BorderRadius.circular(28),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.blackOpacity30,
-                      blurRadius: 26,
-                      offset: const Offset(0, 14),
-                    ),
-                  ],
+            child: Center(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxWidth: isPortrait ? 600 : 1000,
                 ),
-                child: Directionality(
-                  textDirection: TextDirection.ltr,
-                  child: isPortrait ? _buildPortraitTabletLayout(context) : _buildLandscapeTabletLayout(context),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: AppColors.white,
+                    borderRadius: BorderRadius.circular(28),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.blackOpacity30,
+                        blurRadius: 26,
+                        offset: const Offset(0, 14),
+                      ),
+                    ],
+                  ),
+                  child: Directionality(
+                    textDirection: TextDirection.ltr,
+                    child: isPortrait
+                        ? _buildPortraitTabletLayout(context)
+                        : _buildLandscapeTabletLayout(context),
+                  ),
                 ),
               ),
             ),
           ),
         ),
-      ),
       ),
     );
   }
@@ -231,203 +232,186 @@ class LoginPageViewState extends State<LoginPageView> {
   Widget _buildLandscapeTabletLayout(BuildContext context) {
     return Row(
       children: [
-                      // الفورم (يمين في التابلت)
-                      Expanded(
-                        flex: 6,
-                        child: LayoutBuilder(
-                          builder: (context, constraints) {
-                            return SingleChildScrollView(
-                              padding: EdgeInsets.fromLTRB(
-                                32,
-                                32,
-                                32,
-                                MediaQuery.of(context).viewInsets.bottom + 32,
-                              ),
-                              child: ConstrainedBox(
-                                constraints: BoxConstraints(
-                                  minHeight: constraints.maxHeight,
-                                ),
-                                child: Directionality(
-                                  textDirection: TextDirection.rtl,
-                                  child: Form(
-                                    key: _formKey,
-                                    child: Column(
-                                      mainAxisSize: MainAxisSize.min,
-                                      crossAxisAlignment:
-                                      CrossAxisAlignment.start,
-                                      children: [
-                                        const SizedBox(height: 8),
-                                        const LoginTitle(),
-                                        const SizedBox(height: 12),
-                                        Text(
-                                          'ادخل بيانات حسابك للوصول إلى محتواك التعليمي المميز.',
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .bodyMedium
-                                              ?.copyWith(
-                                            color: AppColors.textSecondary,
-                                            fontSize: Responsive.fontSize(context, 15),
-                                            height: 1.4,
-                                          ),
-                                          textAlign: TextAlign.right,
-                                        ),
-                                        const SizedBox(height: 24),
-                                        SizedBox(
-                                          width: double.infinity,
-                                          child: EmailField(controller: _emailController),
-                                        ),
-                                        const SizedBox(height: 16),
-                                        SizedBox(
-                                          width: double.infinity,
-                                          child: PasswordField(
-                                            controller: _passwordController,
-                                            obscure: _obscurePassword,
-                                            onToggleVisibility: () {
-                                              setState(() {
-                                                _obscurePassword =
-                                                !_obscurePassword;
-                                              });
-                                            },
-                                          ),
-                                        ),
-                                        const SizedBox(height: 8),
-                                        SizedBox(
-                                          width: double.infinity,
-                                          child: OptionsRow(
-                                            rememberMe: _rememberMe,
-                                            onRememberChanged: _setRememberMe,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 20),
-                                        SizedBox(
-                                          width: double.infinity,
-                                          child: BlocBuilder<AuthBloc, AuthState>(
-                                            builder: (context, state) {
-                                              final isLoading =
-                                              state is AuthLoading;
-
-                                              return PrimaryButton(
-                                                text: 'تسجيل الدخول',
-                                                isLoading: isLoading,
-                                                onPressed: isLoading
-                                                    ? null
-                                                    : _onLoginPressed,
-                                              );
-                                            },
-                                          ),
-                                        ),
-                                        const SizedBox(height: 16),
-                                        const SizedBox(
-                                          width: double.infinity,
-                                          child: CustomDividerWithText(
-                                            text: "أو الدخول بواسطة",
-                                          ),
-                                        ),
-                                        const SizedBox(height: 16),
-                                        const SocialLoginButtons(),
-                                        const SizedBox(height: 20),
-                                        const CreateAccountButton(),
-                                        const SizedBox(height: 8),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            );
-                          },
-                        ),
+        // الفورم (يمين في التابلت)
+        Expanded(
+          flex: 6,
+          child: Directionality(
+            textDirection: TextDirection.rtl,
+            child: SingleChildScrollView(
+              padding: EdgeInsets.fromLTRB(
+                32,
+                32,
+                32,
+                MediaQuery.of(context).viewInsets.bottom + 32,
+              ),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 8),
+                    const LoginTitle(),
+                    const SizedBox(height: 12),
+                    Text(
+                      'ادخل بيانات حسابك للوصول إلى محتواك التعليمي المميز.',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: AppColors.textSecondary,
+                            fontSize: Responsive.fontSize(context, 15),
+                            height: 1.4,
+                          ),
+                      textAlign: TextAlign.right,
+                    ),
+                    const SizedBox(height: 24),
+                    SizedBox(
+                      width: double.infinity,
+                      child: EmailField(controller: _emailController),
+                    ),
+                    const SizedBox(height: 16),
+                    SizedBox(
+                      width: double.infinity,
+                      child: PasswordField(
+                        controller: _passwordController,
+                        obscure: _obscurePassword,
+                        onToggleVisibility: () {
+                          setState(() {
+                            _obscurePassword = !_obscurePassword;
+                          });
+                        },
                       ),
-                      // بانل الترحيب الصفراء (يسار في التابلت)
-                      Expanded(
-                        flex: 4,
-                        child: MediaQuery(
-                          data: MediaQuery.of(context).removeViewInsets(removeBottom: true),
-                          child: LayoutBuilder(
-                            builder: (context, constraints) {
-                              return Container(
-                                height: constraints.maxHeight,
-                                decoration: const BoxDecoration(
-                                  color: AppColors.primaryCard,
-                                  borderRadius: BorderRadius.only(
-                                    topLeft: Radius.circular(28),
-                                    bottomLeft: Radius.circular(28),
-                                  ),
-                                ),
-                                child: Directionality(
-                                  textDirection: TextDirection.rtl,
-                                  child: Stack(
-                                    children: [
-                                      // Decorative circles
-                                      Positioned(
-                                        top: 40,
-                                        right: 20,
-                                        child: Container(
-                                          width: 120,
-                                          height: 120,
-                                          decoration: BoxDecoration(
-                                            shape: BoxShape.circle,
-                                            color: AppColors.primary.withOpacity(0.1),
-                                          ),
-                                        ),
-                                      ),
-                                      Positioned(
-                                        bottom: 80,
-                                        left: 30,
-                                        child: Container(
-                                          width: 80,
-                                          height: 80,
-                                          decoration: BoxDecoration(
-                                            shape: BoxShape.circle,
-                                            color: AppColors.primary.withOpacity(0.15),
-                                          ),
-                                        ),
-                                      ),
-                                      // Content - ثابت لا يتأثر بالكيبورد
-                                      Align(
-                                        alignment: Alignment.center,
-                                        child: Padding(
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 32,
-                                            vertical: 24,
-                                          ),
-                                          child: Column(
-                                            mainAxisSize: MainAxisSize.min,
-                                            crossAxisAlignment: CrossAxisAlignment.end,
-                                            children: [
-                                              const Header(),
-                                            SvgPicture.asset(
-                                                  'assets/icons/sun1.svg',
-                                                  width: Responsive.width(context, 25),
-                                                ),
+                    ),
+                    const SizedBox(height: 8),
+                    SizedBox(
+                      width: double.infinity,
+                      child: OptionsRow(
+                        rememberMe: _rememberMe,
+                        onRememberChanged: _setRememberMe,
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    SizedBox(
+                      width: double.infinity,
+                      child: BlocBuilder<AuthBloc, AuthState>(
+                        builder: (context, state) {
+                          final isLoading = state is AuthLoading;
 
-                                              Text(
-                                                'سجل دخولك للوصول إلى محتواك التعليمي المميز.',
-                                                style: Theme.of(context)
-                                                    .textTheme
-                                                    .bodyMedium
-                                                    ?.copyWith(
-                                                      color: AppColors.textSecondary,
-                                                      fontSize: Responsive.fontSize(context, 15),
-                                                      height: 1.4,
-                                                    ),
-                                                textAlign: TextAlign.center,
-                                                maxLines: 2,
-                                                overflow: TextOverflow.ellipsis,
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              );
-                            },
+                          return PrimaryButton(
+                            text: 'تسجيل الدخول',
+                            isLoading: isLoading,
+                            onPressed: isLoading ? null : _onLoginPressed,
+                          );
+                        },
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    const SizedBox(
+                      width: double.infinity,
+                      child: CustomDividerWithText(
+                        text: "أو الدخول بواسطة",
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    const SocialLoginButtons(),
+                    const SizedBox(height: 20),
+                    Center(child: const CreateAccountButton()),
+                    const SizedBox(height: 8),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+        // بانل الترحيب الصفراء (يسار في التابلت)
+        Expanded(
+          flex: 4,
+          child: MediaQuery(
+            data: MediaQuery.of(context).removeViewInsets(removeBottom: true),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return Container(
+                  height: constraints.maxHeight,
+                  decoration: const BoxDecoration(
+                    color: AppColors.primaryCard,
+                    borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(120),
+                        bottomLeft: Radius.circular(120),
+                        bottomRight: Radius.circular(28),
+                        topRight: Radius.circular(28)),
+                  ),
+                  child: Directionality(
+                    textDirection: TextDirection.rtl,
+                    child: Stack(
+                      children: [
+                        // Decorative circles
+                        Positioned(
+                          top: 40,
+                          right: 20,
+                          child: Container(
+                            width: 120,
+                            height: 120,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: AppColors.primary.withOpacity(0.1),
+                            ),
                           ),
                         ),
-                      ),
-                    ],
-
+                        Positioned(
+                          bottom: 80,
+                          left: 30,
+                          child: Container(
+                            width: 80,
+                            height: 80,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: AppColors.primary.withOpacity(0.15),
+                            ),
+                          ),
+                        ),
+                        // Content - ثابت لا يتأثر بالكيبورد
+                        Align(
+                          alignment: Alignment.center,
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 32,
+                              vertical: 24,
+                            ),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                const Header(),
+                                SvgPicture.asset(
+                                  'assets/icons/sun1.svg',
+                                  width: Responsive.width(context, 25),
+                                ),
+                                Text(
+                                  'سجل دخولك للوصول إلى محتواك التعليمي المميز.',
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodyMedium
+                                      ?.copyWith(
+                                        color: AppColors.textSecondary,
+                                        fontSize:
+                                            Responsive.fontSize(context, 15),
+                                        height: 1.4,
+                                      ),
+                                  textAlign: TextAlign.center,
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -489,10 +473,7 @@ class LoginPageViewState extends State<LoginPageView> {
                       const SizedBox(height: 16),
                       Text(
                         'سجل دخولك للوصول إلى محتواك التعليمي المميز.',
-                        style: Theme.of(context)
-                            .textTheme
-                            .bodyMedium
-                            ?.copyWith(
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                               color: AppColors.textSecondary,
                               fontSize: Responsive.fontSize(context, 15),
                               height: 1.4,
@@ -510,100 +491,98 @@ class LoginPageViewState extends State<LoginPageView> {
           // الفورم (أسفل في الوضع الرأسي)
           LayoutBuilder(
             builder: (context, constraints) {
-              return SingleChildScrollView(
-                padding: EdgeInsets.fromLTRB(
-                  32,
-                  32,
-                  32,
-                  MediaQuery.of(context).viewInsets.bottom + 32,
-                ),
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(
-                    minHeight: constraints.maxHeight,
-                  ),
-                  child: Directionality(
-                    textDirection: TextDirection.rtl,
-                    child: Form(
-                      key: _formKey,
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const SizedBox(height: 8),
-                          const LoginTitle(),
-                          const SizedBox(height: 12),
-                          Text(
-                            'ادخل بيانات حسابك للوصول إلى محتواك التعليمي المميز.',
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodyMedium
-                                ?.copyWith(
-                              color: AppColors.textSecondary,
-                              fontSize: Responsive.fontSize(context, 15),
-                              height: 1.4,
-                            ),
-                            textAlign: TextAlign.right,
-                          ),
-                          const SizedBox(height: 24),
-                          SizedBox(
-                            width: double.infinity,
-                            child: EmailField(controller: _emailController),
-                          ),
-                          const SizedBox(height: 16),
-                          SizedBox(
-                            width: double.infinity,
-                            child: PasswordField(
-                              controller: _passwordController,
-                              obscure: _obscurePassword,
-                              onToggleVisibility: () {
-                                setState(() {
-                                  _obscurePassword = !_obscurePassword;
-                                });
-                              },
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          SizedBox(
-                            width: double.infinity,
-                            child: OptionsRow(
-                              rememberMe: _rememberMe,
-                              onRememberChanged: _setRememberMe,
-                            ),
-                          ),
-                          const SizedBox(height: 20),
-                          SizedBox(
-                            width: double.infinity,
-                            child: BlocBuilder<AuthBloc, AuthState>(
-                              builder: (context, state) {
-                                final isLoading = state is AuthLoading;
-
-                                return PrimaryButton(
-                                  text: 'تسجيل الدخول',
-                                  isLoading: isLoading,
-                                  onPressed: isLoading
-                                      ? null
-                                      : _onLoginPressed,
-                                );
-                              },
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          const SizedBox(
-                            width: double.infinity,
-                            child: CustomDividerWithText(
-                              text: "أو الدخول بواسطة",
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          const SocialLoginButtons(),
-                          const SizedBox(height: 20),
-                          const CreateAccountButton(),
-                          const SizedBox(height: 8),
-                        ],
-                      ),
+              return StreamBuilder<Object>(
+                stream: null,
+                builder: (context, snapshot) {
+                  return SingleChildScrollView(
+                    padding: EdgeInsets.fromLTRB(
+                      32,
+                      32,
+                      32,
+                      MediaQuery.of(context).viewInsets.bottom + 32,
                     ),
-                  ),
-                ),
+                    child: Directionality(
+                      textDirection: TextDirection.rtl,
+                        child: Form(
+                          key: _formKey,
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const SizedBox(height: 8),
+                              const LoginTitle(),
+                              const SizedBox(height: 12),
+                              Text(
+                                'ادخل بيانات حسابك للوصول إلى محتواك التعليمي المميز.',
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodyMedium
+                                    ?.copyWith(
+                                      color: AppColors.textSecondary,
+                                      fontSize: Responsive.fontSize(context, 15),
+                                      height: 1.4,
+                                    ),
+                                textAlign: TextAlign.right,
+                              ),
+                              const SizedBox(height: 24),
+                              SizedBox(
+                                width: double.infinity,
+                                child: EmailField(controller: _emailController),
+                              ),
+                              const SizedBox(height: 12),
+                              SizedBox(
+                                width: double.infinity,
+                                child: PasswordField(
+                                  controller: _passwordController,
+                                  obscure: _obscurePassword,
+                                  onToggleVisibility: () {
+                                    setState(() {
+                                      _obscurePassword = !_obscurePassword;
+                                    });
+                                  },
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              SizedBox(
+                                width: double.infinity,
+                                child: OptionsRow(
+                                  rememberMe: _rememberMe,
+                                  onRememberChanged: _setRememberMe,
+                                ),
+                              ),
+                              const SizedBox(height: 20),
+                              SizedBox(
+                                width: double.infinity,
+                                child: BlocBuilder<AuthBloc, AuthState>(
+                                  builder: (context, state) {
+                                    final isLoading = state is AuthLoading;
+                  
+                                    return PrimaryButton(
+                                      text: 'تسجيل الدخول',
+                                      isLoading: isLoading,
+                                      onPressed: isLoading ? null : _onLoginPressed,
+                                    );
+                                  },
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                              const SizedBox(
+                                width: double.infinity,
+                                child: CustomDividerWithText(
+                                  text: "أو الدخول بواسطة",
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                              Center(child: const SocialLoginButtons()),
+                              const SizedBox(height: 20),
+                              Center(child: const CreateAccountButton()),
+                              const SizedBox(height: 8),
+                            ],
+                          ),
+                        ),
+                    ),
+                  );
+                }
               );
             },
           ),
@@ -630,7 +609,8 @@ class LoginPageViewState extends State<LoginPageView> {
           prefs.setString(_kRememberedEmailKey, _emailController.text.trim());
           // Store the normalized password (no trailing spaces)
           unawaited(
-            secureStorage.saveRememberedPassword(_passwordController.text.trimRight()),
+            secureStorage
+                .saveRememberedPassword(_passwordController.text.trimRight()),
           );
         } else {
           prefs.remove(_kRememberedEmailKey);
@@ -641,10 +621,13 @@ class LoginPageViewState extends State<LoginPageView> {
       }
 
       // Check if we came from a specific page that needs return
-      final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+      final args =
+          ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
       final returnTo = args?['returnTo'] as String?;
 
-      if (returnTo == 'subscriptions' || returnTo == 'profile' || returnTo == 'certificates') {
+      if (returnTo == 'subscriptions' ||
+          returnTo == 'profile' ||
+          returnTo == 'certificates') {
         // Return true to indicate successful login
         Navigator.of(context).pop(true);
       } else if (returnTo == 'course' || returnTo == 'payment') {
@@ -661,6 +644,3 @@ class LoginPageViewState extends State<LoginPageView> {
     }
   }
 }
-
-
-
