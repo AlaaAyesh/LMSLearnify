@@ -38,9 +38,7 @@ class CourseDetailsPage extends StatefulWidget {
 }
 
 class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
-  // Track viewed lessons locally (only lessons watched >90%)
   final Set<int> _viewedLessonIds = {};
-  // Track lesson progress percentages (0.0 to 1.0)
   final Map<int, double> _lessonProgress = {};
   final TextEditingController _phoneController = TextEditingController();
   bool _isPaymentLoading = false;
@@ -48,15 +46,14 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
   CertificateBloc? _certificateBloc;
   bool _isAuthenticated = false;
   bool _isCheckingAuth = true;
-  bool _hasAttemptedCertificateGeneration = false; // Prevent multiple calls
-  bool _hasCheckedInitialCertificate = false; // Track initial check
-  bool _isVideoLoaded = false; // Track if intro video is loaded
-  bool _hasAccess = false; // Track subscription access state
+  bool _hasAttemptedCertificateGeneration = false;
+  bool _hasCheckedInitialCertificate = false;
+  bool _isVideoLoaded = false;
+  bool _hasAccess = false;
 
   @override
   void initState() {
     super.initState();
-    // Initialize with lessons already marked as viewed from API
     for (final chapter in widget.course.chapters) {
       for (final lesson in chapter.lessons) {
         if (lesson.viewed) {
@@ -64,19 +61,17 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
         }
       }
     }
-    _isVideoLoaded = false; // Reset video loaded state
-    _hasAccess = widget.course.hasAccess; // Initialize access state from course
+    _isVideoLoaded = false;
+    _hasAccess = widget.course.hasAccess;
     _checkAuthentication();
   }
   
   @override
   void didUpdateWidget(CourseDetailsPage oldWidget) {
     super.didUpdateWidget(oldWidget);
-    // Reset video loaded state if course changed
     if (oldWidget.course.introBunnyUrl != widget.course.introBunnyUrl) {
       _isVideoLoaded = false;
     }
-    // Update access state if course changed
     if (oldWidget.course.hasAccess != widget.course.hasAccess) {
       setState(() {
         _hasAccess = widget.course.hasAccess;
@@ -87,7 +82,6 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // Subscribe to route changes to detect when page becomes visible
     final route = ModalRoute.of(context);
     if (route is PageRoute) {
       routeObserver.subscribe(this, route);
@@ -101,13 +95,9 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
     super.dispose();
   }
 
-  // RouteAware callbacks
   @override
   void didPopNext() {
-    // Page became visible again (user returned from another page)
-    // Refresh auth state in case user logged in
     _checkAuthentication();
-    // Also refresh access state in case subscription was completed
     setState(() {
       _hasAccess = widget.course.hasAccess;
     });
@@ -123,7 +113,6 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
   }
 
   bool _isLessonViewed(int lessonId) {
-    // Consider viewed if in viewed list (marked when video opens)
     final isInViewedList = _viewedLessonIds.contains(lessonId);
     print('CourseDetailsPage: _isLessonViewed - lessonId: $lessonId, inViewedList: $isInViewedList');
     return isInViewedList;
@@ -134,7 +123,6 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
       setState(() {
         _viewedLessonIds.add(lessonId);
       });
-      // Check if all lessons are viewed and generate certificate if needed
       _checkAndGenerateCertificate();
     }
   }
@@ -142,7 +130,7 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
   void _updateLessonProgress(int lessonId, double progress) {
     if (lessonId > 0) {
       print('CourseDetailsPage: _updateLessonProgress - lessonId: $lessonId, progress: ${(progress * 100).toStringAsFixed(1)}%');
-      
+
       setState(() {
         _lessonProgress[lessonId] = progress;
         // If progress is 100% (1.0), it means lesson was marked as viewed
@@ -156,28 +144,20 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
     }
   }
 
-  /// Check if all lessons in the course are viewed
   bool _areAllLessonsViewed() {
-    // Get all lesson IDs from the course
     final allLessonIds = <int>{};
     for (final chapter in course.chapters) {
       for (final lesson in chapter.lessons) {
-        if (lesson.id > 0) { // Only count valid lesson IDs
+        if (lesson.id > 0) {
           allLessonIds.add(lesson.id);
         }
       }
     }
-    
-    // Check if all lessons are in the viewed list
+
     return allLessonIds.isNotEmpty && allLessonIds.every((id) => _viewedLessonIds.contains(id));
   }
 
-  /// Check if certificate should be generated and call the API
   void _checkAndGenerateCertificate() {
-    // Only generate if:
-    // 1. User hasn't attempted generation before (prevent multiple calls)
-    // 2. User doesn't already have a certificate (userHasCertificate is false)
-    // 3. All lessons are viewed
     if (_hasAttemptedCertificateGeneration) {
       print('CourseDetailsPage: Certificate generation already attempted, skipping');
       return;
@@ -193,7 +173,6 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
       return;
     }
 
-    // All conditions met - generate certificate
     print('CourseDetailsPage: All lessons viewed and no certificate yet, generating certificate...');
     _hasAttemptedCertificateGeneration = true;
     _certificateBloc?.add(GenerateCertificateEvent(courseId: course.id));
@@ -210,11 +189,9 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
       ],
       child: Builder(
         builder: (blocContext) {
-          // Capture bloc references for use in dialogs
           _subscriptionBloc = blocContext.read<SubscriptionBloc>();
           _certificateBloc = blocContext.read<CertificateBloc>();
-          
-          // Check certificate generation on first build (if all lessons already viewed)
+
           if (!_hasCheckedInitialCertificate) {
             _hasCheckedInitialCertificate = true;
             WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -235,9 +212,7 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
                   ),
                 );
               } else if (state is CertificateError) {
-                // Reset flag on error so user can retry
                 _hasAttemptedCertificateGeneration = false;
-                // Error message removed - silently handle the error
               }
             },
             child: BlocListener<SubscriptionBloc, SubscriptionState>(
@@ -248,7 +223,7 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
                   print('CourseDetailsPage: PaymentInitiated - updating _hasAccess to true');
                   setState(() {
                     _isPaymentLoading = false;
-                    _hasAccess = true; // Update access state after payment initiation
+                    _hasAccess = true;
                   });
                   print('CourseDetailsPage: _hasAccess is now: $_hasAccess');
                   _showPaymentSuccessDialog(state.message);
@@ -256,31 +231,28 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
                   print('CourseDetailsPage: PaymentCompleted - updating _hasAccess to true');
                   setState(() {
                     _isPaymentLoading = false;
-                    _hasAccess = true; // Update access state after payment completion
+                    _hasAccess = true;
                   });
                   print('CourseDetailsPage: _hasAccess is now: $_hasAccess');
                   _showPaymentSuccessDialog(state.message);
                 } else if (state is PaymentCheckoutReady) {
                   setState(() => _isPaymentLoading = false);
-                  // Payment checkout will be handled by PaymentCheckoutWebViewPage
                 } else if (state is IapVerificationSuccess) {
                   print('CourseDetailsPage: IapVerificationSuccess - updating _hasAccess to true');
                   setState(() {
                     _isPaymentLoading = false;
-                    _hasAccess = true; // Update access state after IAP verification
+                    _hasAccess = true;
                   });
                   print('CourseDetailsPage: _hasAccess is now: $_hasAccess');
                   _showPaymentSuccessDialog('تم تفعيل اشتراكك بنجاح');
                 } else if (state is PaymentFailed) {
                   setState(() => _isPaymentLoading = false);
-                  
-                  // Check if the error indicates user already owns the course
+
                   final errorMessage = state.message.toLowerCase();
                   print('CourseDetailsPage: PaymentFailed - error message: $errorMessage');
                   if (errorMessage.contains('already own') || 
                       errorMessage.contains('تملك') ||
                       errorMessage.contains('يمتلك')) {
-                    // User already owns the course - grant access
                     print('CourseDetailsPage: User already owns course - updating _hasAccess to true');
                     setState(() {
                       _hasAccess = true;
@@ -294,7 +266,6 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
                       ),
                     );
                   } else {
-                    // Other payment errors
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Text(state.message),
@@ -323,20 +294,16 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Course Thumbnail/Video
                           _buildCourseThumbnail(context),
 
-                          // Course Info Card
                           _buildCourseInfoCard(),
 
                           SizedBox(height: Responsive.spacing(context, 24)),
 
-                          // Free Course Banner + Lessons Title
                           _buildLessonsTitleSection(context),
 
                           SizedBox(height: Responsive.spacing(context, 16)),
 
-                          // Lessons Grid
                           _buildLessonsGrid(context),
 
                           SizedBox(height: Responsive.spacing(context, 100)),
@@ -353,9 +320,7 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
   }
 
   Widget _buildCourseThumbnail(BuildContext context) {
-    // If intro video URL exists, show video player with thumbnail placeholder
     final bool isTablet = Responsive.isTablet(context);
-    // في التابلت نقلل نصف القطر حتى لا يبدو الفيديو كبسولة مبالغ فيها
     final double thumbRadius =
         isTablet ? 26.0 : Responsive.radius(context, 20);
 
@@ -380,14 +345,12 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
             onTap: () => _playIntroVideo(context),
             child: Stack(
               children: [
-                // Show thumbnail image until video is loaded
                 if (!_isVideoLoaded)
                   SizedBox(
                     width: double.infinity,
                     height: double.infinity,
                     child: _buildThumbnailImage(),
                   ),
-                // Always load video player (hidden until loaded)
                 Positioned.fill(
                   child: Opacity(
                     opacity: _isVideoLoaded ? 1.0 : 0.0,
@@ -403,7 +366,6 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
                     ),
                   ),
                 ),
-                // Play button overlay (only when video not loaded or as fallback)
                 if (!_isVideoLoaded)
                   Positioned.fill(
                     child: Center(
@@ -429,7 +391,6 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
                       ),
                     ),
                   ),
-                // Soon badge
                 if (course.soon)
                   Positioned(
                     top: Responsive.height(context, 12),
@@ -457,10 +418,10 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
         ),
       );
     }
-    
-    // Fallback to thumbnail image if no video URL
+
     return GestureDetector(
       onTap: () => _playIntroVideo(context),
+
       child: Container(
         height: Responsive.height(context, 200),
         width: double.infinity,
@@ -485,7 +446,6 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
                 child: _buildThumbnailImage(),
               ),
             ),
-            // Play button
             Positioned.fill(
               child: Center(
                 child: Container(
@@ -510,7 +470,6 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
                 ),
               ),
             ),
-            // Soon badge
             if (course.soon)
               Positioned(
                 top: Responsive.height(context, 12),
@@ -580,7 +539,6 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
   }
 
   Widget _buildCourseInfoCard() {
-    // Parse what_you_will_learn by splitting on "/"
     List<String> learnItems = [];
     if (course.whatYouWillLearn != null && course.whatYouWillLearn!.isNotEmpty) {
       learnItems = course.whatYouWillLearn!
@@ -591,13 +549,12 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
     }
 
     final bool isTablet = Responsive.isTablet(context);
-    // في التابلت نقلل نصف القطر للكارد ليكون أقل دائرية
     final double infoRadius =
         isTablet ? 26.0 : Responsive.radius(context, 20);
 
     return Container(
       margin:  isTablet ? Responsive.margin(context, horizontal: 10): Responsive.margin(context, horizontal: 16),
-      padding: Responsive.padding(context, all: 20),
+      padding: Responsive.padding(context, all: 16),
       decoration: BoxDecoration(
         color: AppColors.primaryCard,
         borderRadius: BorderRadius.circular(infoRadius),
@@ -613,10 +570,9 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
               color: Colors.black,
               height: 1.6,
             ),
-            textAlign: TextAlign.center,
+            textAlign: TextAlign.start,
           ),
-          
-          // What You Will Learn Section
+
           if (learnItems.isNotEmpty) ...[
             SizedBox(height: Responsive.spacing(context, 20)),
             _buildWhatYouWillLearnList(learnItems),
@@ -662,7 +618,6 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
               crossAxisAlignment: CrossAxisAlignment.start,
               textDirection: TextDirection.rtl,
               children: [
-                // Bullet point
                 Container(
                   margin: Responsive.margin(context, left: 8, top: 6),
                   width: Responsive.width(context, 6),
@@ -672,7 +627,6 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
                     shape: BoxShape.circle,
                   ),
                 ),
-                // Text
                 Expanded(
                   child: Text(
                     item,
@@ -761,7 +715,6 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          // Title
           Text(
             'دروس الدورة',
             style: TextStyle(
@@ -776,7 +729,6 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
 
           const Spacer(),
 
-          // Free course banner - show login message if not authenticated, or Enroll Now button if authenticated but no access
           if (_isFreeCourse)
             if (!_isAuthenticated)
               GestureDetector(
@@ -847,7 +799,6 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
               ),
             )
             else if (!_hasAccess)
-              // Show Enroll Now button after login only if user doesn't have access
               ElevatedButton(
                 onPressed: _isPaymentLoading
                     ? null
@@ -898,7 +849,6 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
   }
 
   Widget _buildLessonsGrid(BuildContext context) {
-    // Check if there are any lessons at all
     final hasAnyLessons = course.chapters.any((chapter) => chapter.lessons.isNotEmpty);
     
     if (!hasAnyLessons) {
@@ -927,13 +877,11 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
       );
     }
 
-    // Find the first lesson in the entire course (for preview)
     Lesson? firstLessonInCourse;
     if (course.chapters.isNotEmpty && course.chapters.first.lessons.isNotEmpty) {
       firstLessonInCourse = course.chapters.first.lessons.first;
     }
 
-    // Build chapters with their lessons
     return Padding(
       padding: Responsive.padding(context, horizontal: 16),
       child: Column(
@@ -989,7 +937,6 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
       child: SafeArea(
         child: Row(
           children: [
-            // Price
             Expanded(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -1017,7 +964,6 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
                 ],
               ),
             ),
-            // Action Button
             Expanded(
               flex: 2,
               child: ElevatedButton(
@@ -1088,12 +1034,9 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
 
   void _onLessonTap(
       BuildContext context, Lesson lesson, Chapter chapter) async {
-    // Mark lesson as viewed immediately when opening (will be confirmed when video loads)
     _markLessonAsViewed(lesson.id);
-    
-    // For paid courses: only allow access if user has subscription (_hasAccess)
-    // For free courses: allow access if user has subscription OR is authenticated
-    final hasFullAccess = _isFreeCourse 
+
+    final hasFullAccess = _isFreeCourse
         ? (_hasAccess || _isAuthenticated)
         : _hasAccess;
     
@@ -1106,41 +1049,33 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
             course: course,
             chapter: chapter,
             onProgressUpdate: (progress) {
-              // Update progress in real-time
               _updateLessonProgress(lesson.id, progress);
             },
           ),
         ),
       );
-      
-      // Update progress from result if available (final progress when leaving)
+
       if (result != null && result is double) {
         _updateLessonProgress(lesson.id, result);
       }
-      
-      // Force UI update to refresh badges
+
       if (mounted) {
         setState(() {});
       }
       return;
     }
 
-    // For paid courses: lock ALL lessons if no access (no preview)
-    // For free courses: allow first lesson preview even if not authenticated
     if (!_isFreeCourse && !_hasAccess) {
-      // Paid course without access - lock everything
       await _handleLockedLessonTap(context);
       return;
     }
-    
-    // For free courses, allow first lesson preview
-    final isFirstLesson = _isFreeCourse && 
+
+    final isFirstLesson = _isFreeCourse &&
         course.chapters.isNotEmpty &&
         course.chapters.first.lessons.isNotEmpty &&
         course.chapters.first.lessons.first.id == lesson.id;
 
     if (!hasFullAccess && !isFirstLesson) {
-      // Locked lesson - handle based on course type and login status
       await _handleLockedLessonTap(context);
       return;
     }
@@ -1153,19 +1088,16 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
           course: course,
           chapter: chapter,
           onProgressUpdate: (progress) {
-            // Update progress in real-time
             _updateLessonProgress(lesson.id, progress);
           },
         ),
       ),
     );
-    
-    // Update progress from result if available (final progress when leaving)
+
     if (result != null && result is double) {
       _updateLessonProgress(lesson.id, result);
     }
-    
-    // Force UI update to refresh badges
+
     if (mounted) {
       setState(() {});
     }
@@ -1178,9 +1110,7 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
     final isAuthenticated = token != null && token.isNotEmpty;
 
     if (_isFreeCourse) {
-      // Free course - only require login, not subscription
       if (!isAuthenticated) {
-        // Not logged in - show message and redirect to login
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: const Text('الكورس مجاني! سجل دخولك للمشاهدة'),
@@ -1194,7 +1124,6 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
                   '/login',
                   arguments: {'returnTo': 'course', 'courseId': course.id},
                 );
-                // After login, refresh auth state and unlock course
                 if (result == true && mounted) {
                   await _checkAuthentication();
                   if (mounted) {
@@ -1212,12 +1141,8 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
           ),
         );
       }
-      // If logged in, they should have access - this shouldn't be reached
-      // but if it is, it means there's a state issue
     } else {
-      // Paid course - show subscription required message
       if (!isAuthenticated) {
-        // Not logged in - go to login first
         final result = await Navigator.pushNamed(
           context,
           '/login',
@@ -1225,20 +1150,16 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
         );
 
         if (result == true && mounted) {
-          // After login, show phone dialog for payment
           _showPhoneInputDialog();
         }
       } else {
-        // Logged in - go directly to payment
         _showPhoneInputDialog();
       }
     }
   }
 
   void _onEnrollFreeCourse(BuildContext context) async {
-    // For free course enrollment after login - process payment with course_id
     if (!_isAuthenticated) {
-      // Should not happen, but just in case
       final result = await Navigator.pushNamed(
         context,
         '/login',
@@ -1253,19 +1174,15 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
       return;
     }
 
-    // Show phone input dialog for enrollment
     _showPhoneInputDialog();
   }
 
   void _onEnrollPressed(BuildContext context) async {
-    // For paid courses: only allow access if user has subscription (_hasAccess)
-    // For free courses: allow access if user has subscription OR is authenticated
-    final hasFullAccess = _isFreeCourse 
+    final hasFullAccess = _isFreeCourse
         ? (_hasAccess || _isAuthenticated)
         : _hasAccess;
     
     if (hasFullAccess) {
-      // User has access - start learning
       if (course.chapters.isNotEmpty &&
           course.chapters.first.lessons.isNotEmpty) {
         final firstChapter = course.chapters.first;
@@ -1281,19 +1198,16 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
             ),
           ),
         );
-        // Update progress from result if available
         if (result != null && result is double) {
           _updateLessonProgress(firstLesson.id, result);
         }
       }
     } else if (_isFreeCourse) {
-      // Free course but not authenticated - redirect to login
       final result = await Navigator.pushNamed(
         context,
         '/login',
         arguments: {'returnTo': 'course', 'courseId': course.id},
       );
-      // After login, refresh auth state
       if (result == true && mounted) {
         await _checkAuthentication();
         if (mounted) {
@@ -1301,7 +1215,6 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
         }
       }
     } else {
-      // Paid course - show phone dialog for payment
       _showPhoneInputDialog();
     }
   }
@@ -1336,7 +1249,6 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Header with gradient background for free courses
               Container(
                 width: double.infinity,
                   padding: Responsive.padding(
@@ -1362,7 +1274,6 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
                 ),
                 child: Column(
                   children: [
-                    // Icon for free courses
                     if (isFree)
                       Container(
                         padding: Responsive.padding(context, all: 12),
@@ -1390,7 +1301,6 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
                         ),
                       ),
                     SizedBox(height: Responsive.spacing(context, Responsive.isTablet(context) ? 12 : 16)),
-                    // Title
                     Text(
                       isFree ? 'انضمام مجاني' : 'شراء الكورس',
                       textAlign: TextAlign.center,
@@ -1405,7 +1315,6 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
                 ),
               ),
 
-              // Content
               Flexible(
                 child: SingleChildScrollView(
                   padding: Responsive.padding(
@@ -1415,7 +1324,6 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
                 child: Column(
                     mainAxisSize: MainAxisSize.min,
                   children: [
-                    // Course name
                     Text(
                       course.nameAr,
                       textAlign: TextAlign.center,
@@ -1429,7 +1337,6 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
                     ),
                       SizedBox(height: Responsive.spacing(context, Responsive.isTablet(context) ? 12 : 16)),
 
-                    // Price or free badge
                     if (isFree)
                       Container(
                         padding: Responsive.padding(
@@ -1501,7 +1408,6 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
 
                     SizedBox(height: Responsive.spacing(context, Responsive.isTablet(context) ? 16 : 20)),
 
-                    // Description
                     Text(
                       isFree
                           ? 'انضم الآن وابدأ التعلم مجاناً!'
@@ -1517,7 +1423,6 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
 
                     SizedBox(height: Responsive.spacing(context, Responsive.isTablet(context) ? 20 : 24)),
 
-                    // Action buttons
                     Row(
                       children: [
                         Expanded(
@@ -1680,7 +1585,6 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
             child: ElevatedButton(
               onPressed: () {
                 Navigator.pop(ctx);
-                // Update the course to show access and refresh UI
                 _onPaymentSuccess();
               },
               style: ElevatedButton.styleFrom(
@@ -1707,16 +1611,12 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
   }
 
   void _onPaymentSuccess() {
-    // Update access state to hide the "انضم مجاناً" button
-    // This is called from the dialog button, but _hasAccess should already be true
-    // from the BlocListener, so we just ensure it's set
     if (!_hasAccess) {
       setState(() {
         _hasAccess = true;
       });
     }
 
-    // Show snackbar confirming access
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text('تم تفعيل الاشتراك! جميع الدروس متاحة الآن'),
@@ -1734,7 +1634,6 @@ class _LessonWithChapter {
   _LessonWithChapter({required this.lesson, required this.chapter});
 }
 
-/// Widget to display a chapter with its lessons
 class _ChapterSection extends StatelessWidget {
   final Chapter chapter;
   final int chapterIndex;
@@ -1766,11 +1665,10 @@ class _ChapterSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Chapter Title
         Padding(
           padding: EdgeInsets.only(
             bottom: 16,
-            top: chapterIndex > 0 ? 24 : 8, // More space if not first chapter
+            top: chapterIndex > 0 ? 24 : 8,
           ),
           child: Text(
             ' ${chapter.nameAr}',
@@ -1783,26 +1681,20 @@ class _ChapterSection extends StatelessWidget {
             ),
           ),
         ),
-        // Lessons Grid for this chapter (responsive for phones & tablets)
         LayoutBuilder(
           builder: (context, constraints) {
             final double maxWidth = constraints.maxWidth;
 
-            // عدد الأعمدة حسب نوع الجهاز والاتجاه
             int crossAxisCount;
             if (isTablet) {
-              // على التابلت: 2 في الوضع الرأسي للحفاظ على نفس شكل التصميم، و3 في العرضي
               crossAxisCount = isLandscape ? 3 : 2;
             } else {
-              // على الموبايل: 2 في الرأسي و3 في العرضي
               crossAxisCount = isLandscape ? 3 : 2;
             }
 
-            // المسافات تتناسب مع العرض
             final double spacing =
                 (maxWidth * 0.03).clamp(10.0, 18.0).toDouble();
 
-            // نسبة الأبعاد للحفاظ على ارتفاع الكارد مناسب في كل الأوضاع
             final double childAspectRatio;
             if (isTablet) {
               childAspectRatio = isLandscape ? 1.0 : 0.9;
@@ -1823,19 +1715,15 @@ class _ChapterSection extends StatelessWidget {
               itemBuilder: (context, index) {
                 final lesson = chapter.lessons[index];
 
-                // Only show "متاح" if course.hasAccess is true from backend
-                // hasAccess comes from backend and indicates user has subscription/purchase
                 final isViewed = isLessonViewed(lesson.id);
 
-                // isAvailable should only be true if backend says user has access
-                // No client-side logic for previews - only backend determines availability
                 final isAvailable = hasAccess;
 
                 return _LessonCard(
                   key: ValueKey('lesson_${lesson.id}_viewed_$isViewed'),
                   lesson: lesson,
                   isAvailable: isAvailable,
-                  hasAccess: hasAccess, // Use hasAccess from backend only
+                  hasAccess: hasAccess,
                   isViewed: isViewed,
                   onTap: () => onLessonTap(lesson),
                 );
@@ -1851,8 +1739,8 @@ class _ChapterSection extends StatelessWidget {
 class _LessonCard extends StatelessWidget {
   final Lesson lesson;
   final bool isAvailable;
-  final bool hasAccess; // User is subscribed
-  final bool isViewed; // Lesson has been viewed
+  final bool hasAccess;
+  final bool isViewed;
   final VoidCallback onTap;
 
   const _LessonCard({
@@ -1867,11 +1755,7 @@ class _LessonCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bool isTablet = Responsive.isTablet(context);
-    // If user has access (subscribed), all lessons are available
-    // Only allow access if backend says user has access (hasAccess from course.hasAccess)
-    // isAvailable should match hasAccess (both come from backend)
     final bool canAccess = hasAccess && isAvailable;
-    // Show lock if user doesn't have access (regardless of course being free or paid)
     final bool shouldShowLock = !canAccess;
 
     return Padding(
@@ -1886,7 +1770,6 @@ class _LessonCard extends StatelessWidget {
               borderRadius: BorderRadius.circular(isTablet ? 20 : 22),
               boxShadow: [
                 BoxShadow(
-                  // Black shadow for locked lessons, primary color for accessible ones
                   color: canAccess
                       ? AppColors.primary.withOpacity(0.25)
                       : Colors.grey.withOpacity(0.25),
@@ -1899,7 +1782,6 @@ class _LessonCard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Thumbnail
               Expanded(
                 flex: 2,
                 child: Stack(
@@ -1913,7 +1795,6 @@ class _LessonCard extends StatelessWidget {
                         child: _buildLessonThumbnail(),
                       ),
                     ),
-                    // Lock overlay for unavailable lessons (when user doesn't have access)
                     if (shouldShowLock)
                       Positioned.fill(
                         child: Container(
@@ -1938,10 +1819,6 @@ class _LessonCard extends StatelessWidget {
                           ),
                         ),
                       ),
-                    // Badge logic:
-                    // - Watched & completed: "تم المشاهدة" (red) - ONLY when actually watched
-                    // - Accessible but not watched: "متاح" (green)
-                    // - Locked: no badge (has lock overlay instead)
                     if (canAccess)
                       Positioned(
                         top: 10,
@@ -1951,7 +1828,7 @@ class _LessonCard extends StatelessWidget {
                               horizontal: 12, vertical: 6),
                           decoration: BoxDecoration(
                             color: const Color(
-                                0xFF9B59D0), // Purple for available (matching image)
+                                0xFF9B59D0),
                             borderRadius: BorderRadius.circular(14),
                           ),
                           child: Text(
@@ -1966,11 +1843,9 @@ class _LessonCard extends StatelessWidget {
                           ),
                         ),
                       ),
-                    // No badge for locked lessons - they show lock overlay
                   ],
                 ),
               ),
-              // Lesson Info
               Expanded(
                 flex: 1,
                 child: Padding(
@@ -1983,7 +1858,6 @@ class _LessonCard extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     mainAxisSize: MainAxisSize.max,
                     children: [
-                      // العنوان: على التابلت في الوضع الرأسي نكتفي بسطر واحد لتفادي الـ overflow
                       Align(
                         alignment: Alignment.topRight,
                         child: Text(
@@ -2033,7 +1907,6 @@ class _LessonCard extends StatelessWidget {
   }
 
   Widget _buildLessonThumbnail() {
-    // Try to get thumbnail from lesson's bunny_uri
     if (lesson.bunnyUri != null &&
         lesson.bunnyUri!.isNotEmpty &&
         lesson.bunnyUri!.startsWith('http')) {

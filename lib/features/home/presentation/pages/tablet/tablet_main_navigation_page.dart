@@ -11,10 +11,9 @@ import '../../../../authentication/presentation/pages/register/complete_profile_
 import '../../../../menu/presentation/pages/tablet/tablet_menu_page.dart';
 import '../../../../shorts/presentation/pages/tablet/tablet_shorts_page.dart';
 import '../../../../subscriptions/presentation/pages/tablet/tablet_subscriptions_page.dart';
-import '../main_navigation_page.dart'; // For TabIndexNotifier & TabIndexProvider
+import '../main_navigation_page.dart';
 
 
-/// Tablet-specific main navigation page with sidebar navigation
 class TabletMainNavigationPage extends StatefulWidget {
   const TabletMainNavigationPage({super.key});
 
@@ -25,8 +24,7 @@ class TabletMainNavigationPage extends StatefulWidget {
 class _TabletMainNavigationPageState extends State<TabletMainNavigationPage> {
   int _selectedIndex = 0;
   late final TabIndexNotifier _tabIndexNotifier;
-  
-  // Global keys for each tab's navigator
+
   final List<GlobalKey<NavigatorState>> _navigatorKeys = [
     GlobalKey<NavigatorState>(),
     GlobalKey<NavigatorState>(),
@@ -46,7 +44,6 @@ class _TabletMainNavigationPageState extends State<TabletMainNavigationPage> {
     super.dispose();
   }
 
-  // Navigation items
   final List<_NavItem> _navItems = [
     _NavItem(
       icon: Icons.home_outlined,
@@ -93,10 +90,8 @@ class _TabletMainNavigationPageState extends State<TabletMainNavigationPage> {
         child: Scaffold(
           body: Row(
             children: [
-              // Sidebar Navigation
               _buildSidebar(context),
-              
-              // Main Content Area
+
               Expanded(
                 child: IndexedStack(
                   index: _selectedIndex,
@@ -116,7 +111,6 @@ class _TabletMainNavigationPageState extends State<TabletMainNavigationPage> {
   }
 
   Widget _buildSidebar(BuildContext context) {
-    // Make sidebar a bit narrower on tablets by using a percentage of screen width
     final screenWidth = context.sw;
     final sidebarWidth = (screenWidth * 0.20).clamp(220.0, 260.0);
 
@@ -135,7 +129,6 @@ class _TabletMainNavigationPageState extends State<TabletMainNavigationPage> {
       child: SafeArea(
         child: Column(
           children: [
-            // Logo Section
             Padding(
               padding: const EdgeInsets.all(24.0),
               child: Image.asset(
@@ -161,8 +154,7 @@ class _TabletMainNavigationPageState extends State<TabletMainNavigationPage> {
             ),
             
             const Divider(height: 1),
-            
-            // Navigation Items
+
             Expanded(
               child: ListView(
                 padding: const EdgeInsets.symmetric(vertical: 16),
@@ -187,11 +179,16 @@ class _TabletMainNavigationPageState extends State<TabletMainNavigationPage> {
   }
 
   Widget _buildSidebarItem(
+
     BuildContext context, {
     required _NavItem item,
     required int index,
     required bool isSelected,
   }) {
+    final media = MediaQuery.of(context);
+    final isPortrait = media.orientation == Orientation.portrait;
+    final isTabletPortrait =
+        isPortrait && media.size.shortestSide >= 600;
     return InkWell(
       onTap: () {
         if (_selectedIndex == index) {
@@ -225,7 +222,7 @@ class _TabletMainNavigationPageState extends State<TabletMainNavigationPage> {
               item.label,
               style: TextStyle(
                 fontFamily: 'Cairo',
-                fontSize: 16,
+                fontSize: isTabletPortrait ?  Responsive.spacing(context, 13) :  Responsive.spacing(context, 18),
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
                 color: isSelected ? AppColors.primary : AppColors.textSecondary,
               ),
@@ -248,14 +245,12 @@ class _TabletMainNavigationPageState extends State<TabletMainNavigationPage> {
     );
   }
 
-  // Method to push a page onto the current tab's navigator
   void pushPage(Widget page) {
     _navigatorKeys[_selectedIndex].currentState?.push(
       MaterialPageRoute(builder: (_) => page),
     );
   }
 
-  // Method to switch to a specific tab
   void switchToTab(int index) {
     setState(() {
       _selectedIndex = index;
@@ -276,7 +271,6 @@ class _NavItem {
   });
 }
 
-// Extension to easily access TabletMainNavigationPage from anywhere
 extension TabletMainNavigationContext on BuildContext {
   _TabletMainNavigationPageState? get tabletMainNavigation {
     return findAncestorStateOfType<_TabletMainNavigationPageState>();

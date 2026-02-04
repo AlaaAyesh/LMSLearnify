@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/di/injection_container.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/utils/responsive.dart';
 import '../../../authentication/data/datasources/auth_local_datasource.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/custom_app_bar.dart';
@@ -463,6 +464,10 @@ class _AuthenticatedProfilePageState extends State<_AuthenticatedProfilePage> {
   }
 
   Widget _buildProfileContent(User user) {
+    final media = MediaQuery.of(context);
+    final isPortrait = media.orientation == Orientation.portrait;
+    final isTabletPortrait =
+        isPortrait && media.size.shortestSide >= 600;
     // Populate data if not already done
     if (currentUser == null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -496,6 +501,8 @@ class _AuthenticatedProfilePageState extends State<_AuthenticatedProfilePage> {
                   user.email,
                   style: AppTextStyles.bodyMedium.copyWith(
                     color: AppColors.textSecondary,
+                    fontSize: isTabletPortrait ?Responsive.spacing(context, 13) : Responsive.spacing(context, 18),
+
                   ),
                 ),
                 SizedBox(height: 8),
@@ -628,12 +635,18 @@ class _AuthenticatedProfilePageState extends State<_AuthenticatedProfilePage> {
   }
 
   Widget _buildSectionTitle(String title) {
+    final media = MediaQuery.of(context);
+    final isPortrait = media.orientation == Orientation.portrait;
+    final isTabletPortrait =
+        isPortrait && media.size.shortestSide >= 600;
     return Align(
       alignment: Alignment.centerRight,
       child: Text(
         title,
         style: TextStyle(
           color: AppColors.textPrimary,
+          fontSize: isTabletPortrait ? Responsive.spacing(context, 13) : Responsive.spacing(context, 22),
+
         ),
       ),
     );
