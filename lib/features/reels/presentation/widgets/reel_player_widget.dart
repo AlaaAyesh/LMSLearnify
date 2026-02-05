@@ -676,10 +676,13 @@ class _ReelPlayerWidgetState extends State<ReelPlayerWidget>
     final isPortrait = media.orientation == Orientation.portrait;
     final isTabletPortrait =
         isPortrait && media.size.shortestSide >= 600;
+    final isTablet = Responsive.isTablet(context);
 
-    final size = isTabletPortrait
+    final size = isTablet
+        ? (isTabletPortrait
         ? Responsive.width(context, 36)
-        : Responsive.width(context, 24);
+        : Responsive.width(context, 24))
+        : Responsive.width(context, 36);
 
     Widget defaultAvatar() {
       return ClipOval(

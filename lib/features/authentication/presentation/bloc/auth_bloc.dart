@@ -19,7 +19,6 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final RegisterUseCase registerUseCase;
   final AuthRepository authRepository;
 
-  // Store email for password reset flow
   String? _resetPasswordEmail;
 
   AuthBloc({
@@ -47,7 +46,6 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<UpdateProfileEvent>(_onUpdateProfile);
   }
 
-  // Google Sign-In instance
   final GoogleSignIn _googleSignIn = GoogleSignIn(
     scopes: ['email', 'profile'],
     serverClientId: '695539439418-g40jdtebreloi78lkk4f4t24v1fktu8q.apps.googleusercontent.com',
@@ -95,14 +93,11 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   ) async {
     emit(AuthLoading());
 
-    // For Google, use NativeGoogleSignInEvent instead
-    // For Apple, implementation pending
     if (event.provider == 'apple') {
       emit(const AuthError('تسجيل الدخول عبر Apple غير متاح حالياً'));
       return;
     }
 
-    // Fallback error for unknown providers
     emit(const AuthError('مزود تسجيل الدخول غير مدعوم'));
   }
 
@@ -112,7 +107,6 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   ) async {
     emit(AuthLoading());
 
-    // Register with social provider token + complete profile data
     final result = await authRepository.mobileOAuthLogin(
       provider: event.providerId,
       accessToken: event.accessToken,
@@ -156,13 +150,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
             (failure) => emit(AuthUnauthenticated()),
             (user) async {
               if (user != null) {
-                // Check if user profile is complete
                 if (user.isProfileComplete) {
-                  // User has complete profile - authenticate
                   emit(AuthAuthenticated(user));
                 } else {
-                  // User exists but profile is incomplete - need to complete profile
-                  // Get access token for profile completion
                   final localDataSource = sl<AuthLocalDataSource>();
                   final token = await localDataSource.getAccessToken();
                   
@@ -201,7 +191,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     result.fold(
       (failure) => emit(AuthError(failure.message)),
       (_) {
-        _resetPasswordEmail = event.email; // Store email for reset password
+        _resetPasswordEmail = event.email;
         emit(ForgotPasswordSuccess(email: event.email));
       },
     );
@@ -287,7 +277,6 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   }
 
 
-  // Google OAuth handlers
   Future<void> _onGoogleSignIn(
     GoogleSignInEvent event,
     Emitter<AuthState> emit,
@@ -316,7 +305,6 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     );
   }
 
-  // Mobile OAuth login handler
   Future<void> _onMobileOAuthLogin(
     MobileOAuthLoginEvent event,
     Emitter<AuthState> emit,
@@ -334,7 +322,6 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     );
   }
 
-  // Native Google Sign-In handler
   Future<void> _onNativeGoogleSignIn(
     NativeGoogleSignInEvent event,
     Emitter<AuthState> emit,
@@ -342,24 +329,19 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     emit(AuthLoading());
 
     try {
-      // Sign out first to ensure fresh sign-in
       await _googleSignIn.signOut();
-      
-      // Trigger Google Sign-In
+
       final GoogleSignInAccount? account = await _googleSignIn.signIn();
       
       if (account == null) {
-        // User cancelled sign-in
         emit(const AuthError('تم إلغاء تسجيل الدخول'));
         return;
       }
 
-      // Get authentication details
       final GoogleSignInAuthentication auth = await account.authentication;
       final String? idToken = auth.idToken;
       final String? accessToken = auth.accessToken;
 
-      // Prefer ID token for backend authentication, fallback to access token
       final String? tokenToSend = idToken ?? accessToken;
 
       if (tokenToSend == null || tokenToSend.isEmpty) {
@@ -367,7 +349,6 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         return;
       }
 
-      // Try to login first - check if user already exists
       final result = await authRepository.mobileOAuthLogin(
         provider: 'google',
         accessToken: tokenToSend,
@@ -375,9 +356,6 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
       result.fold(
         (failure) {
-          // If the backend reports that the user was not found, redirect
-          // to the complete profile flow so we can register a new user
-          // using the Google account data.
           if (failure is NotFoundFailure) {
             emit(
               SocialLoginNeedsCompletion(
@@ -393,9 +371,6 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           }
         },
         (user) {
-          // If the user exists but has incomplete profile information
-          // (e.g. missing phone, birthday, or specialty), force them to
-          // complete the profile before accessing the app.
           if (!user.isProfileComplete) {
             emit(
               SocialLoginNeedsCompletion(
@@ -412,28 +387,21 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         },
       );
     } catch (e) {
-      // Handle specific Google Sign-In errors
       final errorMessage = _parseGoogleSignInError(e.toString());
       emit(AuthError(errorMessage));
     }
   }
 
-  /// Parse Google Sign-In errors to user-friendly messages
   String _parseGoogleSignInError(String error) {
     if (error.contains('ApiException: 10')) {
-      // DEVELOPER_ERROR - SHA-1 or package name not configured
       return 'خطأ في إعدادات التطبيق. يرجى التواصل مع الدعم الفني.';
     } else if (error.contains('ApiException: 7')) {
-      // NETWORK_ERROR
       return 'خطأ في الاتصال بالإنترنت. يرجى المحاولة مرة أخرى.';
     } else if (error.contains('ApiException: 12501')) {
-      // SIGN_IN_CANCELLED
       return 'تم إلغاء تسجيل الدخول';
     } else if (error.contains('ApiException: 12502')) {
-      // SIGN_IN_CURRENTLY_IN_PROGRESS
       return 'عملية تسجيل الدخول قيد التنفيذ';
     } else if (error.contains('ApiException: 12500')) {
-      // SIGN_IN_FAILED
       return 'فشل تسجيل الدخول. يرجى المحاولة مرة أخرى.';
     } else if (error.contains('sign_in_canceled')) {
       return 'تم إلغاء تسجيل الدخول';
@@ -443,7 +411,6 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     return 'خطأ في تسجيل الدخول. يرجى المحاولة مرة أخرى.';
   }
 
-  // Native Apple Sign-In handler
   Future<void> _onNativeAppleSignIn(
     NativeAppleSignInEvent event,
     Emitter<AuthState> emit,
@@ -451,18 +418,15 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     emit(AuthLoading());
 
     try {
-      // Check if Apple Sign-In is available
       final isAvailable = await SignInWithApple.isAvailable();
       if (!isAvailable) {
         emit(const AuthError('تسجيل الدخول عبر Apple غير متاح على هذا الجهاز'));
         return;
       }
 
-      // Generate nonce for security
       final rawNonce = _generateNonce();
       final nonce = _sha256ofString(rawNonce);
 
-      // Request Apple Sign-In
       final credential = await SignInWithApple.getAppleIDCredential(
         scopes: [
           AppleIDAuthorizationScopes.email,
@@ -471,7 +435,6 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         nonce: nonce,
       );
 
-      // Get the identity token
       final identityToken = credential.identityToken;
       
       if (identityToken == null || identityToken.isEmpty) {
@@ -479,7 +442,6 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         return;
       }
 
-      // Get user info from credential (only available on first sign-in)
       final String? email = credential.email;
       final String? givenName = credential.givenName;
       final String? familyName = credential.familyName;
@@ -487,7 +449,6 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           ? '${givenName ?? ''} ${familyName ?? ''}'.trim()
           : null;
 
-      // Try to login first - check if user already exists
       final result = await authRepository.mobileOAuthLogin(
         provider: 'apple',
         accessToken: identityToken,
@@ -496,14 +457,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       result.fold(
         (failure) => emit(AuthError(failure.message)),
         (user) {
-          // Check if user profile is complete
           if (user.isProfileComplete) {
-            // Existing user with complete profile - go to home
             emit(AuthAuthenticated(user));
           } else {
-            // New user or incomplete profile - show complete profile page.
-            // At this point we already have a backend session, so we just
-            // need to complete the profile via update-profile endpoint.
             emit(SocialLoginNeedsCompletion(
               email: email ?? user.email,
               name: fullName ?? user.name,
@@ -522,21 +478,18 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     }
   }
 
-  /// Generate a random nonce string
   String _generateNonce([int length = 32]) {
     const charset = '0123456789ABCDEFGHIJKLMNOPQRSTUVXYZabcdefghijklmnopqrstuvwxyz-._';
     final random = Random.secure();
     return List.generate(length, (_) => charset[random.nextInt(charset.length)]).join();
   }
 
-  /// SHA256 hash of a string
   String _sha256ofString(String input) {
     final bytes = utf8.encode(input);
     final digest = sha256.convert(bytes);
     return digest.toString();
   }
 
-  /// Parse Apple Sign-In errors to user-friendly messages
   String _parseAppleSignInError(SignInWithAppleAuthorizationException e) {
     switch (e.code) {
       case AuthorizationErrorCode.canceled:
@@ -575,10 +528,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
     result.fold(
       (failure) {
-        // If 401 Unauthorized, automatically logout the user
         if (failure is AuthenticationFailure) {
-          // Trigger logout by adding LogoutEvent
-          // This will be handled by the _onLogout handler
           add(LogoutEvent());
           emit(AuthError('انتهت صلاحية الجلسة. تم تسجيل الخروج تلقائياً'));
         } else {
@@ -586,7 +536,6 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         }
       },
       (user) {
-        // Emit both ProfileUpdated for UI feedback and AuthAuthenticated to update the state
         emit(ProfileUpdated(user));
         emit(AuthAuthenticated(user));
       },

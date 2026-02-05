@@ -1,7 +1,6 @@
 import '../../domain/entities/chapter.dart';
 import 'lesson_model.dart';
 
-/// Model for course info embedded in chapter response
 class ChapterCourseInfoModel extends ChapterCourseInfo {
   const ChapterCourseInfoModel({
     required super.id,

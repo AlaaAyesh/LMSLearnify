@@ -21,7 +21,6 @@ class HomeDataModel extends HomeData {
       banners: _parseBanners(json['banners']),
       latestCourses: _parseCourses(json['latest_courses']),
       freeCourses: _parseCourses(json['free_courses']),
-      // استخدام best_seller من API كـ popularCourses (الأكثر مشاهدة)
       popularCourses: _parseCourses(json['best_seller'] ?? json['popular_courses']),
       topMentors: _parseMentors(json['top_mentors']),
       partners: _parsePartners(json['partners']),
@@ -90,7 +89,6 @@ class HomeDataModel extends HomeData {
     if (partnersData == null) return [];
     
     try {
-      // Partners has a special structure: { headers: {}, original: { data: {...} } }
       if (partnersData is Map) {
         if (partnersData['original'] != null && partnersData['original'] is Map) {
           final original = partnersData['original'];

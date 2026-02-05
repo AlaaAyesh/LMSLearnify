@@ -31,9 +31,6 @@ class _ProfilePageState extends State<ProfilePage> {
   @override
   void initState() {
     super.initState();
-    // Use the AuthBloc from app level, don't create a new one
-    // This prevents _dependents.isEmpty errors when logging out and logging in again
-    // Check auth status when page is opened
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         context.read<AuthBloc>().add(CheckAuthStatusEvent());
@@ -47,7 +44,6 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 }
 
-// Profile page content that handles both authenticated and unauthenticated states
 class _ProfilePageContent extends StatefulWidget {
   const _ProfilePageContent();
 
@@ -62,15 +58,11 @@ class _ProfilePageContentState extends State<_ProfilePageContent> {
   @override
   void initState() {
     super.initState();
-    // Try to use the in-memory auth state first to avoid showing the
-    // placeholder/loading every time the page is opened.
     final authState = context.read<AuthBloc>().state;
     if (authState is AuthAuthenticated) {
       _isAuthenticated = true;
       _isCheckingAuth = false;
     } else {
-      // Fallback to checking the stored token when we don't have an
-      // authenticated state yet (e.g. first app open).
       _checkAuthentication();
     }
   }
@@ -104,7 +96,6 @@ class _ProfilePageContentState extends State<_ProfilePageContent> {
   }
 }
 
-// Unauthenticated Profile Page
 class _UnauthenticatedProfilePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -117,7 +108,6 @@ class _UnauthenticatedProfilePage extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // Lock Icon
               Container(
                 padding: const EdgeInsets.all(32),
                 decoration: BoxDecoration(
@@ -132,7 +122,6 @@ class _UnauthenticatedProfilePage extends StatelessWidget {
               ),
               SizedBox(height: 32),
 
-              // Title
               Text(
                 'تسجيل الدخول مطلوب',
                 style: AppTextStyles.displayMedium,
@@ -140,7 +129,6 @@ class _UnauthenticatedProfilePage extends StatelessWidget {
               ),
               SizedBox(height: 16),
 
-              // Description
               Text(
                 'للوصول إلى ملفك الشخصي والمحتوى الكامل، يرجى تسجيل الدخول أو إنشاء حساب جديد',
                 style: AppTextStyles.bodyLarge,
@@ -148,7 +136,6 @@ class _UnauthenticatedProfilePage extends StatelessWidget {
               ),
               SizedBox(height: 32),
 
-              // Login Button
               SizedBox(
                 width: double.infinity,
                 height: 56,
@@ -172,8 +159,8 @@ class _UnauthenticatedProfilePage extends StatelessWidget {
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,
-                      elevation: 0, // مهم: نشيل elevation الافتراضي
-                      padding: EdgeInsets.zero, // إزالة أي padding
+                      elevation: 0,
+                      padding: EdgeInsets.zero,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(22),
                       ),
@@ -191,7 +178,6 @@ class _UnauthenticatedProfilePage extends StatelessWidget {
               ),
               SizedBox(height: 32),
 
-              // Register Button
               SizedBox(
                 width: double.infinity,
                 height: 56,
@@ -214,7 +200,7 @@ class _UnauthenticatedProfilePage extends StatelessWidget {
                       );
                     },
                     style: OutlinedButton.styleFrom(
-                      padding: EdgeInsets.zero, // إزالة margin الداخلي
+                      padding: EdgeInsets.zero,
                       side: const BorderSide(color: AppColors.primary),
                       backgroundColor: Colors.white,
                       shape: RoundedRectangleBorder(
@@ -241,7 +227,6 @@ class _UnauthenticatedProfilePage extends StatelessWidget {
   }
 }
 
-// Authenticated profile page
 class _AuthenticatedProfilePage extends StatefulWidget {
   const _AuthenticatedProfilePage();
 
@@ -264,7 +249,7 @@ class _AuthenticatedProfilePageState extends State<_AuthenticatedProfilePage> {
 
   bool obscurePassword = true;
   bool obscureConfirmPassword = true;
-  String? countryCode = '+20'; // Default to Egypt
+  String? countryCode = '+20';
   User? currentUser;
 
   @override
@@ -284,15 +269,13 @@ class _AuthenticatedProfilePageState extends State<_AuthenticatedProfilePage> {
     currentUser = user;
     nameController.text = user.name;
     emailController.text = user.email;
-    
-    // Parse phone number to extract country code
+
     if (user.phone != null && user.phone!.isNotEmpty) {
       final parsed = _parsePhoneNumber(user.phone!);
       countryCode = parsed['countryCode'];
       phoneController.text = parsed['localNumber'] ?? '';
     }
-    
-    // Parse birthday to populate day, month, year fields
+
     if (user.birthday != null && user.birthday!.isNotEmpty) {
       final birthdayParts = _parseBirthday(user.birthday!);
       dayController.text = birthdayParts['day'] ?? '';
@@ -300,8 +283,7 @@ class _AuthenticatedProfilePageState extends State<_AuthenticatedProfilePage> {
       yearController.text = birthdayParts['year'] ?? '';
     }
   }
-  
-  /// Parse birthday from YYYY-MM-DD format to day, month, year
+
   Map<String, String> _parseBirthday(String birthday) {
     try {
       final parts = birthday.split('-');
@@ -317,37 +299,48 @@ class _AuthenticatedProfilePageState extends State<_AuthenticatedProfilePage> {
     }
     return {'day': '', 'month': '', 'year': ''};
   }
-  
-  /// Convert day, month, year to YYYY-MM-DD format
+
   String? _getBirthdayString() {
     final day = dayController.text.trim();
     final month = monthController.text.trim();
     final year = yearController.text.trim();
-    
+
     if (day.isEmpty || month.isEmpty || year.isEmpty) {
       return null;
     }
-    
-    // Validate and format
+
     final dayInt = int.tryParse(day);
     final monthInt = int.tryParse(month);
     final yearInt = int.tryParse(year);
-    
+
     if (dayInt == null || monthInt == null || yearInt == null) {
       return null;
     }
-    
-    // Format as YYYY-MM-DD
+
     return '$year-${month.padLeft(2, '0')}-${day.padLeft(2, '0')}';
   }
-  
+
   Map<String, String?> _parsePhoneNumber(String fullPhone) {
-    // List of country codes to check (longest first to avoid partial matches)
     const countryCodes = [
-      '+966', '+971', '+965', '+974', '+973', '+968', '+962', '+961', '+964', '+963',
-      '+212', '+216', '+213', '+218', '+249', '+967', '+20',
+      '+966',
+      '+971',
+      '+965',
+      '+974',
+      '+973',
+      '+968',
+      '+962',
+      '+961',
+      '+964',
+      '+963',
+      '+212',
+      '+216',
+      '+213',
+      '+218',
+      '+249',
+      '+967',
+      '+20',
     ];
-    
+
     for (final code in countryCodes) {
       if (fullPhone.startsWith(code)) {
         return {
@@ -356,38 +349,29 @@ class _AuthenticatedProfilePageState extends State<_AuthenticatedProfilePage> {
         };
       }
     }
-    
-    // If no country code found, return as is with default
+
     return {
       'countryCode': '+20',
       'localNumber': fullPhone.replaceFirst('+', ''),
     };
   }
 
-  /// Normalize phone number to international format
-  /// Handles numbers with or without leading 0
-  /// Example: 01098018628 or 1098018628 -> +201098018628
   String _normalizePhoneNumber(String localNumber, String countryCode) {
-    // Remove any whitespace
     localNumber = localNumber.trim();
-    
-    // If number already has country code, return as is
+
     if (localNumber.startsWith('+')) {
       return localNumber;
     }
-    
-    // Remove leading 0 if present (common in Egypt and other countries)
+
     if (localNumber.startsWith('0')) {
       localNumber = localNumber.substring(1);
     }
-    
-    // Combine country code with local number
+
     return '$countryCode$localNumber';
   }
 
   void onSave() {
     if (formKey.currentState!.validate()) {
-      // Normalize phone number
       String? normalizedPhone;
       if (phoneController.text.isNotEmpty) {
         normalizedPhone = _normalizePhoneNumber(
@@ -396,17 +380,15 @@ class _AuthenticatedProfilePageState extends State<_AuthenticatedProfilePage> {
         );
       }
 
-      // Get birthday string
       final birthday = _getBirthdayString();
 
-      // Dispatch update profile event
       context.read<AuthBloc>().add(
-        UpdateProfileEvent(
-          name: nameController.text.isNotEmpty ? nameController.text : null,
-          phone: normalizedPhone,
-          birthday: birthday,
-        ),
-      );
+            UpdateProfileEvent(
+              name: nameController.text.isNotEmpty ? nameController.text : null,
+              phone: normalizedPhone,
+              birthday: birthday,
+            ),
+          );
     }
   }
 
@@ -420,7 +402,6 @@ class _AuthenticatedProfilePageState extends State<_AuthenticatedProfilePage> {
           if (state is AuthAuthenticated) {
             _populateUserData(state.user);
           } else if (state is AuthUnauthenticated) {
-            // Navigate to login and clear all routes using root navigator
             Navigator.of(context, rootNavigator: true).pushNamedAndRemoveUntil(
               '/login',
               (route) => false,
@@ -433,9 +414,7 @@ class _AuthenticatedProfilePageState extends State<_AuthenticatedProfilePage> {
               ),
             );
           } else if (state is ProfileUpdated) {
-            // Update local user data
             _populateUserData(state.user);
-            // Show success message
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
                 content: Text('تم حفظ التعديلات بنجاح'),
@@ -466,9 +445,7 @@ class _AuthenticatedProfilePageState extends State<_AuthenticatedProfilePage> {
   Widget _buildProfileContent(User user) {
     final media = MediaQuery.of(context);
     final isPortrait = media.orientation == Orientation.portrait;
-    final isTabletPortrait =
-        isPortrait && media.size.shortestSide >= 600;
-    // Populate data if not already done
+    final isTabletPortrait = isPortrait && media.size.shortestSide >= 600;
     if (currentUser == null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _populateUserData(user);
@@ -487,11 +464,9 @@ class _AuthenticatedProfilePageState extends State<_AuthenticatedProfilePage> {
               children: [
                 SizedBox(height: 24),
 
-                // Profile Avatar
                 _buildProfileAvatar(user),
                 SizedBox(height: 16),
 
-                // User Info
                 Text(
                   user.name,
                   style: AppTextStyles.displayMedium,
@@ -501,17 +476,16 @@ class _AuthenticatedProfilePageState extends State<_AuthenticatedProfilePage> {
                   user.email,
                   style: AppTextStyles.bodyMedium.copyWith(
                     color: AppColors.textSecondary,
-                    fontSize: isTabletPortrait ?Responsive.spacing(context, 13) : Responsive.spacing(context, 18),
-
+                    fontSize: isTabletPortrait
+                        ? Responsive.spacing(context, 13)
+                        : Responsive.spacing(context, 18),
                   ),
                 ),
                 SizedBox(height: 8),
 
-                // Subscription Status
                 _buildSubscriptionBadge(user),
                 SizedBox(height: 32),
 
-                // Form Fields
                 NameField(controller: nameController),
                 SizedBox(height: 16),
 
@@ -522,22 +496,16 @@ class _AuthenticatedProfilePageState extends State<_AuthenticatedProfilePage> {
                 ),
                 SizedBox(height: 16),
 
-                // Birthday Field
                 BirthdayField(
                   dayController: dayController,
                   monthController: monthController,
                   yearController: yearController,
                   validator: (value) {
-                    // Optional field - no validation required
                     return null;
                   },
                 ),
                 SizedBox(height: 16),
 
-                // EmailField(controller: emailController),
-                // SizedBox(height: 24),
-
-                // Change Password Section
                 _buildSectionTitle('تغيير كلمة المرور'),
                 SizedBox(height: 16),
 
@@ -545,7 +513,7 @@ class _AuthenticatedProfilePageState extends State<_AuthenticatedProfilePage> {
                   controller: passwordController,
                   obscure: obscurePassword,
                   hintText: 'كلمة المرور الجديدة',
-                  validator: (v) => null, // Optional
+                  validator: (v) => null,
                   onToggleVisibility: () =>
                       setState(() => obscurePassword = !obscurePassword),
                 ),
@@ -567,7 +535,6 @@ class _AuthenticatedProfilePageState extends State<_AuthenticatedProfilePage> {
                 ),
                 SizedBox(height: 32),
 
-                // Save Button
                 PrimaryButton(
                   text: 'حفظ التعديلات',
                   onPressed: onSave,
@@ -583,22 +550,21 @@ class _AuthenticatedProfilePageState extends State<_AuthenticatedProfilePage> {
 
   Widget _buildProfileAvatar(User user) {
     return CircleAvatar(
-          radius: 50,
-          backgroundColor: AppColors.primary.withOpacity(0.1),
-          backgroundImage:
-              user.avatarUrl != null && user.avatarUrl!.isNotEmpty
-                  ? NetworkImage(user.avatarUrl!)
-                  : null,
-          child: user.avatarUrl == null || user.avatarUrl!.isEmpty
-              ? Text(
-                  user.name.isNotEmpty ? user.name[0].toUpperCase() : 'U',
-                  style: const TextStyle(
-                    fontSize: 40,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.primary,
-                  ),
-                )
-              : null,
+      radius: 50,
+      backgroundColor: AppColors.primary.withOpacity(0.1),
+      backgroundImage: user.avatarUrl != null && user.avatarUrl!.isNotEmpty
+          ? NetworkImage(user.avatarUrl!)
+          : null,
+      child: user.avatarUrl == null || user.avatarUrl!.isEmpty
+          ? Text(
+              user.name.isNotEmpty ? user.name[0].toUpperCase() : 'U',
+              style: const TextStyle(
+                fontSize: 40,
+                fontWeight: FontWeight.bold,
+                color: AppColors.primary,
+              ),
+            )
+          : null,
     );
   }
 
@@ -637,20 +603,22 @@ class _AuthenticatedProfilePageState extends State<_AuthenticatedProfilePage> {
   Widget _buildSectionTitle(String title) {
     final media = MediaQuery.of(context);
     final isPortrait = media.orientation == Orientation.portrait;
-    final isTabletPortrait =
-        isPortrait && media.size.shortestSide >= 600;
+    final isTabletPortrait = isPortrait && media.size.shortestSide >= 600;
+    final isTablet = Responsive.isTablet(context);
+
     return Align(
       alignment: Alignment.centerRight,
       child: Text(
         title,
         style: TextStyle(
           color: AppColors.textPrimary,
-          fontSize: isTabletPortrait ? Responsive.spacing(context, 13) : Responsive.spacing(context, 22),
-
+          fontSize: isTablet
+              ? (isTabletPortrait
+                  ? Responsive.spacing(context, 13)
+                  : Responsive.spacing(context, 22))
+              : Responsive.spacing(context, 16),
         ),
       ),
     );
   }
 }
-
-

@@ -10,9 +10,8 @@ class RecommendedBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     final bool isTablet = Responsive.isTablet(context);
     final screenWidth = Responsive.screenWidth(context);
-    
-    // جعل موضع البادجت responsive بناءً على عرض الشاشة
-    final double topOffset = isTablet 
+
+    final double topOffset = isTablet
         ? -Responsive.height(context, 12) 
         : -Responsive.height(context, 10);
     final double rightOffset = (screenWidth * 0.06).clamp(16.0, 32.0).toDouble();

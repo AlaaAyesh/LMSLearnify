@@ -59,11 +59,9 @@ class _TabletMenuPageContent extends StatelessWidget {
               constraints: const BoxConstraints(maxWidth: 800),
               child: Column(
                 children: [
-                  // Logo
 
                   const SizedBox(height: 40),
 
-                  // Menu Buttons - Grid layout for tablet
                   GridView.count(
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
@@ -113,7 +111,6 @@ class _TabletMenuPageContent extends StatelessWidget {
 
                   const SizedBox(height: 24),
 
-                  // CREATE ACCOUNT / LOGOUT
                   BlocBuilder<AuthBloc, AuthState>(
                     builder: (context, state) {
                       if (state is AuthAuthenticated) {
@@ -143,7 +140,6 @@ class _TabletMenuPageContent extends StatelessWidget {
 
                   const SizedBox(height: 32),
 
-                  // SUPPORT
                   const SupportSection(),
 
                   const SizedBox(height: 32),

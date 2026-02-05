@@ -8,13 +8,10 @@ abstract class CoursesState extends Equatable {
   List<Object?> get props => [];
 }
 
-/// Initial state
 class CoursesInitial extends CoursesState {}
 
-/// Loading state
 class CoursesLoading extends CoursesState {}
 
-/// Courses loaded successfully
 class CoursesLoaded extends CoursesState {
   final List<Course> courses;
   final int? categoryId;
@@ -61,7 +58,6 @@ class CoursesLoaded extends CoursesState {
       ];
 }
 
-/// Single course details loaded
 class CourseDetailsLoaded extends CoursesState {
   final Course course;
 
@@ -71,7 +67,6 @@ class CourseDetailsLoaded extends CoursesState {
   List<Object?> get props => [course];
 }
 
-/// User's enrolled courses loaded
 class MyCoursesLoaded extends CoursesState {
   final List<Course> courses;
 
@@ -81,10 +76,8 @@ class MyCoursesLoaded extends CoursesState {
   List<Object?> get props => [courses];
 }
 
-/// No courses available
 class CoursesEmpty extends CoursesState {}
 
-/// Error state
 class CoursesError extends CoursesState {
   final String message;
 

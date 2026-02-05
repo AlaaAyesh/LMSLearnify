@@ -78,7 +78,6 @@ class _ShortVideoTile extends StatelessWidget {
         child: Stack(
           fit: StackFit.expand,
           children: [
-            // Thumbnail
             CachedNetworkImage(
               imageUrl: video.thumbnailUrl,
               fit: BoxFit.cover,
@@ -100,7 +99,6 @@ class _ShortVideoTile extends StatelessWidget {
                 ),
               ),
             ),
-            // Gradient overlay at bottom
             Positioned(
               bottom: 0,
               left: 0,

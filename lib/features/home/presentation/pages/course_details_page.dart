@@ -133,11 +133,9 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
 
       setState(() {
         _lessonProgress[lessonId] = progress;
-        // If progress is 100% (1.0), it means lesson was marked as viewed
         if (progress >= 1.0 && !_viewedLessonIds.contains(lessonId)) {
           _viewedLessonIds.add(lessonId);
           print('CourseDetailsPage: Added lesson $lessonId to viewed list (progress: 100%)');
-          // Check if all lessons are viewed and generate certificate if needed
           _checkAndGenerateCertificate();
         }
       });
@@ -1851,7 +1849,7 @@ class _LessonCard extends StatelessWidget {
                 child: Padding(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 12,
-                    vertical: 10,
+                    vertical: 14,
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -1873,7 +1871,7 @@ class _LessonCard extends StatelessWidget {
                             height: 1.3,
                           ),
                           textAlign: TextAlign.right,
-                          maxLines: isTablet ? 1 : 2,
+                          maxLines:  1,
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),

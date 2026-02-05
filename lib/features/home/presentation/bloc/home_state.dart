@@ -8,10 +8,8 @@ abstract class HomeState extends Equatable {
   List<Object?> get props => [];
 }
 
-/// Initial state
 class HomeInitial extends HomeState {}
 
-/// Loading state (with optional cached data for optimistic updates)
 class HomeLoading extends HomeState {
   final HomeData? cachedData;
 
@@ -21,7 +19,6 @@ class HomeLoading extends HomeState {
   List<Object?> get props => [cachedData];
 }
 
-/// State when home data is loaded successfully
 class HomeLoaded extends HomeState {
   final HomeData homeData;
 
@@ -31,7 +28,6 @@ class HomeLoaded extends HomeState {
   List<Object?> get props => [homeData];
 }
 
-/// Error state (with optional cached data to keep UI functional)
 class HomeError extends HomeState {
   final String message;
   final HomeData? cachedData;

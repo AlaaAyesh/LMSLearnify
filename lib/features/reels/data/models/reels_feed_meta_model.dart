@@ -17,7 +17,6 @@ class ReelsFeedMetaModel extends ReelsFeedMeta {
   });
 
   factory ReelsFeedMetaModel.fromJson(Map<String, dynamic> json) {
-    // Calculate hasMore from various sources
     bool hasMoreValue = false;
     if (json['has_more'] != null) {
       hasMoreValue = _parseBool(json['has_more']);

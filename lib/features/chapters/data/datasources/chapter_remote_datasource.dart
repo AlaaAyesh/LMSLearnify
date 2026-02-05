@@ -5,8 +5,6 @@ import '../../../../core/network/dio_client.dart';
 import '../../../home/data/models/chapter_model.dart';
 
 abstract class ChapterRemoteDataSource {
-  /// Get chapter details by ID (including course info and lessons)
-  /// Throws [ServerException] on failure
   Future<ChapterModel> getChapterById(int id);
 }
 
@@ -24,7 +22,6 @@ class ChapterRemoteDataSourceImpl implements ChapterRemoteDataSource {
         final responseData = response.data;
         Map<String, dynamic> chapterData;
 
-        // Handle different response structures
         if (responseData['data'] is Map) {
           chapterData = responseData['data'];
         } else if (responseData['chapter'] is Map) {

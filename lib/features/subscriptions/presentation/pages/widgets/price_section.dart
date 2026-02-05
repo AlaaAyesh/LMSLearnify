@@ -23,38 +23,39 @@ class PriceSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+
     final isNarrow = Responsive.screenWidth(context) < 340;
-    final hasCouponDiscount = couponDiscountPercentage != null && 
-                              couponDiscountPercentage! > 0 && 
+    final hasCouponDiscount = couponDiscountPercentage != null &&
+                              couponDiscountPercentage! > 0 &&
                               finalPriceAfterCoupon != null;
 
     return SizedBox(
-      width: Responsive.width(context, isNarrow ? 70 : 90),
+      width: Responsive.width(context, isNarrow ? 70 : 120),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.end,
+        crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Original price with strikethrough
           StrikethroughPrice(price: originalPrice),
           SizedBox(height: Responsive.spacing(context, 4)),
 
-          // Discounted price (before coupon if coupon applied)
           if (hasCouponDiscount) ...[
-            // Show original discounted price with strikethrough
-            Text(
-              '$discountedPrice $currency',
-              textAlign: TextAlign.right,
-              style: TextStyle(
-                fontFamily: 'Cairo',
-                fontSize: Responsive.fontSize(context, isNarrow ? 11 : 13),
-                fontWeight: FontWeight.normal,
-                color: Colors.grey[600],
-                decoration: TextDecoration.lineThrough,
-                height: 1.1,
+            Align(
+              alignment: Alignment.bottomLeft,
+              child: Text(
+                '$discountedPrice $currency',
+                textAlign: TextAlign.right,
+                style: TextStyle(
+                  fontFamily: 'Cairo',
+                  fontSize: Responsive.fontSize(context, isNarrow ? 11 : 13),
+                  fontWeight: FontWeight.normal,
+                  color: Colors.grey[600],
+                  decoration: TextDecoration.lineThrough,
+                  height: 1.1,
+
+                ),
               ),
             ),
             SizedBox(height: Responsive.spacing(context, 2)),
-            // Show discount badge
             Container(
               padding: EdgeInsets.symmetric(
                 horizontal: Responsive.width(context, 6),
@@ -75,7 +76,6 @@ class PriceSection extends StatelessWidget {
               ),
             ),
             SizedBox(height: Responsive.spacing(context, 2)),
-            // Final price after coupon
             Text(
               '$finalPriceAfterCoupon $currency',
               textAlign: TextAlign.right,
@@ -88,16 +88,18 @@ class PriceSection extends StatelessWidget {
               ),
             ),
           ] else ...[
-            // Normal discounted price (no coupon)
-            Text(
-              '$discountedPrice $currency',
-              textAlign: TextAlign.right,
-              style: TextStyle(
-                fontFamily: 'Cairo',
-                fontSize: Responsive.fontSize(context, isNarrow ? 13 : 15),
-                fontWeight: FontWeight.bold,
-                color: Colors.black,
-                height: 1.1,
+            Align(
+              alignment: Alignment.bottomLeft,
+              child: Text(
+                '$discountedPrice $currency',
+                textAlign: TextAlign.right,
+                style: TextStyle(
+                  fontFamily: 'Cairo',
+                  fontSize: Responsive.fontSize(context, isNarrow ? 13 : 15),
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                  height: 1.1,
+                ),
               ),
             ),
           ],

@@ -13,7 +13,6 @@ class LoginResponseModel {
 
   factory LoginResponseModel.fromJson(Map<String, dynamic> json) {
     try {
-      // Response structure: { "status": "success", "data": { "user": {...}, "access_token": "..." } }
       final data = json['data'] as Map<String, dynamic>?;
       
       if (data == null) {

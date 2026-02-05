@@ -22,7 +22,6 @@ import '../course_details_page.dart';
 import 'tablet_main_navigation_page.dart';
 import '../single_category_page.dart';
 
-/// Tablet-specific home tab with optimized layout for larger screens
 class TabletHomeTab extends StatefulWidget {
   const TabletHomeTab({super.key});
 
@@ -131,24 +130,20 @@ class _TabletHomeTabContent extends StatelessWidget {
   }
 
   Widget _buildContent(BuildContext context, HomeData homeData) {
-    // Responsive helpers based on current tablet size
     final contentWidth = context.sw;
     final contentHeight = context.sh;
     final isLandscape = context.isLandscape;
 
-    // Padding scales slightly with screen size to keep same visual proportions
     final double horizontalPadding =
         (contentWidth * 0.035).clamp(24.0, 48.0).toDouble();
     final double verticalPadding =
         (contentHeight * 0.025).clamp(20.0, 40.0).toDouble();
 
-    // Banner heights scale with screen height but stay within reasonable bounds
     final double siteBannerHeight =
         (contentHeight * (isLandscape ? 0.25 : 0.3)).clamp(260.0, 420.0).toDouble();
     final double defaultBannerHeight =
         (contentHeight * (isLandscape ? 0.3 : 0.35)).clamp(230.0, 380.0).toDouble();
 
-    // Categories section dimensions
     final double categoriesSectionHeight =
         (contentHeight * (isLandscape ? 0.32 : 0.28)).clamp(210.0, 320.0).toDouble();
     final double categoryCardWidth =
@@ -171,7 +166,6 @@ class _TabletHomeTabContent extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Site Banners
                 if (!isLoadingBanners && siteBanners.isNotEmpty) ...[
                   SizedBox(
                     height: siteBannerHeight,
@@ -191,14 +185,12 @@ class _TabletHomeTabContent extends StatelessWidget {
                   ),
                 ],
 
-                // Categories Section - Grid layout for tablet
                 if (homeData.categories.isNotEmpty) ...[
                   SectionHeader(
                     title: 'التصنيفات',
                     onSeeAll: () => _navigateToCategoriesPage(context, homeData),
                   ),
                   const SizedBox(height: 16),
-                  // على التابلت نجعل التصنيفات في سطر واحد مع سكرول أفقي
                   SizedBox(
                     height: categoriesSectionHeight,
                     child: ListView.separated(
@@ -221,7 +213,6 @@ class _TabletHomeTabContent extends StatelessWidget {
                   const SizedBox(height: 40),
                 ],
 
-                // Popular Courses - Grid layout for tablet
                 if (homeData.popularCourses.isNotEmpty) ...[
                   SectionHeader(
                     title: 'الأكثر مشاهدة',
@@ -232,7 +223,6 @@ class _TabletHomeTabContent extends StatelessWidget {
                       final maxWidth = constraints.maxWidth;
                       final isLandscape = context.isLandscape;
 
-                      // Make grid responsive based on available width
                       int crossAxisCount;
                       if (maxWidth >= 1100) {
                         crossAxisCount = 4;
@@ -253,7 +243,6 @@ class _TabletHomeTabContent extends StatelessWidget {
                           crossAxisCount: crossAxisCount,
                           crossAxisSpacing: spacing,
                           mainAxisSpacing: spacing,
-                          // Keep cards close to square while adapting to height
                           childAspectRatio: childAspectRatio,
                         ),
                         itemCount: homeData.popularCourses.length,
@@ -270,7 +259,6 @@ class _TabletHomeTabContent extends StatelessWidget {
                   const SizedBox(height: 40),
                 ],
 
-                // Courses by Category - Grid layout for tablet
                 if (homeData.categoryCourseBlocks.isNotEmpty) ...[
                   ...homeData.categoryCourseBlocks.map((block) {
                     return _buildCategoryCourseBlockSection(context, block);
@@ -281,7 +269,6 @@ class _TabletHomeTabContent extends StatelessWidget {
                   }),
                 ],
 
-                // Free Courses - Grid layout
                 if (homeData.freeCourses.isNotEmpty) ...[
                   SectionHeader(
                     title: 'دورات مجانية',
@@ -535,7 +522,6 @@ class _TabletHomeTabContent extends StatelessWidget {
   }
 }
 
-/// Tablet-optimized category item with fixed height to prevent overflow
 class _TabletCategoryItem extends StatelessWidget {
   final Category category;
   final VoidCallback? onTap;
@@ -566,7 +552,6 @@ class _TabletCategoryItem extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Image with flexible size
             Expanded(
               flex: 3,
               child: Container(
@@ -594,7 +579,6 @@ class _TabletCategoryItem extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 6),
-            // Category Name with flexible height
             Flexible(
               flex: 1,
               child: Padding(
@@ -621,7 +605,6 @@ class _TabletCategoryItem extends StatelessWidget {
   }
 }
 
-/// Tablet-optimized popular course card with better spacing
 class _TabletPopularCourseCard extends StatelessWidget {
   final Course course;
   final VoidCallback? onTap;
@@ -637,7 +620,7 @@ class _TabletPopularCourseCard extends StatelessWidget {
       builder: (context, constraints) {
         final cardWidth = constraints.maxWidth;
         final radius = 16.0;
-        final imageHeight = cardWidth * 0.7; // Adjusted for tablet
+        final imageHeight = cardWidth * 0.7;
         final playSize = cardWidth * 0.22;
 
         return GestureDetector(
@@ -658,7 +641,6 @@ class _TabletPopularCourseCard extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // Image section
                 SizedBox(
                   height: imageHeight,
                   child: Stack(
@@ -670,7 +652,6 @@ class _TabletPopularCourseCard extends StatelessWidget {
                         ),
                         child: _buildThumbnail(),
                       ),
-                      // Play button
                       Center(
                         child: Container(
                           width: playSize,
@@ -686,7 +667,6 @@ class _TabletPopularCourseCard extends StatelessWidget {
                           ),
                         ),
                       ),
-                      // Soon overlay
                       if (course.soon)
                         Container(
                           decoration: BoxDecoration(
@@ -710,11 +690,10 @@ class _TabletPopularCourseCard extends StatelessWidget {
                     ],
                   ),
                 ),
-                // Title section with fixed padding
                 Padding(
                   padding: const EdgeInsets.all(12),
                   child: SizedBox(
-                    height: 48, // Fixed height for title
+                    height: 48,
                     child: Text(
                       course.nameAr,
                       maxLines: 2,
@@ -766,7 +745,6 @@ class _TabletPopularCourseCard extends StatelessWidget {
   }
 }
 
-/// Tablet-optimized course grid card with fixed dimensions
 class _TabletCourseGridCard extends StatelessWidget {
   final Course course;
   final VoidCallback? onTap;
@@ -783,12 +761,9 @@ class _TabletCourseGridCard extends StatelessWidget {
         final cardWidth = constraints.maxWidth;
         final isLandscape = context.isLandscape;
 
-        // حجم الدائرة يعتمد على عرض الكارت لكن مع حد أقصى حتى لا تكبر جدًا على التابلت
         final availableHeight = (constraints.maxHeight - 32).clamp(70.0, double.infinity);
         double targetSize = cardWidth * (isLandscape ? 0.27 : 0.32);
-        // تكبير بسيط مع حدود منطقية
         targetSize = targetSize.clamp(90.0, 180.0);
-        // +6 لزيادة الحجم قليلاً مع احترام المساحة المتاحة
         final imageSize = (targetSize + 6).clamp(0.0, availableHeight);
 
         return GestureDetector(
@@ -799,7 +774,6 @@ class _TabletCourseGridCard extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // Circular image
                 Container(
                   width: imageSize,
                   height: imageSize,
@@ -823,7 +797,6 @@ class _TabletCourseGridCard extends StatelessWidget {
                       fit: StackFit.expand,
                       children: [
                         _buildThumbnail(),
-                        // Soon overlay
                         if (course.soon)
                           Container(
                             color: Colors.black.withValues(alpha: 0.5),
@@ -844,7 +817,6 @@ class _TabletCourseGridCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 6),
-                // Title with flexible height
                 Flexible(
                   child: Text(
                     course.nameAr,

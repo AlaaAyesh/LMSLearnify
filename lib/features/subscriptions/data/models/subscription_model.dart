@@ -60,7 +60,6 @@ class SubscriptionModel extends Subscription {
   }
 }
 
-/// Request model for creating a subscription
 class CreateSubscriptionRequest {
   final String nameAr;
   final String nameEn;
@@ -93,7 +92,6 @@ class CreateSubscriptionRequest {
   }
 }
 
-/// Request model for updating a subscription
 class UpdateSubscriptionRequest {
   final String? nameAr;
   final String? nameEn;

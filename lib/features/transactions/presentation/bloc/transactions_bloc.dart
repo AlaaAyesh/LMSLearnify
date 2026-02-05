@@ -27,7 +27,6 @@ class TransactionsBloc extends Bloc<TransactionsEvent, TransactionsState> {
       _nextPageUrl = null;
     }
 
-    // Show cached data if available
     final currentState = state;
     if (currentState is TransactionsLoaded && !event.refresh) {
       emit(TransactionsLoading(cachedTransactions: currentState.transactions));

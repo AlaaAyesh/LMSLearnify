@@ -11,12 +11,10 @@ import '../../../shorts/presentation/pages/shorts_page.dart';
 import '../../../subscriptions/presentation/pages/subscriptions_page.dart';
 import 'home_tab.dart';
 
-/// Notifier for tab index changes
 class TabIndexNotifier extends ValueNotifier<int> {
   TabIndexNotifier(super.value);
 }
 
-/// Inherited widget to provide tab index notifier to descendants
 class TabIndexProvider extends InheritedNotifier<TabIndexNotifier> {
   const TabIndexProvider({
     super.key,
@@ -39,8 +37,7 @@ class MainNavigationPage extends StatefulWidget {
 class MainNavigationPageState extends State<MainNavigationPage> {
   int _selectedIndex = 0;
   late final TabIndexNotifier _tabIndexNotifier;
-  
-  // Global keys for each tab's navigator
+
   final List<GlobalKey<NavigatorState>> _navigatorKeys = [
     GlobalKey<NavigatorState>(),
     GlobalKey<NavigatorState>(),
@@ -48,10 +45,8 @@ class MainNavigationPageState extends State<MainNavigationPage> {
     GlobalKey<NavigatorState>(),
   ];
 
-  // Track if we should show bottom nav (for full screen pages)
   bool _showBottomNav = true;
 
-  // Getter for current tab index (used by child widgets)
   int get currentTabIndex => _selectedIndex;
 
   @override
@@ -76,7 +71,6 @@ class MainNavigationPageState extends State<MainNavigationPage> {
   Widget build(BuildContext context) {
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
-        // Handle incomplete profile - redirect to complete profile page
         if (state is SocialLoginNeedsCompletion) {
           Navigator.of(context, rootNavigator: true).push(
             MaterialPageRoute(
@@ -97,12 +91,10 @@ class MainNavigationPageState extends State<MainNavigationPage> {
           canPop: false,
           onPopInvokedWithResult: (didPop, result) {
             if (didPop) return;
-            // Handle back button - pop the current tab's navigator first
             final currentNavigator = _navigatorKeys[_selectedIndex].currentState;
             if (currentNavigator != null && currentNavigator.canPop()) {
               currentNavigator.pop();
             } else {
-              // Allow system back if we can't pop
               Navigator.of(context).maybePop();
             }
           },
@@ -143,7 +135,7 @@ class MainNavigationPageState extends State<MainNavigationPage> {
         color: Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Color(0x0D000000), // 5% black opacity
+            color: Color(0x0D000000),
             blurRadius: 10,
             offset: Offset(0, -2),
           ),
@@ -206,20 +198,17 @@ class MainNavigationPageState extends State<MainNavigationPage> {
     );
   }
 
-  // Method to push a page onto the current tab's navigator
   void pushPage(Widget page) {
     _navigatorKeys[_selectedIndex].currentState?.push(
       MaterialPageRoute(builder: (_) => page),
     );
   }
 
-  // Method to switch to a specific tab
   void switchToTab(int index) {
     setState(() => _selectedIndex = index);
   }
 }
 
-// Extension to easily access MainNavigationPage from anywhere
 extension MainNavigationContext on BuildContext {
   MainNavigationPageState? get mainNavigation {
     return findAncestorStateOfType<MainNavigationPageState>();

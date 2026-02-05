@@ -16,10 +16,9 @@ class ContentPreferencesPage extends StatefulWidget {
 }
 
 class _ContentPreferencesPageState extends State<ContentPreferencesPage> {
-  // Option 1 and 2 enabled by default, Option 3 disabled by default
-  bool _coursesAndSkills = true; // Option 1: enabled by default
-  bool _valuesAndEthics = true; // Option 2: enabled by default
-  bool _islamicStories = false; // Option 3: disabled by default (optional)
+  bool _coursesAndSkills = true;
+  bool _valuesAndEthics = true;
+  bool _islamicStories = false;
 
   bool _isSaving = false;
 
@@ -31,7 +30,6 @@ class _ContentPreferencesPageState extends State<ContentPreferencesPage> {
         if (didPop) return;
         final shouldPop = await _onWillPop();
         if (shouldPop && mounted) {
-          // Exit app or navigate back based on user choice
           Navigator.of(context).pop();
         }
       },
@@ -98,10 +96,9 @@ class _ContentPreferencesPageState extends State<ContentPreferencesPage> {
                     ),
                   ),
                   SizedBox(height: Responsive.spacing(context, 32)),
-                  // Content Type Question + Options
                   Column(
                     crossAxisAlignment:
-                        CrossAxisAlignment.start, // يضع المحتوى على اليمين
+                        CrossAxisAlignment.start,
                     children: [
                       Text(
                         'نوع المحتوي اللي تحب يظهر لطفلك؟',
@@ -111,12 +108,11 @@ class _ContentPreferencesPageState extends State<ContentPreferencesPage> {
                           fontWeight: FontWeight.bold,
                           color: Colors.black,
                         ),
-                        textAlign: TextAlign.right, // النص على اليمين
+                        textAlign: TextAlign.right,
                       ),
                       SizedBox(height: Responsive.spacing(context, 20)),
 
 
-                      // Option 1
                       _buildOption(
                         title:
                             'كورسات ومهارات ( البرمجة، الرسم، اللغات و العلوم ... الخ )',
@@ -133,7 +129,6 @@ class _ContentPreferencesPageState extends State<ContentPreferencesPage> {
                             () => _valuesAndEthics = !_valuesAndEthics),
                       ),
 
-                      // Option 3
                       _buildOption(
                         title:
                             'قصص وممارسات اسلامية ( الوضوء، الصلاة وقصص الانبياء .. الخ )',
@@ -148,7 +143,6 @@ class _ContentPreferencesPageState extends State<ContentPreferencesPage> {
                   PrimaryButton(
                     text: 'حفظ',
                     isLoading: _isSaving,
-                    // Enable button only when option 1 and 2 are selected
                     onPressed: (_isSaving || !_canSave()) ? null : _savePreferences,
                   ),
 
@@ -212,13 +206,11 @@ class _ContentPreferencesPageState extends State<ContentPreferencesPage> {
     );
   }
 
-  /// Check if options 1 and 2 are selected (required for saving)
   bool _canSave() {
     return _coursesAndSkills && _valuesAndEthics;
   }
 
   Future<void> _savePreferences() async {
-    // Validate that required options are selected
     if (!_canSave()) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -233,28 +225,22 @@ class _ContentPreferencesPageState extends State<ContentPreferencesPage> {
 
     try {
       final hiveService = sl<HiveService>();
-      
-      // Save preferences to local storage
+
       await hiveService.saveData('content_preferences', {
         'coursesAndSkills': _coursesAndSkills,
         'valuesAndEthics': _valuesAndEthics,
         'islamicStories': _islamicStories,
       });
 
-      // Mark onboarding as completed
       await hiveService.saveData(
         AppConstants.keyContentPreferencesCompleted,
         true,
       );
 
-      // TODO: Add API call to save preferences to backend
-      // await _savePreferencesToBackend();
-
       if (!mounted) return;
 
       setState(() => _isSaving = false);
 
-      // Navigate to home and remove all previous routes
       if (mounted) {
         Navigator.of(context).pushNamedAndRemoveUntil(
           '/home',
@@ -275,9 +261,7 @@ class _ContentPreferencesPageState extends State<ContentPreferencesPage> {
     }
   }
 
-  /// Prevent back navigation - onboarding is mandatory
   Future<bool> _onWillPop() async {
-    // Show dialog to confirm if user tries to go back
     final shouldPop = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -303,7 +287,6 @@ class _ContentPreferencesPageState extends State<ContentPreferencesPage> {
     );
     
     if (shouldPop == true) {
-      // Exit app if user confirms
       return true;
     }
     return false;

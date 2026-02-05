@@ -28,8 +28,6 @@ import '../../data/models/payment_model.dart';
 import '../../../../core/routing/app_router.dart';
 
 class SubscriptionsPage extends StatelessWidget {
-  /// When true, shows the back button in the app bar.
-  /// Set to false when accessed from bottom navigation (nothing to go back to).
   final bool showBackButton;
 
   const SubscriptionsPage({
@@ -86,12 +84,9 @@ class _SubscriptionsPageContentState extends State<_SubscriptionsPageContent> wi
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
-    // Reload subscriptions when app comes back to foreground
-    // This helps refresh data after returning from external payment browser
     if (state == AppLifecycleState.resumed && mounted) {
       final now = DateTime.now();
-      // Only reload if it's been more than 5 seconds since last reload
-      if (_lastReloadTime == null || 
+      if (_lastReloadTime == null ||
           now.difference(_lastReloadTime!).inSeconds > 5) {
         print('App resumed, reloading subscriptions...');
         _lastReloadTime = now;
@@ -128,7 +123,6 @@ class _SubscriptionsPageContentState extends State<_SubscriptionsPageContent> wi
                   ),
                 );
               } else if (state is SubscriptionsLoaded && _shouldShowPaymentAfterLogin) {
-                // After login, subscriptions reloaded - show payment sheet
                 final selectedSubscription = state.selectedSubscription;
                 if (selectedSubscription != null && mounted) {
                   _shouldShowPaymentAfterLogin = false;
@@ -139,7 +133,6 @@ class _SubscriptionsPageContentState extends State<_SubscriptionsPageContent> wi
                   });
                 }
               } else if (state is PaymentCompleted) {
-                // Payment completed (including free subscriptions with 100% coupon)
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text(state.message),
@@ -147,13 +140,11 @@ class _SubscriptionsPageContentState extends State<_SubscriptionsPageContent> wi
                     duration: const Duration(seconds: 3),
                   ),
                 );
-                // إعادة تحميل الاشتراكات بعد نجاح الدفع لإعادة بناء الصفحة
                 Future.delayed(const Duration(milliseconds: 500), () {
                   if (mounted) {
                     print('Reloading subscriptions from UI after payment completion...');
                     context.read<SubscriptionBloc>().add(const LoadSubscriptionsEvent());
-                    
-                    // Reload user data to update subscription status in profile
+
                     print('Reloading user data to update subscription status...');
                     try {
                       context.read<AuthBloc>().add(CheckAuthStatusEvent());
@@ -183,7 +174,6 @@ class _SubscriptionsPageContentState extends State<_SubscriptionsPageContent> wi
                 return _buildErrorState(context, state.message);
               }
 
-              // Initial state - show loading
               return Center(
                 child: CircularProgressIndicator(),
               );
@@ -234,13 +224,11 @@ class _SubscriptionsPageContentState extends State<_SubscriptionsPageContent> wi
         state.subscriptions.length,
         (index) {
           final subscription = state.subscriptions[index];
-          // Find the longest duration to mark as recommended
           final maxDuration = state.subscriptions
               .map((s) => s.duration)
               .reduce((a, b) => a > b ? a : b);
           final isRecommended = subscription.duration == maxDuration;
-          
-          // Only show coupon discount on selected plan
+
           final shouldShowCouponDiscount = hasCouponApplied && index == isSelectedPlan;
 
           return Padding(
@@ -255,10 +243,10 @@ class _SubscriptionsPageContentState extends State<_SubscriptionsPageContent> wi
                 discountedPrice: subscription.price,
                 currency: subscription.currency != null && subscription.currency!.isNotEmpty
                     ? subscription.getCurrencySymbol()
-                    : currencySymbol, // Fallback to CurrencyService if currency not provided
+                    : currencySymbol,
                 description: _getDurationDescription(subscription.duration),
                 isRecommended: isRecommended,
-                isActive: subscription.isActive, // Show active badge if user is subscribed
+                isActive: subscription.isActive,
               ),
               isSelected: state.selectedIndex == index,
               couponDiscountPercentage: shouldShowCouponDiscount ? state.discountPercentage : null,
@@ -338,16 +326,6 @@ class _SubscriptionsPageContentState extends State<_SubscriptionsPageContent> wi
       padding: Responsive.padding(context, all: 16),
       child: Column(
         children: [
-          // if (selectedSubscription != null) ...[
-          //   Text(
-          //     'المجموع: ${selectedSubscription.price} $currencySymbol',
-          //     style: AppTextStyles.bodyLarge.copyWith(
-          //       fontWeight: FontWeight.bold,
-          //       fontSize: Responsive.fontSize(context, AppTextStyles.bodyLarge.fontSize ?? 16),
-          //     ),
-          //   ),
-          //   SizedBox(height: Responsive.spacing(context, 8)),
-          // ],
           PaymentButton(
             onPressed: () {
               print('Payment button pressed');
@@ -376,36 +354,29 @@ class _SubscriptionsPageContentState extends State<_SubscriptionsPageContent> wi
       return;
     }
 
-    // Check if user is authenticated
     final authLocalDataSource = sl<AuthLocalDataSource>();
     final token = await authLocalDataSource.getAccessToken();
     
     final isAuthenticated = token != null && token.isNotEmpty;
     
     if (!isAuthenticated) {
-      // Show dialog and wait for user response
       final goToLogin = await _showLoginRequiredDialog(context);
-      
-      // If user cancelled or dismissed dialog, return early
+
       if (goToLogin != true) {
         return;
       }
 
-      // User chose to login - navigate to login page
       if (!mounted) return;
-      
-      // Save selected plan index before redirecting to login
+
       final selectedIndex = state.selectedIndex;
       final promoCode = state.appliedPromoCode;
-      
-      // Set flag to show payment sheet after login
+
       setState(() {
         _shouldShowPaymentAfterLogin = true;
         _pendingSelectedIndex = selectedIndex;
         _pendingPromoCode = promoCode;
       });
-      
-      // Navigate to login with return info (use root navigator to avoid nested navigator issues)
+
       final result = await Navigator.of(context, rootNavigator: true).pushNamed(
         AppRouter.login,
         arguments: {
@@ -414,11 +385,9 @@ class _SubscriptionsPageContentState extends State<_SubscriptionsPageContent> wi
           'promoCode': promoCode,
         },
       );
-      
-      // After login success, reload subscriptions and restore selection
+
       if (result == true && mounted) {
         context.read<SubscriptionBloc>().add(const LoadSubscriptionsEvent());
-        // Restore selection after a brief delay for state to update
         Future.delayed(const Duration(milliseconds: 500), () {
           if (mounted && _pendingSelectedIndex != null) {
             context.read<SubscriptionBloc>().add(
@@ -427,7 +396,6 @@ class _SubscriptionsPageContentState extends State<_SubscriptionsPageContent> wi
           }
         });
       } else {
-        // Login cancelled or failed - reset flag
         if (mounted) {
           setState(() {
             _shouldShowPaymentAfterLogin = false;
@@ -439,13 +407,11 @@ class _SubscriptionsPageContentState extends State<_SubscriptionsPageContent> wi
       return;
     }
 
-    // User is authenticated - check if price is 0 (100% coupon)
     final finalPrice = state.finalPriceAfterCoupon != null
         ? double.tryParse(state.finalPriceAfterCoupon!) ?? double.tryParse(selectedSubscription.price) ?? 0.0
         : double.tryParse(selectedSubscription.price) ?? 0.0;
     
     if (finalPrice == 0 && state.appliedPromoCode != null && state.appliedPromoCode!.isNotEmpty) {
-      // Free subscription (100% coupon) - process payment directly without showing payment sheet
       final currencyCode = CurrencyService.getCurrencyCode();
       context.read<SubscriptionBloc>().add(
         ProcessPaymentEvent(
@@ -457,7 +423,6 @@ class _SubscriptionsPageContentState extends State<_SubscriptionsPageContent> wi
         ),
       );
     } else {
-      // Show payment sheet for paid subscriptions
       _showPaymentBottomSheet(context, selectedSubscription, state.appliedPromoCode);
     }
   }
@@ -531,7 +496,6 @@ class _SubscriptionsPageContentState extends State<_SubscriptionsPageContent> wi
           value: bloc,
           child: BlocBuilder<SubscriptionBloc, SubscriptionState>(
             builder: (context, state) {
-              // Get the final amount - use coupon price if available, otherwise use subscription price
               String amount;
               double? discountPercentage;
               String? appliedCouponCode = promoCode;
@@ -550,9 +514,7 @@ class _SubscriptionsPageContentState extends State<_SubscriptionsPageContent> wi
 
               return BlocListener<SubscriptionBloc, SubscriptionState>(
                 listener: (context, state) async {
-                  if (state is PaymentProcessing) {
-                    // nothing extra, button shows loader outside
-                  } else if (state is PaymentCheckoutReady) {
+                  if (state is PaymentProcessing) {} else if (state is PaymentCheckoutReady) {
                     final uri = Uri.parse(state.checkoutUrl);
                     if (await canLaunchUrl(uri)) {
                       await launchUrl(
@@ -578,7 +540,6 @@ class _SubscriptionsPageContentState extends State<_SubscriptionsPageContent> wi
                       ),
                     );
                   } else if (state is PaymentCompleted || state is PaymentInitiated) {
-                    // Reload user data to update subscription status in profile
                     try {
                       context.read<AuthBloc>().add(CheckAuthStatusEvent());
                     } catch (e) {
@@ -637,7 +598,6 @@ class _SubscriptionsPageContentState extends State<_SubscriptionsPageContent> wi
                           );
                         },
                       ),
-                      // In-app purchase options
                       if (Platform.isAndroid) ...[
                         SizedBox(height: Responsive.spacing(ctx, 12)),
                         _PaymentOptionTile(
@@ -676,24 +636,7 @@ class _SubscriptionsPageContentState extends State<_SubscriptionsPageContent> wi
                         ),
                       ],
                       SizedBox(height: Responsive.spacing(ctx, 12)),
-                      // _PaymentOptionTile(
-                      //   title: 'محفظة / طرق أخرى',
-                      //   subtitle: 'سيتم توجيهك لبوابة الدفع',
-                      //   icon: Icons.account_balance_wallet,
-                      //   onTap: () {
-                      //     bloc.add(
-                      //       ProcessPaymentEvent(
-                      //         service: PaymentService.kashier,
-                      //         currency: currencyCode,
-                      //         subscriptionId: selectedSubscription.id,
-                      //         phone: '',
-                      //         couponCode: appliedCouponCode,
-                      //       ),
-                      //     );
-                      //   },
-                      // ),
                       SizedBox(height: Responsive.spacing(ctx, 16)),
-                      // Show discount info if coupon applied
                       if (discountPercentage != null && discountPercentage > 0) ...[
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,

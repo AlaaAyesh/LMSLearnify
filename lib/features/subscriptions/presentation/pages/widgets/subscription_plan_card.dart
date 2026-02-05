@@ -44,7 +44,6 @@ class SubscriptionPlanCard extends StatelessWidget {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                // استخدام Flexible لضمان عدم الـ overflow
                 Flexible(
                   flex: 1,
                   child: PlanDetailsSection(
@@ -58,15 +57,12 @@ class SubscriptionPlanCard extends StatelessWidget {
                   originalPrice: plan.originalPrice,
                   discountedPrice: plan.discountedPrice,
                   currency: plan.currency,
-                  // couponDiscountPercentage: couponDiscountPercentage,
                   finalPriceAfterCoupon: finalPriceAfterCoupon,
                 ),
               ],
             ),
           ),
-          // Show active badge if user is subscribed to this plan
           if (plan.isActive) const ActiveBadge()
-          // Show recommended badge only if not active
           else if (plan.isRecommended) const RecommendedBadge(),
         ],
       ),
@@ -75,13 +71,11 @@ class SubscriptionPlanCard extends StatelessWidget {
 
   CardColors _getCardColors() {
     if (isSelected) {
-      // Yellow/golden color for selected card
       return CardColors(
         background: const Color(0xFFFEEDBE).withOpacity(0.70),
         border: Colors.black,
       );
     } else {
-      // Normal white/grey for unselected cards
       return CardColors(
         background: const Color(0xFFFEFEFE).withOpacity(0.4),
         border: Colors.black,

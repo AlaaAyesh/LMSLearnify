@@ -21,24 +21,21 @@ class DioClient {
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
-          'Connection': 'keep-alive', // Enable connection pooling
+          'Connection': 'keep-alive',
         },
-        // Enable connection pooling and reuse
         persistentConnection: true,
         followRedirects: true,
         maxRedirects: 5,
       ),
     );
 
-    // Add cache interceptor if available
     final cacheOptions = CacheService.cacheOptions;
     if (cacheOptions != null) {
       _dio.interceptors.add(DioCacheInterceptor(options: cacheOptions));
     }
 
     _dio.interceptors.add(_AuthInterceptor(_secureStorage));
-    
-    // Only add logger in debug mode - improves performance in release
+
     if (kDebugMode) {
       _dio.interceptors.add(
         PrettyDioLogger(
@@ -55,13 +52,11 @@ class DioClient {
 
   Dio get dio => _dio;
 
-  /// Cancel a specific request by tag
   void cancelRequest(String tag) {
     _cancelTokens[tag]?.cancel('Request cancelled');
     _cancelTokens.remove(tag);
   }
 
-  /// Cancel all pending requests
   void cancelAllRequests() {
     for (final token in _cancelTokens.values) {
       token.cancel('All requests cancelled');
@@ -69,23 +64,19 @@ class DioClient {
     _cancelTokens.clear();
   }
 
-  // GET Request with caching support (cache is handled automatically by interceptor)
   Future<Response> get(
       String path, {
         Map<String, dynamic>? queryParameters,
         Options? options,
         String? cancelTag,
       }) async {
-    // Create cancel token if tag provided
     CancelToken? cancelToken;
     if (cancelTag != null) {
-      // Cancel previous request with same tag
       cancelRequest(cancelTag);
       cancelToken = CancelToken();
       _cancelTokens[cancelTag] = cancelToken;
     }
 
-    // Merge options - cache is handled by interceptor automatically
     final mergedOptions = options ?? Options();
 
     try {
@@ -95,15 +86,13 @@ class DioClient {
         options: mergedOptions,
         cancelToken: cancelToken,
       );
-      
-      // Remove cancel token on success
+
       if (cancelTag != null) {
         _cancelTokens.remove(cancelTag);
       }
       
       return response;
     } catch (e) {
-      // Remove cancel token on error
       if (cancelTag != null) {
         _cancelTokens.remove(cancelTag);
       }
@@ -111,7 +100,6 @@ class DioClient {
     }
   }
 
-  // POST Request
   Future<Response> post(
       String path, {
         dynamic data,
@@ -148,7 +136,6 @@ class DioClient {
     }
   }
 
-  // PUT Request
   Future<Response> put(
       String path, {
         dynamic data,
@@ -185,7 +172,6 @@ class DioClient {
     }
   }
 
-  // DELETE Request
   Future<Response> delete(
       String path, {
         dynamic data,
@@ -223,7 +209,6 @@ class DioClient {
   }
 }
 
-// Auth Interceptor لإضافة التوكن تلقائياً
 class _AuthInterceptor extends Interceptor {
   final SecureStorageService _secureStorage;
 
@@ -243,7 +228,6 @@ class _AuthInterceptor extends Interceptor {
 
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) {
-    // يمكن إضافة منطق refresh token هنا
     handler.next(err);
   }
 }

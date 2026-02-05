@@ -7,14 +7,12 @@ class Lesson extends Equatable {
   final String? description;
   final String? duration;
   final bool viewed;
-  
-  // Video fields
+
   final String? bunnyUrl;
   final String? bunnyUri;
   final String? videoStatus;
   final String? videoDuration;
-  
-  // Parent references
+
   final int? courseId;
   final int? chapterId;
 
@@ -34,11 +32,9 @@ class Lesson extends Equatable {
   });
 
   String getName(String locale) => locale == 'ar' ? nameAr : nameEn;
-  
-  /// Check if video is ready to play
+
   bool get isVideoReady => videoStatus == 'uploaded' && bunnyUrl != null;
-  
-  /// Get the video URL for playback (prefer bunny_url for embed)
+
   String? get videoUrl => bunnyUrl ?? bunnyUri;
 
   @override

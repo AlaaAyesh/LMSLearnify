@@ -108,7 +108,6 @@ class _CategoryGridItem extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          // Category Image
           SizedBox(
             width: 130,
             height: 130,
@@ -129,7 +128,6 @@ class _CategoryGridItem extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 8),
-          // Category Name
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12),
             child: Text(

@@ -6,34 +6,22 @@ import '../models/payment_model.dart';
 import '../models/subscription_model.dart';
 
 abstract class SubscriptionRemoteDataSource {
-  /// Get all available subscriptions
-  /// Throws [ServerException] on failure
   Future<List<SubscriptionModel>> getSubscriptions();
 
-  /// Get a specific subscription by its ID
-  /// Throws [ServerException] on failure
   Future<SubscriptionModel> getSubscriptionById(int id);
 
-  /// Create a new subscription
-  /// Throws [ServerException] on failure
   Future<SubscriptionModel> createSubscription(CreateSubscriptionRequest request);
 
-  /// Update an existing subscription
-  /// Throws [ServerException] on failure
   Future<SubscriptionModel> updateSubscription(int id, UpdateSubscriptionRequest request);
 
-  /// Process a payment for a subscription or course
-  /// Throws [ServerException] on failure
   Future<PaymentResponseModel> processPayment(ProcessPaymentRequest request);
 
-  /// Validate a coupon code for a subscription
-  /// Throws [ServerException] on failure
   Future<Map<String, dynamic>> validateCoupon({
     required String code,
     required String type,
     required int id,
   });
-  /// Verify In-App Purchase receipt
+
   Future<void> verifyIapReceipt({
     required String receiptData,
     required String transactionId,
@@ -41,7 +29,6 @@ abstract class SubscriptionRemoteDataSource {
     required String store,
   });
 
-  /// Get user transactions
   Future<TransactionsResponseModel> getMyTransactions({
     int page = 1,
     int perPage = 10,
@@ -63,18 +50,13 @@ class SubscriptionRemoteDataSourceImpl implements SubscriptionRemoteDataSource {
         List<dynamic> subscriptionsJson;
         final responseData = response.data;
 
-        // Handle different response structures
         if (responseData['data'] is Map && responseData['data']['data'] is List) {
-          // Nested structure: { data: { data: [...] } }
           subscriptionsJson = responseData['data']['data'];
         } else if (responseData['data'] is List) {
-          // Direct structure: { data: [...] }
           subscriptionsJson = responseData['data'];
         } else if (responseData['subscriptions'] is List) {
-          // Alternative structure: { subscriptions: [...] }
           subscriptionsJson = responseData['subscriptions'];
         } else if (responseData is List) {
-          // Raw list response
           subscriptionsJson = responseData;
         } else {
           subscriptionsJson = [];
@@ -103,7 +85,6 @@ class SubscriptionRemoteDataSourceImpl implements SubscriptionRemoteDataSource {
         final responseData = response.data;
         Map<String, dynamic> subscriptionData;
 
-        // Handle different response structures
         if (responseData['data'] is Map && responseData['data']['data'] is Map) {
           subscriptionData = responseData['data']['data'];
         } else if (responseData['data'] is Map) {
@@ -164,7 +145,6 @@ class SubscriptionRemoteDataSourceImpl implements SubscriptionRemoteDataSource {
   @override
   Future<SubscriptionModel> updateSubscription(int id, UpdateSubscriptionRequest request) async {
     try {
-      // Using POST with _method: PUT for method spoofing
       final response = await dioClient.post(
         '${ApiConstants.subscriptions}/$id',
         data: FormData.fromMap(request.toFormData()),
@@ -241,7 +221,6 @@ class SubscriptionRemoteDataSourceImpl implements SubscriptionRemoteDataSource {
       );
 
       if (response.statusCode == 200) {
-        // Return the response data which may contain discount info
         return response.data is Map<String, dynamic>
             ? response.data as Map<String, dynamic>
             : {'valid': true};
@@ -252,7 +231,6 @@ class SubscriptionRemoteDataSourceImpl implements SubscriptionRemoteDataSource {
         statusCode: response.statusCode,
       );
     } on DioException catch (e) {
-      // Handle 422 validation errors specifically
       if (e.response?.statusCode == 422) {
         final errors = e.response?.data['errors'];
         String errorMessage = 'الكوبون غير صالح';
@@ -298,7 +276,6 @@ class SubscriptionRemoteDataSourceImpl implements SubscriptionRemoteDataSource {
         errorMessage = e.response?.data['message'] ?? 'بيانات غير صالحة';
       }
     } else if (e.response?.data != null) {
-      // Check for errors field (could be string or Map)
       final errors = e.response?.data['errors'];
       if (errors != null) {
         if (errors is String) {
@@ -312,7 +289,6 @@ class SubscriptionRemoteDataSourceImpl implements SubscriptionRemoteDataSource {
           }
         }
       }
-      // Fallback to message if errors not found or not usable
       if (errorMessage == defaultMessage && e.response?.data['message'] != null) {
         errorMessage = e.response!.data['message'];
       }
@@ -337,7 +313,7 @@ class SubscriptionRemoteDataSourceImpl implements SubscriptionRemoteDataSource {
           'receipt_data': receiptData,
           'transaction_id': transactionId,
           'purchase_id': purchaseId,
-          'store': store, // gplay | iap
+          'store': store,
         },
       );
 
@@ -368,18 +344,15 @@ class SubscriptionRemoteDataSourceImpl implements SubscriptionRemoteDataSource {
 
       if (response.statusCode == 200) {
         final responseData = response.data;
-        
-        // Handle response structure: { "status": "success", "data": { "data": [...], "meta": {...} } }
+
         if (responseData['status'] == 'success' && responseData['data'] != null) {
           return TransactionsResponseModel.fromJson(responseData['data']);
         }
-        
-        // Handle case where data and meta are at root level
+
         if (responseData['data'] != null || responseData['transactions'] != null) {
           return TransactionsResponseModel.fromJson(responseData);
         }
 
-        // Return empty response if structure is unexpected
         return TransactionsResponseModel(
           transactions: [],
           total: 0,

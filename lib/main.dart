@@ -10,10 +10,8 @@ import 'core/network/cache_service.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Run initialization in parallel for faster startup
   await Future.wait([
     HiveService.init(),
-    // Allow both portrait and landscape; tablet layouts will adapt using Responsive.isTablet
     SystemChrome.setPreferredOrientations([
       DeviceOrientation.portraitUp,
       DeviceOrientation.portraitDown,
@@ -22,13 +20,11 @@ void main() async {
     ]),
     _setSystemUI(),
   ]);
-  
-  // Initialize cache service for HTTP caching
+
   await CacheService.init();
   
   await initDependencies();
 
-  // Disable debug print in release mode for performance
   if (kReleaseMode) {
     debugPrint = (String? message, {int? wrapWidth}) {};
   }
@@ -37,10 +33,9 @@ void main() async {
 }
 
 Future<void> _setSystemUI() async {
-  // Hide only the bottom navigation bar, keep status bar visible
   SystemChrome.setEnabledSystemUIMode(
     SystemUiMode.manual,
-    overlays: [SystemUiOverlay.top], // Only show status bar
+    overlays: [SystemUiOverlay.top],
   );
   
   SystemChrome.setSystemUIOverlayStyle(

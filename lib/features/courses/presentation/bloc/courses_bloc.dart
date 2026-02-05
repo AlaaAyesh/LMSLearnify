@@ -11,13 +11,11 @@ class CoursesBloc extends Bloc<CoursesEvent, CoursesState> {
   final GetCourseByIdUseCase getCourseByIdUseCase;
   final GetMyCoursesUseCase getMyCoursesUseCase;
 
-  // Track current filters
   int? _currentCategoryId;
   int? _currentSpecialtyId;
   int _currentPage = 1;
   static const int _perPage = 10;
-  
-  // Debouncer for filter changes to avoid excessive API calls
+
   final Debouncer _filterDebouncer = Debouncer(delay: const Duration(milliseconds: 300));
 
   CoursesBloc({
@@ -43,7 +41,6 @@ class CoursesBloc extends Bloc<CoursesEvent, CoursesState> {
       _currentPage = 1;
     }
 
-    // Update filters if provided
     if (event.categoryId != null) _currentCategoryId = event.categoryId;
     if (event.specialtyId != null) _currentSpecialtyId = event.specialtyId;
 
@@ -137,7 +134,6 @@ class CoursesBloc extends Bloc<CoursesEvent, CoursesState> {
         if (courses.isEmpty) {
           emit(CoursesEmpty());
         } else {
-          // Reuse the common loaded state; pagination is disabled for "my courses".
           emit(const CoursesLoaded(
             courses: [],
             hasMorePages: false,
@@ -154,8 +150,7 @@ class CoursesBloc extends Bloc<CoursesEvent, CoursesState> {
   ) async {
     _currentCategoryId = event.categoryId;
     _currentPage = 1;
-    
-    // Debounce filter changes to avoid excessive API calls
+
     _filterDebouncer.call(() {
       add(const LoadCoursesEvent(refresh: true));
     });
@@ -167,8 +162,7 @@ class CoursesBloc extends Bloc<CoursesEvent, CoursesState> {
   ) async {
     _currentSpecialtyId = event.specialtyId;
     _currentPage = 1;
-    
-    // Debounce filter changes to avoid excessive API calls
+
     _filterDebouncer.call(() {
       add(const LoadCoursesEvent(refresh: true));
     });

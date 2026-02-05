@@ -78,13 +78,6 @@ class CertificateBloc extends Bloc<CertificateEvent, CertificateState> {
   ) async {
     emit(CertificateDownloading());
 
-    // TODO: Implement actual download logic using dio/url_launcher
-    // For now, we'll emit success with the download URL
-    // In a real implementation, you would:
-    // 1. Use dio to download the file
-    // 2. Save it to the device storage
-    // 3. Return the local file path
-    
     emit(CertificateDownloaded(event.downloadUrl));
   }
 

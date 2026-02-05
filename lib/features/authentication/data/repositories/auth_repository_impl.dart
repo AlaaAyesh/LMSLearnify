@@ -28,12 +28,10 @@ class AuthRepositoryImpl implements AuthRepository {
 
       final loginResponse = await remoteDataSource.login(request);
 
-      // Save access token
       await localDataSource.saveTokens(
         accessToken: loginResponse.accessToken,
       );
 
-      // Cache user data
       await localDataSource.cacheUser(loginResponse.user);
 
 
@@ -75,12 +73,10 @@ class AuthRepositoryImpl implements AuthRepository {
 
       final registerResponse = await remoteDataSource.register(request);
 
-      // Save access token
       await localDataSource.saveTokens(
         accessToken: registerResponse.accessToken,
       );
 
-      // Cache user data
       await localDataSource.cacheUser(registerResponse.user);
 
 
@@ -96,19 +92,14 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<Either<Failure, void>> logout() async {
     try {
-      // Try to logout from server
       try {
         await remoteDataSource.logout();
-      } catch (_) {
-        // Ignore server errors - still clear local data
-      }
-      
-      // Clear all local data
+      } catch (_) {}
+
       await localDataSource.clearCache();
       
       return const Right(null);
     } catch (_) {
-      // Even if there's an error, try to clear local data
       try {
         await localDataSource.clearCache();
       } catch (_) {}
@@ -230,12 +221,10 @@ class AuthRepositoryImpl implements AuthRepository {
     try {
       final loginResponse = await remoteDataSource.handleGoogleCallback(code);
 
-      // Save access token
       await localDataSource.saveTokens(
         accessToken: loginResponse.accessToken,
       );
 
-      // Cache user data
       await localDataSource.cacheUser(loginResponse.user);
 
 
@@ -270,21 +259,15 @@ class AuthRepositoryImpl implements AuthRepository {
         birthday: birthday,
       );
 
-      // Save access token
       await localDataSource.saveTokens(
         accessToken: loginResponse.accessToken,
       );
 
-      // Cache user data
       await localDataSource.cacheUser(loginResponse.user);
 
 
       return Right(loginResponse.user);
     } on ServerException catch (e) {
-      // If the server returns 404, this usually means that the social
-      // account (Google / Apple) is valid but not yet linked to a user
-      // in our system. We surface this as a NotFoundFailure so the
-      // presentation layer can redirect the user to complete profile.
       if (e.statusCode == 404) {
         return Left(NotFoundFailure(e.message));
       }
@@ -320,10 +303,7 @@ class AuthRepositoryImpl implements AuthRepository {
         role: role,
       );
 
-      // Cache updated user data
-      // updatedUser is actually a UserModel (since UserModel.fromJson returns UserModel)
-      // Convert to UserModel if needed
-      final userModel = updatedUser is UserModel 
+      final userModel = updatedUser is UserModel
           ? updatedUser 
           : UserModel.fromEntity(updatedUser);
       await localDataSource.cacheUser(userModel);

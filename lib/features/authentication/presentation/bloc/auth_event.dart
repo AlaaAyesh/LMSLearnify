@@ -26,8 +26,8 @@ class RegisterEvent extends AuthEvent {
   final String phone;
   final int specialtyId;
   final String gender;
-  final String? religion; // 'muslim' or 'christian'
-  final String? birthday; // Format: YYYY-MM-DD
+  final String? religion;
+  final String? birthday;
 
   const RegisterEvent({
     required this.name,
@@ -47,7 +47,7 @@ class RegisterEvent extends AuthEvent {
 }
 
 class SocialLoginEvent extends AuthEvent {
-  final String provider; // 'google' or 'apple'
+  final String provider;
 
   const SocialLoginEvent({required this.provider});
 
@@ -62,10 +62,10 @@ class CompleteProfileEvent extends AuthEvent {
   final String role;
   final int specialtyId;
   final String gender;
-  final String? religion; // 'muslim' or 'christian'
+  final String? religion;
   final String? birthday;
   final String providerId;
-  final String accessToken; // Google/Apple token for registration
+  final String accessToken;
 
   const CompleteProfileEvent({
     required this.name,
@@ -114,7 +114,6 @@ class ResetPasswordEvent extends AuthEvent {
   List<Object?> get props => [email, otp, password, passwordConfirmation];
 }
 
-// Email verification events
 class SendEmailOtpEvent extends AuthEvent {}
 
 class VerifyEmailOtpEvent extends AuthEvent {
@@ -128,7 +127,6 @@ class VerifyEmailOtpEvent extends AuthEvent {
 
 class CheckEmailVerificationEvent extends AuthEvent {}
 
-// Change password event
 class ChangePasswordEvent extends AuthEvent {
   final String currentPassword;
   final String newPassword;
@@ -145,7 +143,6 @@ class ChangePasswordEvent extends AuthEvent {
 }
 
 
-// Google OAuth events (WebView flow)
 class GoogleSignInEvent extends AuthEvent {}
 
 class GoogleCallbackEvent extends AuthEvent {
@@ -157,9 +154,8 @@ class GoogleCallbackEvent extends AuthEvent {
   List<Object?> get props => [code];
 }
 
-// Mobile OAuth events (Native SDK flow)
 class MobileOAuthLoginEvent extends AuthEvent {
-  final String provider; // 'google' or 'facebook'
+  final String provider;
   final String accessToken;
 
   const MobileOAuthLoginEvent({
@@ -171,13 +167,10 @@ class MobileOAuthLoginEvent extends AuthEvent {
   List<Object?> get props => [provider, accessToken];
 }
 
-// Native Google Sign-In event
 class NativeGoogleSignInEvent extends AuthEvent {}
 
-// Native Apple Sign-In event
 class NativeAppleSignInEvent extends AuthEvent {}
 
-// Update profile event
 class UpdateProfileEvent extends AuthEvent {
   final String? name;
   final String? email;

@@ -3,7 +3,7 @@ import 'package:equatable/equatable.dart';
 class Banner extends Equatable {
   final int id;
   final String title;
-  final int status; // 1 = active, 0 = inactive
+  final int status;
   final String bannerUrl;
   final String buttonDescription;
   final String websiteImageUrl;

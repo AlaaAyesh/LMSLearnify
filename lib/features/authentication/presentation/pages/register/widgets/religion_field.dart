@@ -44,7 +44,6 @@ class ReligionField extends StatelessWidget {
                 ),
                 child: Row(
                   children: [
-                    // Prefix Icon
                     Icon(
                       Icons.mosque_outlined,
                       color: AppColors.primary,
@@ -52,7 +51,6 @@ class ReligionField extends StatelessWidget {
                     ),
                     SizedBox(width: Responsive.spacing(context, 20)),
 
-                    // Dropdown
                     Expanded(
                       child: DropdownButtonHideUnderline(
                         child: DropdownButton<String>(

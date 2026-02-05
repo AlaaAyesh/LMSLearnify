@@ -11,22 +11,19 @@ class SupportSection extends StatelessWidget {
   const SupportSection({super.key});
 
   Future<void> _openWhatsApp(BuildContext context) async {
-    // Try WhatsApp native URL first
     final Uri whatsappNative = Uri.parse('whatsapp://send?phone=$_whatsappNumber');
     
     try {
       bool launched = await launchUrl(whatsappNative);
       if (launched) return;
     } catch (_) {}
-    
-    // Fallback to wa.me link
+
     final Uri waMe = Uri.parse('https://wa.me/$_whatsappNumber');
     try {
       bool launched = await launchUrl(waMe, mode: LaunchMode.externalApplication);
       if (launched) return;
     } catch (_) {}
-    
-    // Fallback to api.whatsapp.com
+
     final Uri apiWhatsapp = Uri.parse('https://api.whatsapp.com/send?phone=$_whatsappNumber');
     try {
       await launchUrl(apiWhatsapp, mode: LaunchMode.externalApplication);

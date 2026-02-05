@@ -5,7 +5,7 @@ class SubscriptionPlan {
   final String currency;
   final String description;
   final bool isRecommended;
-  final bool isActive; // هل المستخدم مشترك في هذه الباقة
+  final bool isActive;
 
   const SubscriptionPlan({
     required this.title,

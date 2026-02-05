@@ -60,8 +60,8 @@ class _KashierPaymentPageContentState extends State<_KashierPaymentPageContent> 
   final _formKey = GlobalKey<FormState>();
   
   bool _isLoading = false;
-  String _selectedPaymentMethod = 'card'; // 'card' or 'wallet'
-  
+  String _selectedPaymentMethod = 'card';
+
   String get _currencySymbol => CurrencyService.getCurrencySymbol();
   String get _currencyCode => CurrencyService.getCurrencyCode();
 
@@ -127,27 +127,22 @@ class _KashierPaymentPageContentState extends State<_KashierPaymentPageContent> 
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                // Payment Method Selection
                 _buildPaymentMethodSelection(context),
                 SizedBox(height: Responsive.spacing(context, 24)),
-                
-                // Test Card Button (only for card method)
+
                 if (_selectedPaymentMethod == 'card') ...[
                   _buildTestCardButton(context),
                   SizedBox(height: Responsive.spacing(context, 24)),
                 ],
-                
-                // Card Information (only for card method)
+
                 if (_selectedPaymentMethod == 'card') ...[
                   _buildCardInformation(context),
                   SizedBox(height: Responsive.spacing(context, 32)),
                 ],
-                
-                // Pay Button
+
                 _buildPayButton(context),
                 SizedBox(height: Responsive.spacing(context, 16)),
-                
-                // Security Note
+
                 _buildSecurityNote(context),
               ],
             ),
@@ -279,8 +274,7 @@ class _KashierPaymentPageContentState extends State<_KashierPaymentPageContent> 
           ),
         ),
         SizedBox(height: Responsive.spacing(context, 16)),
-        
-        // Card Number
+
         TextFormField(
           controller: _cardNumberController,
           keyboardType: TextInputType.number,
@@ -312,8 +306,7 @@ class _KashierPaymentPageContentState extends State<_KashierPaymentPageContent> 
           },
         ),
         SizedBox(height: Responsive.spacing(context, 16)),
-        
-        // Expiry and CVV Row
+
         Row(
           children: [
             Expanded(
@@ -384,8 +377,7 @@ class _KashierPaymentPageContentState extends State<_KashierPaymentPageContent> 
           ],
         ),
         SizedBox(height: Responsive.spacing(context, 16)),
-        
-        // Card Name
+
         TextFormField(
           controller: _cardNameController,
           decoration: InputDecoration(
@@ -419,7 +411,7 @@ class _KashierPaymentPageContentState extends State<_KashierPaymentPageContent> 
       child: ElevatedButton(
         onPressed: _isLoading ? null : _processPayment,
         style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.primary, // Yellow (app primary color)
+          backgroundColor: AppColors.primary,
           disabledBackgroundColor: AppColors.primary.withOpacity(0.6),
           padding: Responsive.padding(context, vertical: 18),
           shape: RoundedRectangleBorder(
@@ -470,7 +462,6 @@ class _KashierPaymentPageContentState extends State<_KashierPaymentPageContent> 
   void _processPayment() {
     if (!_formKey.currentState!.validate()) return;
 
-    // Validate card fields if card method is selected
     if (_selectedPaymentMethod == 'card') {
       if (_cardNumberController.text.trim().isEmpty ||
           _expiryController.text.trim().isEmpty ||
@@ -486,13 +477,12 @@ class _KashierPaymentPageContentState extends State<_KashierPaymentPageContent> 
       }
     }
 
-    // Phone is optional for Kashier, use empty string
     context.read<SubscriptionBloc>().add(
           ProcessPaymentEvent(
             service: PaymentService.kashier,
             currency: _currencyCode,
             subscriptionId: widget.subscription.id,
-            phone: '', // Phone is optional for Kashier
+            phone: '',
             couponCode: widget.promoCode,
           ),
         );
@@ -514,13 +504,11 @@ class _KashierPaymentPageContentState extends State<_KashierPaymentPageContent> 
         return;
       }
 
-      // افتح الرابط في المتصفح/التطبيق الخارجي
       await launchUrl(
         uri,
         mode: LaunchMode.externalApplication,
       );
 
-      // أبلغ المستخدم بمتابعة الدفع في المتصفح
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -548,14 +536,12 @@ class _KashierPaymentPageContentState extends State<_KashierPaymentPageContent> 
       barrierDismissible: false,
       builder: (ctx) => PaymentSuccessDialog(
         onContinue: () {
-          Navigator.pop(ctx); // Close dialog
-          
-          // Reload subscriptions and user data before going back
+          Navigator.pop(ctx);
+
           if (mounted) {
             print('Reloading subscriptions after successful payment...');
             context.read<SubscriptionBloc>().add(const LoadSubscriptionsEvent());
-            
-            // Reload user data to update subscription status in profile
+
             print('Reloading user data to update subscription status...');
             try {
               context.read<AuthBloc>().add(CheckAuthStatusEvent());
@@ -564,9 +550,8 @@ class _KashierPaymentPageContentState extends State<_KashierPaymentPageContent> 
             }
           }
           
-          Navigator.pop(context); // Go back to subscriptions page
-          
-          // Show success message
+          Navigator.pop(context);
+
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
@@ -582,7 +567,6 @@ class _KashierPaymentPageContentState extends State<_KashierPaymentPageContent> 
   }
 }
 
-// Custom formatters
 class CardNumberFormatter extends TextInputFormatter {
   @override
   TextEditingValue formatEditUpdate(

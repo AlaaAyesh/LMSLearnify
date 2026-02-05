@@ -126,23 +126,18 @@ class _PaymentPageContentState extends State<_PaymentPageContent> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    // Order Summary Card
                     _buildOrderSummary(),
                     SizedBox(height: 24),
 
-                    // Phone Input
                     _buildPhoneInput(),
                     SizedBox(height: 24),
 
-                    // Payment Methods
                     _buildPaymentMethods(),
                     SizedBox(height: 32),
 
-                    // Pay Button
                     _buildPayButton(),
                     SizedBox(height: 16),
 
-                    // Security Note
                     _buildSecurityNote(),
                   ],
                 ),
@@ -194,7 +189,6 @@ class _PaymentPageContentState extends State<_PaymentPageContent> {
             _getDurationTitle(widget.subscription.duration),
           ),
           SizedBox(height: 12),
-          // Show original subscription price (before any discounts)
           if (widget.subscription.priceBeforeDiscount != widget.subscription.price &&
               widget.subscription.priceBeforeDiscount.isNotEmpty)
             _buildSummaryRow(
@@ -205,13 +199,11 @@ class _PaymentPageContentState extends State<_PaymentPageContent> {
           if (widget.subscription.priceBeforeDiscount != widget.subscription.price &&
               widget.subscription.priceBeforeDiscount.isNotEmpty)
             SizedBox(height: 12),
-          // Show current subscription price (before coupon)
           _buildSummaryRow(
             'سعر الباقة',
             '$originalPrice $_currencySymbol',
           ),
           SizedBox(height: 12),
-          // Show coupon code if applied
           if (widget.promoCode != null && widget.promoCode!.isNotEmpty) ...[
             _buildSummaryRow(
               'كود الخصم',
@@ -220,7 +212,6 @@ class _PaymentPageContentState extends State<_PaymentPageContent> {
             ),
             SizedBox(height: 8),
           ],
-          // Show coupon discount if applied
           if (hasCouponDiscount) ...[
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -270,7 +261,6 @@ class _PaymentPageContentState extends State<_PaymentPageContent> {
               ],
             ),
             SizedBox(height: 8),
-            // Show original price with strikethrough if coupon applied
             _buildSummaryRow(
               'السعر قبل الخصم',
               '$originalPrice $_currencySymbol',
@@ -503,8 +493,6 @@ class _PaymentPageContentState extends State<_PaymentPageContent> {
 
     final phone = _phoneController.text.trim();
 
-    // Default to kashier. For mobile in-app purchases:
-    // Android => gplay, iOS => iap
     final paymentService = Platform.isAndroid
         ? PaymentService.gplay
         : (Platform.isIOS ? PaymentService.iap : PaymentService.kashier);
@@ -521,7 +509,6 @@ class _PaymentPageContentState extends State<_PaymentPageContent> {
   }
 
   Future<void> _openCheckoutUrl(String checkoutUrl) async {
-    // Open checkout URL in WebView
     final result = await Navigator.push(
       context,
       MaterialPageRoute(
@@ -531,20 +518,15 @@ class _PaymentPageContentState extends State<_PaymentPageContent> {
       ),
     );
 
-    // Handle payment result
     if (result == true && mounted) {
-      // Payment successful - reload subscriptions and transactions
       setState(() => _isLoading = false);
-      
-      // Wait a bit for backend to process the payment
+
       await Future.delayed(const Duration(seconds: 2));
-      
-      // Reload subscriptions and transactions
+
       if (mounted) {
         print('Reloading subscriptions and transactions after successful payment...');
         context.read<SubscriptionBloc>().add(const LoadSubscriptionsEvent());
-        
-        // Reload user data to update subscription status in profile
+
         print('Reloading user data to update subscription status...');
         try {
           context.read<AuthBloc>().add(CheckAuthStatusEvent());
@@ -552,11 +534,9 @@ class _PaymentPageContentState extends State<_PaymentPageContent> {
           print('Error reloading user data: $e');
         }
       }
-      
-      // Show success dialog
+
       _showPaymentSuccessDialog();
     } else if (result == false && mounted) {
-      // Payment failed
       setState(() => _isLoading = false);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -565,7 +545,6 @@ class _PaymentPageContentState extends State<_PaymentPageContent> {
         ),
       );
     } else if (mounted) {
-      // User closed the page manually - clear loading state
       setState(() => _isLoading = false);
     }
   }
@@ -576,12 +555,10 @@ class _PaymentPageContentState extends State<_PaymentPageContent> {
       barrierDismissible: false,
       builder: (ctx) => PaymentSuccessDialog(
         onContinue: () {
-          Navigator.pop(ctx); // Close dialog
-          
-          // Reload subscriptions and user data one more time before going back
+          Navigator.pop(ctx);
+
           if (mounted) {
             context.read<SubscriptionBloc>().add(const LoadSubscriptionsEvent());
-            // Reload user data to update subscription status in profile
             try {
               context.read<AuthBloc>().add(CheckAuthStatusEvent());
             } catch (e) {
@@ -589,9 +566,8 @@ class _PaymentPageContentState extends State<_PaymentPageContent> {
             }
           }
           
-          Navigator.pop(context); // Go back to subscriptions page
-          
-          // Show success message
+          Navigator.pop(context);
+
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(

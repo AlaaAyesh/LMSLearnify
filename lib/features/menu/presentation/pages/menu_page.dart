@@ -29,9 +29,6 @@ class _MenuPageState extends State<MenuPage> {
   @override
   void initState() {
     super.initState();
-    // Use the AuthBloc from app level, don't create a new one
-    // This prevents _dependents.isEmpty errors when logging out and logging in again
-    // Check auth status when page is opened
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         context.read<AuthBloc>().add(CheckAuthStatusEvent());
@@ -60,7 +57,6 @@ class _MenuPageContent extends StatelessWidget {
               constraints: const BoxConstraints(maxWidth: 540),
               child: Column(
                 children: [
-                  /// LOGO
                   Builder(builder: (context) {
                     final logoHeight =
                         Responsive.height(context, 160).clamp(120.0, 220.0);
@@ -86,7 +82,6 @@ class _MenuPageContent extends StatelessWidget {
                     );
                   }),
 
-                  /// MENU BUTTONS
                   MenuButton(
                     text: 'عن التطبيق',
                     onTap: () {
@@ -137,7 +132,6 @@ class _MenuPageContent extends StatelessWidget {
 
                   SizedBox(height: Responsive.spacing(context, 10)),
 
-                  /// CREATE ACCOUNT / LOGOUT
                   BlocBuilder<AuthBloc, AuthState>(
                     builder: (context, state) {
                       if (state is AuthAuthenticated) {
@@ -163,7 +157,6 @@ class _MenuPageContent extends StatelessWidget {
 
                   SizedBox(height: Responsive.spacing(context, 24)),
 
-                  /// SUPPORT
                   const SupportSection(),
 
                   SizedBox(height: Responsive.spacing(context, 24)),

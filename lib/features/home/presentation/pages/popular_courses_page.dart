@@ -126,7 +126,6 @@ class _CourseGridItem extends StatelessWidget {
                 fit: StackFit.expand,
                 children: [
                   _buildThumbnail(),
-                  // Coming Soon overlay
                   if (isComingSoon)
                     Container(
                       width: Responsive.width(context, 120),

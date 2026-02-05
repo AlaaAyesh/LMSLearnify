@@ -9,7 +9,6 @@ class LoginRequestModel {
     required this.password,
   });
 
-  /// Convert to FormData for multipart/form-data request
   FormData toFormData() {
     return FormData.fromMap({
       'email': email,

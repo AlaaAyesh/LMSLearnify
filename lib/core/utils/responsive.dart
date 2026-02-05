@@ -1,36 +1,28 @@
 import 'package:flutter/material.dart';
 
-/// Responsive utility class for scaling UI elements based on screen size
-/// Maintains pixel-perfect design proportions across all devices
 class Responsive {
   Responsive._();
 
-  // Base design dimensions (assuming design was made for iPhone 12/13 Pro - 390x844)
   static const double _baseWidth = 390.0;
   static const double _baseHeight = 844.0;
 
-  /// Get responsive width based on screen width
   static double width(BuildContext context, double width) {
     final screenWidth = MediaQuery.of(context).size.width;
     return (width / _baseWidth) * screenWidth;
   }
 
-  /// Get responsive height based on screen height
   static double height(BuildContext context, double height) {
     final screenHeight = MediaQuery.of(context).size.height;
     return (height / _baseHeight) * screenHeight;
   }
 
-  /// Get responsive font size that scales with screen width
   static double fontSize(BuildContext context, double fontSize) {
     final screenWidth = MediaQuery.of(context).size.width;
     final scaleFactor = screenWidth / _baseWidth;
-    // Clamp between 0.8 and 1.3 to prevent extreme scaling
     final clampedScale = scaleFactor.clamp(0.8, 1.3);
     return fontSize * clampedScale;
   }
 
-  /// Get responsive padding
   static EdgeInsets padding(BuildContext context, {
     double? all,
     double? horizontal,
@@ -53,7 +45,6 @@ class Responsive {
     );
   }
 
-  /// Get responsive margin
   static EdgeInsets margin(BuildContext context, {
     double? all,
     double? horizontal,
@@ -74,17 +65,14 @@ class Responsive {
     );
   }
 
-  /// Get responsive border radius
   static double radius(BuildContext context, double radius) {
     return width(context, radius);
   }
 
-  /// Get responsive spacing (for SizedBox)
   static double spacing(BuildContext context, double spacing) {
     return height(context, spacing);
   }
 
-  /// Check if device is tablet
   static bool isTablet(BuildContext context) {
     final mediaQuery = MediaQuery.of(context);
     final shortestSide = mediaQuery.size.shortestSide;
@@ -92,48 +80,39 @@ class Responsive {
     return shortestSide >= 600;
   }
 
-  /// Check if device is phone
   static bool isPhone(BuildContext context) {
     return !isTablet(context);
   }
 
-  /// Check if device is in portrait orientation
   static bool isPortrait(BuildContext context) {
     final mediaQuery = MediaQuery.of(context);
     return mediaQuery.orientation == Orientation.portrait;
   }
 
-  /// Check if device is in landscape orientation
   static bool isLandscape(BuildContext context) {
     return !isPortrait(context);
   }
 
-  /// Get responsive icon size
   static double iconSize(BuildContext context, double size) {
     final screenWidth = MediaQuery.of(context).size.width;
     final scaleFactor = screenWidth / _baseWidth;
-    // Clamp حتى لا تكبر الأيقونات جدًا على التابلت أو تصغر كثيرًا على الشاشات الصغيرة
     final clampedScale = scaleFactor.clamp(0.9, 1.4);
     return size * clampedScale;
   }
 
-  /// Get screen width
   static double screenWidth(BuildContext context) {
     return MediaQuery.of(context).size.width;
   }
 
-  /// Get screen height
   static double screenHeight(BuildContext context) {
     return MediaQuery.of(context).size.height;
   }
 
-  /// Get safe area padding
   static EdgeInsets safeAreaPadding(BuildContext context) {
     return MediaQuery.of(context).padding;
   }
 }
 
-/// Extension methods for easier responsive usage
 extension ResponsiveExtension on BuildContext {
   double rw(double width) => Responsive.width(this, width);
   double rh(double height) => Responsive.height(this, height);

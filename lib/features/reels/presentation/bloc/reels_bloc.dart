@@ -19,12 +19,11 @@ class ReelsBloc extends Bloc<ReelsEvent, ReelsState> {
   final GetUserLikedReelsUseCase getUserLikedReelsUseCase;
 
   int _perPage = 10;
-  int? _currentCategoryId; // Track current category filter
-  int _loadRequestId = 0; // Track latest load request to ignore stale responses
-  final Set<int> _viewedReelIds = {}; // Track viewed reels to avoid duplicate API calls
-  List<ReelCategoryModel> _categories = []; // Store categories to persist across state changes
-  
-  // Track user reels state
+  int? _currentCategoryId;
+  int _loadRequestId = 0;
+  final Set<int> _viewedReelIds = {};
+  List<ReelCategoryModel> _categories = [];
+
   int? _currentUserId;
   int _userReelsPage = 1;
   int _userLikedReelsPage = 1;
@@ -56,7 +55,7 @@ class ReelsBloc extends Bloc<ReelsEvent, ReelsState> {
     SeedReelsListEvent event,
     Emitter<ReelsState> emit,
   ) {
-    _currentCategoryId = null; // clear category filter in seeded-list mode
+    _currentCategoryId = null;
 
     final reels = event.reels;
     if (reels.isEmpty) {
@@ -87,7 +86,7 @@ class ReelsBloc extends Bloc<ReelsEvent, ReelsState> {
     SeedSingleReelEvent event,
     Emitter<ReelsState> emit,
   ) {
-    _currentCategoryId = null; // clear category filter in single-reel mode
+    _currentCategoryId = null;
 
     final reel = event.reel;
 
@@ -119,7 +118,6 @@ class ReelsBloc extends Bloc<ReelsEvent, ReelsState> {
     final requestedCategoryId = event.categoryId;
     final currentState = state;
 
-    // Skip duplicate in-flight requests for the same category
     if (currentState is ReelsLoading && _currentCategoryId == requestedCategoryId) {
       return;
     }
@@ -129,11 +127,9 @@ class ReelsBloc extends Bloc<ReelsEvent, ReelsState> {
     final previousCategoryId = _currentCategoryId;
     _currentCategoryId = requestedCategoryId;
 
-    // Always show loading state when changing category or initial load
     final isCategoryChange = previousCategoryId != event.categoryId;
     final isInitialLoad = currentState is! ReelsLoaded || currentState.reels.isEmpty;
-    
-    // Show loading state for initial loads and category changes
+
     if (isInitialLoad || isCategoryChange) {
       emit(const ReelsLoading());
     }
@@ -148,7 +144,6 @@ class ReelsBloc extends Bloc<ReelsEvent, ReelsState> {
         emit(ReelsError(failure.message));
       },
       (response) {
-        // Ignore stale responses if a newer request was issued
         if (requestId != _loadRequestId || _currentCategoryId != requestedCategoryId) {
           return;
         }
@@ -156,11 +151,9 @@ class ReelsBloc extends Bloc<ReelsEvent, ReelsState> {
         if (response.reels.isEmpty) {
           emit(const ReelsEmpty());
         } else {
-          // Initialize liked status from API response
           final likedReels = <int, bool>{};
           for (final reel in response.reels) {
             likedReels[reel.id] = reel.liked;
-            // Mark already viewed reels
             if (reel.viewed) {
               _viewedReelIds.add(reel.id);
             }
@@ -238,7 +231,6 @@ class ReelsBloc extends Bloc<ReelsEvent, ReelsState> {
 
     emit(currentState.copyWith(isLoadingMore: true));
 
-    // Use nextPageUrl if available, otherwise fall back to cursor
     final result = await getReelsFeedUseCase(
       perPage: _perPage,
       cursor: currentState.nextCursor,
@@ -251,11 +243,9 @@ class ReelsBloc extends Bloc<ReelsEvent, ReelsState> {
         emit(currentState.copyWith(isLoadingMore: false));
       },
       (response) {
-        // Update liked status for new reels
         final newLikedReels = Map<int, bool>.from(currentState.likedReels);
         for (final reel in response.reels) {
           newLikedReels[reel.id] = reel.liked;
-          // Mark already viewed reels
           if (reel.viewed) {
             _viewedReelIds.add(reel.id);
           }
@@ -321,8 +311,7 @@ class ReelsBloc extends Bloc<ReelsEvent, ReelsState> {
 
     final isCurrentlyLiked = currentState.likedReels[event.reelId] ?? false;
     debugPrint('ReelsBloc: Toggling like for reel ${event.reelId}, currently liked: $isCurrentlyLiked');
-    
-    // Find current like count
+
     final reelIndex = currentState.reels.indexWhere((r) => r.id == event.reelId);
     if (reelIndex == -1) {
       debugPrint('ReelsBloc: Reel ${event.reelId} not found in state');
@@ -331,17 +320,13 @@ class ReelsBloc extends Bloc<ReelsEvent, ReelsState> {
     final reel = currentState.reels[reelIndex];
     final currentLikeCount = currentState.getLikeCount(reel);
 
-    // Optimistic update - update UI immediately
     final newLikedReels = Map<int, bool>.from(currentState.likedReels);
     newLikedReels[event.reelId] = !isCurrentlyLiked;
-    
-    // Update like count locally
+
     final newLikeCounts = Map<int, int>.from(currentState.likeCounts);
     if (isCurrentlyLiked) {
-      // Unliking - decrease count
       newLikeCounts[event.reelId] = (currentLikeCount - 1).clamp(0, double.maxFinite.toInt());
     } else {
-      // Liking - increase count
       newLikeCounts[event.reelId] = currentLikeCount + 1;
     }
     
@@ -350,7 +335,6 @@ class ReelsBloc extends Bloc<ReelsEvent, ReelsState> {
       likeCounts: newLikeCounts,
     ));
 
-    // Call API to persist like status
     debugPrint('ReelsBloc: Calling API to ${isCurrentlyLiked ? "unlike" : "like"} reel ${event.reelId}');
     final result = await toggleReelLikeUseCase(
       reelId: event.reelId,
@@ -360,7 +344,6 @@ class ReelsBloc extends Bloc<ReelsEvent, ReelsState> {
     result.fold(
       (failure) {
         debugPrint('ReelsBloc: Like API failed - ${failure.message}');
-        // Revert on failure
         if (state is ReelsLoaded) {
           final revertedLikedReels = Map<int, bool>.from((state as ReelsLoaded).likedReels);
           revertedLikedReels[event.reelId] = isCurrentlyLiked;
@@ -376,7 +359,6 @@ class ReelsBloc extends Bloc<ReelsEvent, ReelsState> {
       },
       (newLikedStatus) {
         debugPrint('ReelsBloc: Like API success - new status: $newLikedStatus');
-        // API call successful, state already updated optimistically
       },
     );
   }
@@ -385,7 +367,6 @@ class ReelsBloc extends Bloc<ReelsEvent, ReelsState> {
     MarkReelViewedEvent event,
     Emitter<ReelsState> emit,
   ) async {
-    // Skip if already viewed in this session
     if (_viewedReelIds.contains(event.reelId)) {
       debugPrint('ReelsBloc: Reel ${event.reelId} already viewed, skipping');
       return;
@@ -398,11 +379,9 @@ class ReelsBloc extends Bloc<ReelsEvent, ReelsState> {
     }
 
     debugPrint('ReelsBloc: Marking reel ${event.reelId} as viewed');
-    
-    // Mark as viewed locally
+
     _viewedReelIds.add(event.reelId);
 
-    // Find current view count
     final reelIndex = currentState.reels.indexWhere((r) => r.id == event.reelId);
     if (reelIndex == -1) {
       debugPrint('ReelsBloc: Reel ${event.reelId} not found in state for view tracking');
@@ -411,20 +390,17 @@ class ReelsBloc extends Bloc<ReelsEvent, ReelsState> {
     final reel = currentState.reels[reelIndex];
     final currentViewCount = currentState.getViewCount(reel);
 
-    // Update view count locally (increment by 1)
     final newViewCounts = Map<int, int>.from(currentState.viewCounts);
     newViewCounts[event.reelId] = currentViewCount + 1;
     
     emit(currentState.copyWith(viewCounts: newViewCounts));
 
-    // Call API to record view
     debugPrint('ReelsBloc: Calling API to record view for reel ${event.reelId}');
     final result = await recordReelViewUseCase(event.reelId);
     
     result.fold(
       (failure) {
         debugPrint('ReelsBloc: View API failed - ${failure.message}');
-        // Don't revert view count on failure - it's okay if API fails
       },
       (_) {
         debugPrint('ReelsBloc: View API success for reel ${event.reelId}');
@@ -440,11 +416,9 @@ class ReelsBloc extends Bloc<ReelsEvent, ReelsState> {
 
     result.fold(
       (failure) {
-        // Don't emit error state, just keep current state
         debugPrint('ReelsBloc: Failed to load categories - ${failure.message}');
       },
       (categories) {
-        // Store categories for later use
         _categories = categories;
         emit(ReelsWithCategories(categories: categories));
       },
@@ -562,7 +536,7 @@ class ReelsBloc extends Bloc<ReelsEvent, ReelsState> {
         } else {
           final likedReels = <int, bool>{};
           for (final reel in response.reels) {
-            likedReels[reel.id] = true; // All reels in liked list are liked
+            likedReels[reel.id] = true;
             if (reel.viewed) {
               _viewedReelIds.add(reel.id);
             }
@@ -612,7 +586,7 @@ class ReelsBloc extends Bloc<ReelsEvent, ReelsState> {
         final updatedLikedReels = Map<int, bool>.from(currentState.likedReels);
         
         for (final reel in response.reels) {
-          updatedLikedReels[reel.id] = true; // All reels in liked list are liked
+          updatedLikedReels[reel.id] = true;
           if (reel.viewed) {
             _viewedReelIds.add(reel.id);
           }

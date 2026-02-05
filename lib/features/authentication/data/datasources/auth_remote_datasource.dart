@@ -28,16 +28,10 @@ abstract class AuthRemoteDataSource {
     required String passwordConfirmation,
   });
 
-  /// Get Google OAuth URL for authentication
   Future<String> getGoogleAuthUrl();
 
-  /// Handle Google OAuth callback and authenticate user
   Future<LoginResponseModel> handleGoogleCallback(String code);
 
-  /// Mobile OAuth login with access token from native SDK
-  /// [provider] - OAuth provider name (google, facebook)
-  /// [accessToken] - Access token from OAuth provider
-  /// Optionally includes profile data for first-time registration
   Future<LoginResponseModel> mobileOAuthLogin({
     required String provider,
     required String accessToken,
@@ -49,7 +43,6 @@ abstract class AuthRemoteDataSource {
     String? birthday,
   });
 
-  /// Update user profile
   Future<User> updateProfile({
     String? name,
     String? email,
@@ -305,8 +298,6 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       );
 
       if (response.statusCode == 200) {
-        // Handle OAuth callback response format:
-        // { "user": {...}, "token": "...", "message": "..." }
         return _parseOAuthResponse(response.data);
       }
 
@@ -330,19 +321,12 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     }
   }
 
-  /// Parse OAuth response which has a different format than standard login
   LoginResponseModel _parseOAuthResponse(Map<String, dynamic> json) {
-    // Mobile OAuth response format: { "user": {...}, "access_token": "...", "token_type": "...", "message": "..." }
-    // Standard format: { "status": "success", "data": { "user": {...}, "access_token": "..." } }
-
-    // Check if it's standard format first
     if (json.containsKey('data') && json['data'] is Map) {
       return LoginResponseModel.fromJson(json);
     }
 
-    // Handle OAuth response format (user and access_token at root level)
     final userData = json['user'] as Map<String, dynamic>?;
-    // Support both 'access_token' and 'token' keys
     final token = (json['access_token'] ?? json['token']) as String?;
     final tokenType = (json['token_type'] as String?) ?? 'Bearer';
 
@@ -358,7 +342,6 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       );
     }
 
-    // Convert OAuth response to standard format
     return LoginResponseModel.fromJson({
       'data': {
         'user': userData,
@@ -380,22 +363,19 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     String? birthday,
   }) async {
     try {
-      // Build form data with required fields
       final Map<String, dynamic> formFields = {
         'provider': provider,
         'access_token': accessToken,
       };
 
-      // Add optional profile fields if provided (for first-time registration)
       if (name != null) formFields['name'] = name;
       if (phone != null) formFields['phone'] = phone;
       if (specialtyId != null) formFields['specialty_id'] = specialtyId;
       if (gender != null) formFields['gender'] = gender;
-      // Religion is required by the API, default to 'muslim' if not provided
       if (religion != null && religion.isNotEmpty) {
         formFields['religion'] = religion;
       } else {
-        formFields['religion'] = 'muslim'; // Default to Muslim
+        formFields['religion'] = 'muslim';
       }
       if (birthday != null) formFields['birthday'] = birthday;
 
@@ -408,7 +388,6 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       );
 
       if (response.statusCode == 200) {
-        // Handle both standard and OAuth response formats
         return _parseOAuthResponse(response.data);
       }
 
@@ -447,12 +426,10 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     String? role,
   }) async {
     try {
-      // Build form data with _method override for PUT
       final Map<String, dynamic> formFields = {
         '_method': 'PUT',
       };
 
-      // Add optional fields if provided
       if (name != null && name.isNotEmpty) formFields['name'] = name;
       if (email != null && email.isNotEmpty) formFields['email'] = email;
       if (phone != null && phone.isNotEmpty) formFields['phone'] = phone;
@@ -472,7 +449,6 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       );
 
       if (response.statusCode == 200) {
-        // Response format: { "status": "success", "message": "...", "data": {...} }
         final data = response.data['data'] as Map<String, dynamic>?;
         if (data != null) {
           return UserModel.fromJson(data);
@@ -488,7 +464,6 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         statusCode: response.statusCode,
       );
     } on DioException catch (e) {
-      // Handle 401 Unauthorized - token expired or invalid
       if (e.response?.statusCode == 401) {
         throw UnauthorizedException(
           message: e.response?.data['message'] ?? 'انتهت صلاحية الجلسة. يرجى تسجيل الدخول مرة أخرى',

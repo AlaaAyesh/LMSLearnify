@@ -20,7 +20,6 @@ class OptionsRow extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          // Remember Me Section
           InkWell(
             onTap: () => onRememberChanged(!rememberMe),
             borderRadius: BorderRadius.circular(8),
@@ -65,7 +64,6 @@ class OptionsRow extends StatelessWidget {
             ),
           ),
 
-          // Forgot Password Section
           TextButton(
             onPressed: () =>
                 Navigator.of(context).pushNamed('/forgot-password'),

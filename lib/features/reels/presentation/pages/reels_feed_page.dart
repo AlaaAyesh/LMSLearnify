@@ -535,9 +535,7 @@ class _ReelsFeedPageState extends State<ReelsFeedPage>
                           width: Responsive.width(context, 160),
                           height: Responsive.height(context, 44),
                           child: ElevatedButton(
-                            onPressed: () {
-                              // TODO: navigate to subscription page
-                            },
+                            onPressed: () {},
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.white,
                               elevation: 0,
@@ -738,7 +736,7 @@ class _ReelsFeedPageState extends State<ReelsFeedPage>
               }
             },
             child: Container(
-              padding: Responsive.padding(context, horizontal: 12, vertical: 6),
+              padding: Responsive.padding(context, horizontal: 14, vertical: 6),
               decoration: BoxDecoration(
                 color: isSelected
                     ? const Color(0xFF6A4BC3)
@@ -754,7 +752,7 @@ class _ReelsFeedPageState extends State<ReelsFeedPage>
                       category.name,
                       style: TextStyle(
                         color: Colors.white,
-                        fontSize: Responsive.fontSize(context, 13),
+                        fontSize: Responsive.fontSize(context, 16),
                         fontWeight: FontWeight.w600,
                       ),
                     ),

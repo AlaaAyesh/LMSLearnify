@@ -9,7 +9,6 @@ class AppTheme {
       useMaterial3: true,
       fontFamily: 'Cairo',
 
-      // Color Scheme
       colorScheme: const ColorScheme.light(
         primary: AppColors.primary,
         secondary: AppColors.primaryDark,
@@ -18,10 +17,8 @@ class AppTheme {
         surface: AppColors.white,
       ),
 
-      // Scaffold
       scaffoldBackgroundColor: AppColors.background,
 
-      // AppBar Theme
       appBarTheme: AppBarTheme(
         backgroundColor: AppColors.white,
         elevation: 0,
@@ -34,7 +31,6 @@ class AppTheme {
         ),
       ),
 
-      // Text Theme
       textTheme: TextTheme(
         displayLarge: AppTextStyles.displayLarge,
         displayMedium: AppTextStyles.displayMedium,
@@ -46,7 +42,6 @@ class AppTheme {
         labelMedium: AppTextStyles.labelMedium,
       ),
 
-      // Input Decoration Theme
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: AppColors.inputBackground,
@@ -70,7 +65,6 @@ class AppTheme {
         hintStyle: AppTextStyles.bodyMedium.copyWith(color: AppColors.textHint),
       ),
 
-      // Elevated Button Theme
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.primary,

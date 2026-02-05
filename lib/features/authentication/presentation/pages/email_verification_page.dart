@@ -41,7 +41,6 @@ class _EmailVerificationPageContentState
       List.generate(6, (_) => TextEditingController());
   final List<FocusNode> _focusNodes = List.generate(6, (_) => FocusNode());
 
-  // Resend timer
   int _resendSeconds = 60;
   Timer? _resendTimer;
   bool _canResend = false;
@@ -116,7 +115,7 @@ class _EmailVerificationPageContentState
       appBar: AppBar(
         backgroundColor: AppColors.white,
         elevation: 0,
-        automaticallyImplyLeading: false, // No back button - must verify email
+        automaticallyImplyLeading: false,
       ),
       body: Stack(
         children: [
@@ -124,7 +123,6 @@ class _EmailVerificationPageContentState
           BlocListener<AuthBloc, AuthState>(
             listener: (context, state) {
               if (state is AuthError) {
-                // Check if email is already verified
                 if (state.message.toLowerCase().contains('already verified') ||
                     state.message.contains('تم التحقق')) {
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -177,7 +175,6 @@ class _EmailVerificationPageContentState
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     SizedBox(height: 40),
-                    // Icon
                     Container(
                       width: 100,
                       height: 100,
@@ -192,14 +189,12 @@ class _EmailVerificationPageContentState
                       ),
                     ),
                     SizedBox(height: 32),
-                    // Title
                     Text(
                       'التحقق من البريد الإلكتروني',
                       style: AppTextStyles.displayMedium,
                       textAlign: TextAlign.center,
                     ),
                     SizedBox(height: 12),
-                    // Subtitle
                     Text(
                       'أدخل رمز التحقق المرسل إلى\n${widget.email}',
                       style: AppTextStyles.bodyMedium.copyWith(
@@ -209,7 +204,6 @@ class _EmailVerificationPageContentState
                     ),
                     SizedBox(height: 40),
 
-                    // OTP Input Fields
                     Directionality(
                       textDirection: TextDirection.ltr,
                       child: Row(
@@ -269,7 +263,6 @@ class _EmailVerificationPageContentState
                     ),
                     SizedBox(height: 24),
 
-                    // Resend Timer
                     Center(
                       child: _canResend
                           ? TextButton(
@@ -292,7 +285,6 @@ class _EmailVerificationPageContentState
                     ),
                     SizedBox(height: 40),
 
-                    // Verify Button
                     BlocBuilder<AuthBloc, AuthState>(
                       builder: (context, state) {
                         final isLoading = state is AuthLoading;
@@ -304,8 +296,7 @@ class _EmailVerificationPageContentState
                       },
                     ),
                     SizedBox(height: 24),
-                    
-                    // Info text
+
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
@@ -330,8 +321,7 @@ class _EmailVerificationPageContentState
                       ),
                     ),
                     SizedBox(height: 16),
-                    
-                    // Use different email button
+
                     TextButton(
                       onPressed: () {
                         context.read<AuthBloc>().add(LogoutEvent());

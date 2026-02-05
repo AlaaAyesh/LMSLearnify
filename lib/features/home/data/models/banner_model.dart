@@ -29,7 +29,7 @@ class HomeBannerModel extends HomeBanner {
   }
 
   static bool _parseBool(dynamic value) {
-    if (value == null) return true; // Default to active
+    if (value == null) return true;
     if (value is bool) return value;
     if (value is int) return value == 1;
     if (value is String) return value == '1' || value.toLowerCase() == 'true';

@@ -9,10 +9,8 @@ class CategoryCourseBlockModel extends CategoryCourseBlock {
   });
 
   factory CategoryCourseBlockModel.fromJson(Map<String, dynamic> json) {
-    // Parse category from the JSON object itself (category properties are at root level)
     final category = CategoryModel.fromJson(json);
 
-    // Parse courses array
     final courses = json['courses'] != null && json['courses'] is List
         ? (json['courses'] as List)
         .map((c) => CourseModel.fromJson(c as Map<String, dynamic>))

@@ -8,13 +8,10 @@ abstract class CertificateState extends Equatable {
   List<Object?> get props => [];
 }
 
-/// Initial state
 class CertificateInitial extends CertificateState {}
 
-/// Loading state
 class CertificateLoading extends CertificateState {}
 
-/// State when certificates are loaded successfully
 class CertificatesLoaded extends CertificateState {
   final List<Certificate> certificates;
 
@@ -24,7 +21,6 @@ class CertificatesLoaded extends CertificateState {
   List<Object?> get props => [certificates];
 }
 
-/// State when a single certificate is loaded
 class CertificateLoaded extends CertificateState {
   final Certificate certificate;
 
@@ -34,7 +30,6 @@ class CertificateLoaded extends CertificateState {
   List<Object?> get props => [certificate];
 }
 
-/// State when a certificate is generated successfully
 class CertificateGenerated extends CertificateState {
   final Certificate certificate;
   final String message;
@@ -48,10 +43,8 @@ class CertificateGenerated extends CertificateState {
   List<Object?> get props => [certificate, message];
 }
 
-/// State when certificate download is in progress
 class CertificateDownloading extends CertificateState {}
 
-/// State when certificate is downloaded successfully
 class CertificateDownloaded extends CertificateState {
   final String filePath;
 
@@ -61,10 +54,8 @@ class CertificateDownloaded extends CertificateState {
   List<Object?> get props => [filePath];
 }
 
-/// State when there's no certificates
 class CertificatesEmpty extends CertificateState {}
 
-/// Error state
 class CertificateError extends CertificateState {
   final String message;
 

@@ -7,10 +7,8 @@ abstract class CertificateEvent extends Equatable {
   List<Object?> get props => [];
 }
 
-/// Event to load all owned certificates
 class LoadOwnedCertificatesEvent extends CertificateEvent {}
 
-/// Event to generate a certificate for a specific course
 class GenerateCertificateEvent extends CertificateEvent {
   final int courseId;
 
@@ -20,7 +18,6 @@ class GenerateCertificateEvent extends CertificateEvent {
   List<Object?> get props => [courseId];
 }
 
-/// Event to load a specific certificate by ID
 class LoadCertificateByIdEvent extends CertificateEvent {
   final int certificateId;
 
@@ -30,7 +27,6 @@ class LoadCertificateByIdEvent extends CertificateEvent {
   List<Object?> get props => [certificateId];
 }
 
-/// Event to download a certificate
 class DownloadCertificateEvent extends CertificateEvent {
   final String downloadUrl;
   final String? fileName;
@@ -44,7 +40,6 @@ class DownloadCertificateEvent extends CertificateEvent {
   List<Object?> get props => [downloadUrl, fileName];
 }
 
-/// Event to clear certificate state
 class ClearCertificateStateEvent extends CertificateEvent {}
 
 

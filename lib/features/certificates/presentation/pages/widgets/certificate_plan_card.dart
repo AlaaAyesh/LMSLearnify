@@ -18,10 +18,10 @@ class CertificatePlanCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final titleSize = Responsive.fontSize(context, 22);
-    final descriptionSize = Responsive.fontSize(context, 16);
-    final actionHeight = Responsive.height(context, 44);
-    final horizontalPadding = Responsive.width(context, 24);
+    final titleSize = Responsive.fontSize(context, 18);
+    final descriptionSize = Responsive.fontSize(context, 14);
+    final actionHeight = Responsive.height(context, 40);
+    final horizontalPadding = Responsive.width(context, 20);
 
     return Container(
       width: double.infinity,
@@ -98,7 +98,7 @@ class CertificatePlanCard extends StatelessWidget {
                         Text(
                           label,
                           style: TextStyle(
-                            fontSize: Responsive.fontSize(context, 15),
+                            fontSize: Responsive.fontSize(context, 14),
                             fontWeight: fontWeight,
                           ),
                         ),

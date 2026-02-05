@@ -1,10 +1,9 @@
-/// Payment service types supported by the API
 enum PaymentService {
-  gplay,   // Google Play (Android IAP)
-  iap,     // In-App Purchase
-  stripe,  // Stripe payment gateway
-  wallet,  // Digital wallet
-  kashier, // Kashier payment gateway
+  gplay,
+  iap,
+  stripe,
+  wallet,
+  kashier,
 }
 
 extension PaymentServiceExtension on PaymentService {
@@ -41,7 +40,6 @@ extension PaymentServiceExtension on PaymentService {
   }
 }
 
-/// Payment status types
 enum PaymentStatus {
   pending,
   completed,
@@ -65,8 +63,8 @@ extension PaymentStatusExtension on PaymentStatus {
       case 'pending':
         return PaymentStatus.pending;
       case 'completed':
-      case 'success': // API returns "success" for completed transactions
-        return PaymentStatus.completed;
+      case 'success':
+      return PaymentStatus.completed;
       case 'failed':
         return PaymentStatus.failed;
       default:
@@ -75,7 +73,6 @@ extension PaymentStatusExtension on PaymentStatus {
   }
 }
 
-/// Request model for processing payment
 class ProcessPaymentRequest {
   final PaymentService service;
   final String currency;
@@ -117,7 +114,6 @@ class ProcessPaymentRequest {
   }
 }
 
-/// Purchase model returned from payment processing
 class PurchaseModel {
   final int id;
   final int userId;
@@ -144,7 +140,6 @@ class PurchaseModel {
   });
 
   factory PurchaseModel.fromJson(Map<String, dynamic> json) {
-    // Handle empty or null JSON gracefully
     if (json.isEmpty) {
       throw ArgumentError('Cannot create PurchaseModel from empty JSON');
     }
@@ -182,21 +177,18 @@ class PurchaseModel {
     };
   }
 
-  /// Check if this is a course purchase
   bool get isCoursePurchase => purchasableType.contains('Course');
 
-  /// Check if this is a subscription purchase
   bool get isSubscriptionPurchase => purchasableType.contains('Subscription');
 }
 
-/// Response model for payment processing
 class PaymentResponseModel {
   final String status;
   final String message;
   final String? dataMessage;
   final PurchaseModel? purchase;
   final String? checkoutUrl;
-  final Map<String, dynamic>? subscriptionData; // For free subscriptions (100% coupon)
+  final Map<String, dynamic>? subscriptionData;
 
   PaymentResponseModel({
     required this.status,
@@ -209,8 +201,7 @@ class PaymentResponseModel {
 
   factory PaymentResponseModel.fromJson(Map<String, dynamic> json) {
     final data = json['data'] as Map<String, dynamic>?;
-    
-    // Parse purchase if available
+
     PurchaseModel? purchaseModel;
     if (data?['purchase'] != null && data!['purchase'] is Map) {
       try {
@@ -219,13 +210,11 @@ class PaymentResponseModel {
         print('Error parsing purchase: $e');
       }
     }
-    
-    // Parse subscription if available (for free subscriptions with 100% coupon)
+
     Map<String, dynamic>? subscriptionData;
     if (data?['subscription'] != null && data!['subscription'] is Map) {
       subscriptionData = data['subscription'] as Map<String, dynamic>;
     } else if (data != null && data.containsKey('id') && !data.containsKey('checkout_url') && purchaseModel == null) {
-      // If data itself is subscription object (no checkout_url, no purchase)
       subscriptionData = data;
     }
     
@@ -239,17 +228,13 @@ class PaymentResponseModel {
     );
   }
 
-  /// Check if payment was successfully initiated
   bool get isSuccess => status == 'success';
-  
-  /// Check if checkout URL is available (for redirecting to payment gateway)
+
   bool get hasCheckoutUrl => checkoutUrl != null && checkoutUrl!.isNotEmpty;
-  
-  /// Check if this is a free subscription (100% coupon) - no payment needed
+
   bool get isFreeSubscription => subscriptionData != null && !hasCheckoutUrl && purchase == null;
 }
 
-/// Transaction model for user transactions
 class TransactionModel {
   final int id;
   final int userId;
@@ -306,14 +291,11 @@ class TransactionModel {
     );
   }
 
-  /// Check if this is a subscription transaction
   bool get isSubscriptionTransaction => purchasableType.contains('Subscription');
 
-  /// Check if this is a successful subscription transaction
   bool get isSuccessfulSubscription => isSubscriptionTransaction && status == PaymentStatus.completed;
 }
 
-/// Response model for transactions list
 class TransactionsResponseModel {
   final List<TransactionModel> transactions;
   final int total;
@@ -350,15 +332,13 @@ class TransactionsResponseModel {
     );
   }
 
-  /// Get the most recent successful subscription transaction
   TransactionModel? get activeSubscriptionTransaction {
     final subscriptionTransactions = transactions
         .where((t) => t.isSuccessfulSubscription)
         .toList();
     
     if (subscriptionTransactions.isEmpty) return null;
-    
-    // Sort by created_at descending and return the most recent
+
     subscriptionTransactions.sort((a, b) => b.createdAt.compareTo(a.createdAt));
     return subscriptionTransactions.first;
   }

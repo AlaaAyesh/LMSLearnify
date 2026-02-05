@@ -7,7 +7,6 @@ abstract class CoursesEvent extends Equatable {
   List<Object?> get props => [];
 }
 
-/// Load all courses with optional filters
 class LoadCoursesEvent extends CoursesEvent {
   final int? page;
   final int? perPage;
@@ -27,12 +26,10 @@ class LoadCoursesEvent extends CoursesEvent {
   List<Object?> get props => [page, perPage, categoryId, specialtyId, refresh];
 }
 
-/// Load more courses for pagination
 class LoadMoreCoursesEvent extends CoursesEvent {
   const LoadMoreCoursesEvent();
 }
 
-/// Load a specific course by ID
 class LoadCourseByIdEvent extends CoursesEvent {
   final int id;
 
@@ -42,12 +39,10 @@ class LoadCourseByIdEvent extends CoursesEvent {
   List<Object?> get props => [id];
 }
 
-/// Load user's enrolled courses
 class LoadMyCoursesEvent extends CoursesEvent {
   const LoadMyCoursesEvent();
 }
 
-/// Filter courses by category
 class FilterByCategoryEvent extends CoursesEvent {
   final int? categoryId;
 
@@ -57,7 +52,6 @@ class FilterByCategoryEvent extends CoursesEvent {
   List<Object?> get props => [categoryId];
 }
 
-/// Filter courses by specialty (age group)
 class FilterBySpecialtyEvent extends CoursesEvent {
   final int? specialtyId;
 
@@ -67,12 +61,10 @@ class FilterBySpecialtyEvent extends CoursesEvent {
   List<Object?> get props => [specialtyId];
 }
 
-/// Clear all filters
 class ClearFiltersEvent extends CoursesEvent {
   const ClearFiltersEvent();
 }
 
-/// Clear course state
 class ClearCoursesStateEvent extends CoursesEvent {
   const ClearCoursesStateEvent();
 }

@@ -7,7 +7,6 @@ abstract class LessonEvent extends Equatable {
   List<Object?> get props => [];
 }
 
-/// Load lesson details by ID
 class LoadLessonEvent extends LessonEvent {
   final int lessonId;
 
@@ -17,7 +16,6 @@ class LoadLessonEvent extends LessonEvent {
   List<Object?> get props => [lessonId];
 }
 
-/// Mark lesson as viewed
 class MarkLessonViewedEvent extends LessonEvent {
   final int lessonId;
 
@@ -27,7 +25,6 @@ class MarkLessonViewedEvent extends LessonEvent {
   List<Object?> get props => [lessonId];
 }
 
-/// Clear lesson state
 class ClearLessonStateEvent extends LessonEvent {
   const ClearLessonStateEvent();
 }

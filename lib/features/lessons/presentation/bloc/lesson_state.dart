@@ -8,13 +8,10 @@ abstract class LessonState extends Equatable {
   List<Object?> get props => [];
 }
 
-/// Initial state
 class LessonInitial extends LessonState {}
 
-/// Loading state
 class LessonLoading extends LessonState {}
 
-/// Lesson loaded successfully
 class LessonLoaded extends LessonState {
   final Lesson lesson;
 
@@ -24,7 +21,6 @@ class LessonLoaded extends LessonState {
   List<Object?> get props => [lesson];
 }
 
-/// Lesson marked as viewed
 class LessonMarkedAsViewed extends LessonState {
   final int lessonId;
 
@@ -34,7 +30,6 @@ class LessonMarkedAsViewed extends LessonState {
   List<Object?> get props => [lessonId];
 }
 
-/// Error state
 class LessonError extends LessonState {
   final String message;
 

@@ -31,8 +31,6 @@ class _TabletShortsPageState extends State<TabletShortsPage> {
 
   @override
   Widget build(BuildContext context) {
-    // For tablets, we can show reels in a grid or use the same full-screen experience
-    // Here we'll use the same ReelsFeedPage but it will adapt to tablet screen size
     if (!_hasLoadedOnce) {
       _hasLoadedOnce = true;
       _reelsBloc = sl<ReelsBloc>()..add(const LoadReelsFeedEvent(perPage: 10));

@@ -26,7 +26,6 @@ class AboutPage extends StatelessWidget {
               child: Column(
                 children: [
 
-                  /// LOGO
                   Image.asset(
                     'assets/images/app_logo.png',
                     height: 160,

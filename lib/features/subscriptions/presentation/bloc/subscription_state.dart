@@ -9,13 +9,10 @@ abstract class SubscriptionState extends Equatable {
   List<Object?> get props => [];
 }
 
-/// Initial state
 class SubscriptionInitial extends SubscriptionState {}
 
-/// Loading state
 class SubscriptionLoading extends SubscriptionState {}
 
-/// Subscriptions loaded successfully
 class SubscriptionsLoaded extends SubscriptionState {
   final List<Subscription> subscriptions;
   final int selectedIndex;
@@ -51,7 +48,6 @@ class SubscriptionsLoaded extends SubscriptionState {
     );
   }
 
-  /// Get the currently selected subscription
   Subscription? get selectedSubscription {
     if (subscriptions.isEmpty || selectedIndex >= subscriptions.length) {
       return null;
@@ -70,7 +66,6 @@ class SubscriptionsLoaded extends SubscriptionState {
       ];
 }
 
-/// Single subscription loaded (for details view)
 class SubscriptionDetailsLoaded extends SubscriptionState {
   final Subscription subscription;
 
@@ -80,10 +75,8 @@ class SubscriptionDetailsLoaded extends SubscriptionState {
   List<Object?> get props => [subscription];
 }
 
-/// No subscriptions available
 class SubscriptionsEmpty extends SubscriptionState {}
 
-/// Subscription created successfully
 class SubscriptionCreated extends SubscriptionState {
   final Subscription subscription;
   final String message;
@@ -97,7 +90,6 @@ class SubscriptionCreated extends SubscriptionState {
   List<Object?> get props => [subscription, message];
 }
 
-/// Subscription updated successfully
 class SubscriptionUpdated extends SubscriptionState {
   final Subscription subscription;
   final String message;
@@ -111,7 +103,6 @@ class SubscriptionUpdated extends SubscriptionState {
   List<Object?> get props => [subscription, message];
 }
 
-/// Promo code applied successfully
 class PromoCodeApplied extends SubscriptionState {
   final String promoCode;
   final double discountAmount;
@@ -129,7 +120,6 @@ class PromoCodeApplied extends SubscriptionState {
   List<Object?> get props => [promoCode, discountAmount, discountPercentage, message];
 }
 
-/// Error state
 class SubscriptionError extends SubscriptionState {
   final String message;
 
@@ -139,10 +129,8 @@ class SubscriptionError extends SubscriptionState {
   List<Object?> get props => [message];
 }
 
-/// Payment processing state
 class PaymentProcessing extends SubscriptionState {}
 
-/// Payment initiated successfully (pending confirmation)
 class PaymentInitiated extends SubscriptionState {
   final PurchaseModel? purchase;
   final String message;
@@ -156,7 +144,6 @@ class PaymentInitiated extends SubscriptionState {
   List<Object?> get props => [purchase, message];
 }
 
-/// Payment checkout URL ready (for redirecting to payment gateway)
 class PaymentCheckoutReady extends SubscriptionState {
   final String checkoutUrl;
   final String message;
@@ -170,9 +157,8 @@ class PaymentCheckoutReady extends SubscriptionState {
   List<Object?> get props => [checkoutUrl, message];
 }
 
-/// Payment completed successfully
 class PaymentCompleted extends SubscriptionState {
-  final PurchaseModel? purchase; // Nullable for free subscriptions (100% coupon)
+  final PurchaseModel? purchase;
   final String message;
 
   const PaymentCompleted({
@@ -184,7 +170,6 @@ class PaymentCompleted extends SubscriptionState {
   List<Object?> get props => [purchase, message];
 }
 
-/// Payment failed
 class PaymentFailed extends SubscriptionState {
   final String message;
 

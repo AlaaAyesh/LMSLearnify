@@ -5,12 +5,8 @@ import '../../../../core/network/dio_client.dart';
 import '../../../home/data/models/lesson_model.dart';
 
 abstract class LessonRemoteDataSource {
-  /// Get lesson details by ID
-  /// Throws [ServerException] on failure
   Future<LessonModel> getLessonById(int id);
 
-  /// Mark lesson as viewed
-  /// Throws [ServerException] on failure
   Future<void> markLessonAsViewed(int id);
 }
 
@@ -28,7 +24,6 @@ class LessonRemoteDataSourceImpl implements LessonRemoteDataSource {
         final responseData = response.data;
         Map<String, dynamic> lessonData;
 
-        // Handle different response structures
         if (responseData['data'] is Map) {
           lessonData = responseData['data'];
         } else if (responseData['lesson'] is Map) {

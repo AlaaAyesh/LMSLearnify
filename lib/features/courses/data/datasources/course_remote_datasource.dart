@@ -6,8 +6,6 @@ import '../../../../core/network/cache_service.dart';
 import '../../../home/data/models/course_model.dart';
 
 abstract class CourseRemoteDataSource {
-  /// Get all available courses
-  /// Throws [ServerException] on failure
   Future<List<CourseModel>> getCourses({
     int? page,
     int? perPage,
@@ -15,12 +13,8 @@ abstract class CourseRemoteDataSource {
     int? specialtyId,
   });
 
-  /// Get a specific course by its ID
-  /// Throws [ServerException] on failure
   Future<CourseModel> getCourseById(int id);
 
-  /// Get user's enrolled courses
-  /// Throws [ServerException] on failure
   Future<List<CourseModel>> getMyCourses();
 }
 
@@ -40,8 +34,7 @@ class CourseRemoteDataSourceImpl implements CourseRemoteDataSource {
       final queryParams = <String, dynamic>{};
       if (page != null) queryParams['page'] = page;
       if (perPage != null) queryParams['per_page'] = perPage;
-      
-      // Build search parameter using new API format
+
       final searchParts = <String>[];
       if (categoryId != null) {
         searchParts.add('categories.category_id:$categoryId');
@@ -54,29 +47,23 @@ class CourseRemoteDataSourceImpl implements CourseRemoteDataSource {
         queryParams['search'] = searchParts.join(';');
       }
 
-      // Cache is handled automatically by DioCacheInterceptor
       final response = await dioClient.get(
         ApiConstants.courses,
         queryParameters: queryParams.isNotEmpty ? queryParams : null,
-        cancelTag: 'courses_${categoryId}_${specialtyId}_$page', // Cancel previous requests
+        cancelTag: 'courses_${categoryId}_${specialtyId}_$page',
       );
 
       if (response.statusCode == 200) {
         List<dynamic> coursesJson;
         final responseData = response.data;
 
-        // Handle different response structures
         if (responseData['data'] is Map && responseData['data']['data'] is List) {
-          // Nested structure: { data: { data: [...] } }
           coursesJson = responseData['data']['data'];
         } else if (responseData['data'] is List) {
-          // Direct structure: { data: [...] }
           coursesJson = responseData['data'];
         } else if (responseData['courses'] is List) {
-          // Alternative structure: { courses: [...] }
           coursesJson = responseData['courses'];
         } else if (responseData is List) {
-          // Raw list response
           coursesJson = responseData;
         } else {
           coursesJson = [];
@@ -99,14 +86,12 @@ class CourseRemoteDataSourceImpl implements CourseRemoteDataSource {
   @override
   Future<CourseModel> getCourseById(int id) async {
     try {
-      // Cache is handled automatically by DioCacheInterceptor
       final response = await dioClient.get('${ApiConstants.courses}/$id');
 
       if (response.statusCode == 200) {
         final responseData = response.data;
         Map<String, dynamic> courseData;
 
-        // Handle different response structures
         if (responseData['data'] is Map && responseData['data']['data'] is Map) {
           courseData = responseData['data']['data'];
         } else if (responseData['data'] is Map) {
@@ -138,18 +123,13 @@ class CourseRemoteDataSourceImpl implements CourseRemoteDataSource {
         List<dynamic> coursesJson;
         final responseData = response.data;
 
-        // Handle the response structure: { status, message, data: { data: [...], meta: {...} } }
         if (responseData['data'] is Map && responseData['data']['data'] is List) {
-          // Nested structure: { data: { data: [...] } }
           coursesJson = responseData['data']['data'];
         } else if (responseData['data'] is List) {
-          // Direct structure: { data: [...] }
           coursesJson = responseData['data'];
         } else if (responseData['courses'] is List) {
-          // Alternative structure: { courses: [...] }
           coursesJson = responseData['courses'];
         } else if (responseData is List) {
-          // Raw list response
           coursesJson = responseData;
         } else {
           coursesJson = [];

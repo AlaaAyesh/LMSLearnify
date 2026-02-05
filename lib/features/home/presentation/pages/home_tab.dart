@@ -49,7 +49,6 @@ class _HomeTabState extends State<HomeTab> {
     final result = await _getSiteBannersUseCase(perPage: 10, page: 1);
     result.fold(
       (failure) {
-        // Silently fail - banners are optional
         if (mounted) {
           setState(() {
             _isLoadingBanners = false;
@@ -100,7 +99,6 @@ class _HomeTabContent extends StatelessWidget {
             child: BlocBuilder<HomeBloc, HomeState>(
               builder: (context, state) {
                 if (state is HomeLoading) {
-                  // Show cached data if available, otherwise show loading
                   if (state.cachedData != null) {
                     return _buildContent(context, state.cachedData!);
                   }
@@ -112,7 +110,6 @@ class _HomeTabContent extends StatelessWidget {
                 }
 
                 if (state is HomeError) {
-                  // Show cached data if available, otherwise show error
                   if (state.cachedData != null) {
                     return _buildContent(context, state.cachedData!);
                   }
@@ -149,7 +146,6 @@ class _HomeTabContent extends StatelessWidget {
           children: [
             SizedBox(height: Responsive.spacing(context, 16)),
 
-            // Site Banners (from API) - Show first if available
             if (!isLoadingBanners && siteBanners.isNotEmpty) ...[
               SiteBannerCarousel(
                 banners: siteBanners,
@@ -158,19 +154,15 @@ class _HomeTabContent extends StatelessWidget {
               SizedBox(height: Responsive.spacing(context, 24)),
             ],
 
-            // Home Banners (from home API) - Show as fallback
             if (homeData.banners.isNotEmpty && (isLoadingBanners || siteBanners.isEmpty)) ...[
               BannerCarousel(
                 banners: homeData.banners,
                 autoScrollDuration: const Duration(seconds: 3),
-                onBannerTap: (banner) {
-                  // Handle banner tap
-                },
+                onBannerTap: (banner) {},
               ),
               SizedBox(height: Responsive.spacing(context, 24)),
             ],
 
-            // Categories Section
             if (homeData.categories.isNotEmpty) ...[
               SectionHeader(
                 title: 'التصنيفات',
@@ -197,13 +189,9 @@ class _HomeTabContent extends StatelessWidget {
               SizedBox(height: Responsive.spacing(context, 24)),
             ],
 
-            // Popular/Most Watched Courses - الأكثر مشاهدة (best_seller من API)
             if (homeData.popularCourses.isNotEmpty) ...[
               SectionHeader(
                 title: 'الأكثر مشاهدة',
-                // onSeeAll: () {
-                //   _navigateToPopularCourses(context, homeData.popularCourses);
-                // },
               ),
               SizedBox(height: Responsive.spacing(context, 12)),
               SizedBox(
@@ -227,25 +215,20 @@ class _HomeTabContent extends StatelessWidget {
               SizedBox(height: Responsive.spacing(context, 24)),
             ],
 
-            // Courses by Category from category_course_blocks (API format)
             if (homeData.categoryCourseBlocks.isNotEmpty) ...[
               ...homeData.categoryCourseBlocks.map((block) {
                 return _buildCategoryCourseBlockSection(context, block);
               }),
             ] else ...[
-              // Fallback: Use coursesByCategory if category_course_blocks is empty
               ...homeData.coursesByCategory.entries.map((entry) {
                 return _buildCategorySection(context, entry.key, entry.value, homeData);
               }),
             ],
 
-            // Free Courses
             if (homeData.freeCourses.isNotEmpty) ...[
               SectionHeader(
                 title: 'دورات مجانية',
-                onSeeAll: () {
-                  // Navigate to free courses
-                },
+                onSeeAll: () {},
               ),
               SizedBox(height: Responsive.spacing(context, 12)),
               _buildCoursesGrid(context, homeData.freeCourses),

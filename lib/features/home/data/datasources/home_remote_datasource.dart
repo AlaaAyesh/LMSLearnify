@@ -6,8 +6,6 @@ import '../../../../core/network/cache_service.dart';
 import '../models/home_data_model.dart';
 
 abstract class HomeRemoteDataSource {
-  /// Get home page data (banners + latest courses)
-  /// Throws [ServerException] on failure
   Future<HomeDataModel> getHomeData();
 }
 
@@ -19,13 +17,11 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
   @override
   Future<HomeDataModel> getHomeData() async {
     try {
-      // Cache is handled automatically by DioCacheInterceptor
       final response = await dioClient.get(ApiConstants.homeApi);
 
       if (response.statusCode == 200) {
         final responseData = response.data;
-        
-        // Handle different response structures
+
         if (responseData['data'] != null) {
           return HomeDataModel.fromJson(responseData['data']);
         } else if (responseData['banners'] != null || responseData['latest_courses'] != null) {

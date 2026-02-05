@@ -25,11 +25,9 @@ class TransactionsRemoteDataSourceImpl implements TransactionsRemoteDataSource {
       String endpoint = ApiConstants.myTransactions;
       Map<String, dynamic>? queryParams;
 
-      // If next_page_url is provided, use it directly
       if (nextPageUrl != null && nextPageUrl.isNotEmpty) {
         final uri = Uri.parse(nextPageUrl);
-        
-        // Extract path after /api/
+
         if (nextPageUrl.startsWith('http')) {
           final pathParts = uri.path.split('/api/');
           if (pathParts.length > 1) {
@@ -43,7 +41,6 @@ class TransactionsRemoteDataSourceImpl implements TransactionsRemoteDataSource {
         
         queryParams = uri.queryParameters.isNotEmpty ? uri.queryParameters : null;
       } else {
-        // Build query params for initial request
         queryParams = <String, dynamic>{};
         if (page != null) {
           queryParams['page'] = page;
@@ -57,13 +54,11 @@ class TransactionsRemoteDataSourceImpl implements TransactionsRemoteDataSource {
 
       if (response.statusCode == 200) {
         final responseData = response.data;
-        
-        // Handle standard response format
+
         if (responseData['status'] == 'success' && responseData['data'] != null) {
           return TransactionsResponseModel.fromJson(responseData);
         }
-        
-        // Handle direct data format
+
         if (responseData['data'] != null) {
           return TransactionsResponseModel.fromJson(responseData);
         }

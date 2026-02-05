@@ -75,32 +75,27 @@ class _LessonPlayerPageContent extends StatefulWidget {
 
 class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
   bool _hasMarkedAsViewed = false;
-  bool _showLessonsList = true; // Open by default
+  bool _showLessonsList = true;
   WebViewController? _videoController;
   String? _currentVideoUrl;
-  
-  // Video progress tracking
+
   DateTime? _videoStartTime;
   Timer? _progressTimer;
   double _currentProgress = 0.0;
   int? _videoDurationSeconds;
-  
-  // Authentication state
+
   bool? _isAuthenticated;
 
   @override
   void initState() {
     super.initState();
     _checkAuthentication();
-    
-    // Allow all orientations for video playback (user can rotate manually)
+
     SystemChrome.setPreferredOrientations([
       DeviceOrientation.portraitUp,
       DeviceOrientation.landscapeLeft,
       DeviceOrientation.landscapeRight,
     ]);
-    
-    // Don't auto-rotate to landscape - let user control fullscreen via video player button
   }
 
   Future<void> _checkAuthentication() async {
@@ -121,21 +116,17 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
   @override
   void dispose() {
     _progressTimer?.cancel();
-    
-    // Lesson should already be marked as viewed when video loaded
-    // But as a fallback, mark it if it wasn't marked yet
+
     if (widget.lessonId > 0 && !_hasMarkedAsViewed) {
       print('LessonPlayerPage: Marking lesson ${widget.lessonId} as viewed on dispose (fallback)');
       if (mounted) {
         context.read<LessonBloc>().add(MarkLessonViewedEvent(lessonId: widget.lessonId));
       }
-      // Update parent callback
       if (widget.onProgressUpdate != null) {
-        widget.onProgressUpdate!(1.0); // Set to 100% to indicate viewed
+        widget.onProgressUpdate!(1.0);
       }
     }
-    
-    // Restore portrait orientation when leaving
+
     SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
     super.dispose();
   }
@@ -143,7 +134,6 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
   int? _parseDurationToSeconds(String? duration) {
     if (duration == null || duration.isEmpty) return null;
     try {
-      // Parse format like "05:30" or "1:05:30"
       final parts = duration.split(':');
       if (parts.length == 2) {
         final minutes = int.parse(parts[0]);
@@ -166,8 +156,7 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
       print('LessonPlayerPage: Skipping progress tracking for invalid lesson ID: ${widget.lessonId}');
       return;
     }
-    
-    // Prevent multiple timers
+
     if (_progressTimer != null && _progressTimer!.isActive) {
       print('LessonPlayerPage: Progress tracking already started for lesson ${widget.lessonId}');
       return;
@@ -183,9 +172,8 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
     
     _videoStartTime = DateTime.now();
     _currentProgress = 0.0;
-    _hasMarkedAsViewed = false; // Reset when starting new tracking
-    
-    // Update progress every second
+    _hasMarkedAsViewed = false;
+
     _progressTimer?.cancel();
     _progressTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (_videoStartTime == null || _videoDurationSeconds == null) {
@@ -200,8 +188,7 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
         setState(() {
           _currentProgress = newProgress;
         });
-        
-        // Update parent with progress every second
+
         if (widget.onProgressUpdate != null) {
           widget.onProgressUpdate!(newProgress);
           print('LessonPlayerPage: Progress update - lesson ${widget.lessonId}, progress: ${(newProgress * 100).toStringAsFixed(1)}%');
@@ -213,23 +200,19 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
   }
 
   void _onVideoLoaded() {
-    // Mark as viewed immediately when video loads
     if (widget.lessonId > 0 && !_hasMarkedAsViewed) {
       _hasMarkedAsViewed = true;
       print('LessonPlayerPage: Marking lesson ${widget.lessonId} as viewed (video loaded)');
       if (mounted) {
-        // Mark via API
         context.read<LessonBloc>().add(MarkLessonViewedEvent(lessonId: widget.lessonId));
-        // Also notify parent to update UI
         if (widget.onProgressUpdate != null) {
-          widget.onProgressUpdate!(1.0); // Set progress to 100% to indicate viewed
+          widget.onProgressUpdate!(1.0);
         }
       }
     }
   }
 
   WebViewController _getVideoController(String videoUrl) {
-    // Return existing controller if URL hasn't changed
     if (_videoController != null && _currentVideoUrl == videoUrl) {
       return _videoController!;
     }
@@ -299,20 +282,14 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
 
   @override
   Widget build(BuildContext context) {
-    // For intro videos (lessonId <= 0), use initial lesson directly
     if (widget.lessonId <= 0 && widget.initialLesson?.bunnyUrl != null) {
       return _buildPlayerPage(widget.initialLesson!);
     }
 
     return BlocConsumer<LessonBloc, LessonState>(
       listener: (context, state) {
-        if (state is LessonError) {
-          // ScaffoldMessenger.of(context).showSnackBar(
-          //   SnackBar(content: Text(state.message), backgroundColor: Colors.red),
-          // );
-        }
+        if (state is LessonError) {}
         if (state is LessonLoaded) {
-          // Start tracking progress when lesson is loaded
           WidgetsBinding.instance.addPostFrameCallback((_) {
             _startProgressTracking(state.lesson);
           });
@@ -322,10 +299,7 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
         if (state is LessonLoading) return _buildLoadingScreen();
         if (state is LessonLoaded) return _buildPlayerPage(state.lesson);
         if (state is LessonError) {
-          // Check if we can use initialLesson for free courses
-          // If authentication check is still pending, wait a bit and rebuild
           if (_isAuthenticated == null) {
-            // Wait for auth check to complete
             Future.delayed(const Duration(milliseconds: 100), () {
               if (mounted) {
                 setState(() {});
@@ -344,9 +318,7 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
     );
   }
 
-  /// Check if we can use initialLesson for free courses when API returns access denied
   bool _canUseInitialLessonForFreeCourse(String errorMessage) {
-    // Check if error is access denied related
     final isAccessDenied = errorMessage.toLowerCase().contains('access denied') ||
         errorMessage.toLowerCase().contains('permission') ||
         errorMessage.toLowerCase().contains('unauthorized') ||
@@ -354,7 +326,6 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
 
     if (!isAccessDenied) return false;
 
-    // Check if course is free
     if (widget.course == null) return false;
     final isFreeCourse = widget.course!.price == null ||
         widget.course!.price!.isEmpty ||
@@ -363,13 +334,11 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
 
     if (!isFreeCourse) return false;
 
-    // Check if initialLesson is available
-    if (widget.initialLesson == null || 
+    if (widget.initialLesson == null ||
         (widget.initialLesson!.bunnyUrl == null || widget.initialLesson!.bunnyUrl!.isEmpty)) {
       return false;
     }
 
-    // Check if user is authenticated (use cached value)
     return _isAuthenticated == true;
   }
 
@@ -415,7 +384,6 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // Animated Login Icon with Gradient Background
               TweenAnimationBuilder<double>(
                 tween: Tween(begin: 0.0, end: 1.0),
                 duration: const Duration(milliseconds: 600),
@@ -453,7 +421,6 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
 
               SizedBox(height: Responsive.spacing(context, 32)),
 
-              // Main Title
               TweenAnimationBuilder<double>(
                 tween: Tween(begin: 0.0, end: 1.0),
                 duration: const Duration(milliseconds: 800),
@@ -490,7 +457,6 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
 
               SizedBox(height: Responsive.spacing(context, 12)),
 
-              // Message
               TweenAnimationBuilder<double>(
                 tween: Tween(begin: 0.0, end: 1.0),
                 duration: const Duration(milliseconds: 1000),
@@ -529,7 +495,6 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
 
               SizedBox(height: Responsive.spacing(context, 40)),
 
-              // Retry Button with Animation
               TweenAnimationBuilder<double>(
                 tween: Tween(begin: 0.0, end: 1.0),
                 duration: const Duration(milliseconds: 1200),
@@ -597,7 +562,6 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
 
               SizedBox(height: Responsive.spacing(context, 16)),
 
-              // Back to Home Option
               TweenAnimationBuilder<double>(
                 tween: Tween(begin: 0.0, end: 1.0),
                 duration: const Duration(milliseconds: 1400),
@@ -633,21 +597,18 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
     if (videoUrl == null || videoUrl.isEmpty) {
       return _buildNoVideoScreen(lesson);
     }
-    
-    // Start progress tracking if not already started
+
     if (_videoStartTime == null && widget.lessonId > 0) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _startProgressTracking(lesson);
       });
     }
 
-    // Always show video inline - user can use fullscreen button in video player
-        return Scaffold(
+    return Scaffold(
           backgroundColor: Colors.white,
           body: SafeArea(
             child: Column(
               children: [
-                // Video Player Section
                 AspectRatio(
                   aspectRatio: 16 / 9,
                   child: Stack(
@@ -656,13 +617,11 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
                       videoUrl: videoUrl,
                       onVideoLoaded: () {
                         _onVideoLoaded();
-                        // Start progress tracking when video loads
                         if (widget.lessonId > 0) {
                           _startProgressTracking(lesson);
                         }
                       },
                     ),
-                    // Back button overlay
                     Positioned(
                       top: 8,
                       left: 8,
@@ -674,22 +633,18 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
                         child: IconButton(
                           icon: Icon(Icons.arrow_back, color: Colors.white, size: Responsive.iconSize(context, 20)),
                           onPressed: () {
-                            // Check progress before navigating back
                             if (widget.lessonId > 0 && _videoStartTime != null && _videoDurationSeconds != null && _videoDurationSeconds! > 0) {
                               final elapsed = DateTime.now().difference(_videoStartTime!).inSeconds;
                               final finalProgress = (elapsed / _videoDurationSeconds!).clamp(0.0, 1.0);
                               
                               print('LessonPlayerPage: Back button pressed - final progress: ${(finalProgress * 100).toStringAsFixed(1)}%');
-                              
-                              // Lesson should already be marked as viewed when video loaded
-                              // But as a fallback, mark it if it wasn't marked yet
+
                               if (!_hasMarkedAsViewed) {
                                 print('LessonPlayerPage: Marking lesson ${widget.lessonId} as viewed on back (fallback)');
                                 _hasMarkedAsViewed = true;
                                 context.read<LessonBloc>().add(MarkLessonViewedEvent(lessonId: widget.lessonId));
                               }
-                              
-                              // Update parent callback
+
                               if (widget.onProgressUpdate != null) {
                                 widget.onProgressUpdate!(finalProgress);
                               }
@@ -705,24 +660,19 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
                   ],
                   ),
                 ),
-                // Content Section
                 Expanded(
                   child: SingleChildScrollView(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Lesson Info Card
                         _buildLessonInfoCard(lesson),
-                        
-                        // Course & Chapter Info
+
                         if (widget.course != null || widget.chapter != null)
                           _buildCourseChapterInfo(),
-                        
-                        // Chapter Lessons List
+
                         if (widget.chapter != null && widget.chapter!.lessons.isNotEmpty)
                           _buildChapterLessons(lesson),
-                        
-                        // Description Section
+
                         if (lesson.description != null && lesson.description!.isNotEmpty)
                           _buildDescriptionSection(lesson),
                         
@@ -743,7 +693,6 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Lesson Title
           Text(
             lesson.nameAr,
             style: TextStyle(
@@ -754,7 +703,6 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
             ),
           ),
           SizedBox(height: Responsive.spacing(context, 8)),
-          // Lesson Meta Info
           Row(
             children: [
               if (lesson.videoDuration != null) ...[
@@ -827,7 +775,6 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Course Info
           if (widget.course != null) ...[
             Row(
               children: [
@@ -869,7 +816,6 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
               ],
             ),
           ],
-          // Chapter Info
           if (widget.chapter != null) ...[
             if (widget.course != null) ...[
               Padding(
@@ -914,7 +860,6 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
                     ],
                   ),
                 ),
-                // Lessons count badge
                 Container(
                   padding: Responsive.padding(context, horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
@@ -943,7 +888,6 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Header with toggle
         InkWell(
           onTap: () => setState(() => _showLessonsList = !_showLessonsList),
           child: Padding(
@@ -972,7 +916,6 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
             ),
           ),
         ),
-        // Lessons List
         AnimatedCrossFade(
           firstChild: const SizedBox.shrink(),
           secondChild: _buildLessonsList(currentLesson),

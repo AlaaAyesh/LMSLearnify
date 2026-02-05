@@ -7,7 +7,6 @@ abstract class ChapterEvent extends Equatable {
   List<Object?> get props => [];
 }
 
-/// Load chapter details by ID
 class LoadChapterEvent extends ChapterEvent {
   final int chapterId;
 
@@ -17,7 +16,6 @@ class LoadChapterEvent extends ChapterEvent {
   List<Object?> get props => [chapterId];
 }
 
-/// Clear chapter state
 class ClearChapterStateEvent extends ChapterEvent {
   const ClearChapterStateEvent();
 }

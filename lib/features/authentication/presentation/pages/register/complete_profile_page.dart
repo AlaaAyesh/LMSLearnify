@@ -20,8 +20,8 @@ import '../../widgets/primary_button.dart';
 class CompleteProfilePage extends StatelessWidget {
   final String email;
   final String? name;
-  final String providerId; // google | apple
-  final String accessToken; // OAuth token for registration
+  final String providerId;
+  final String accessToken;
   final bool requiresRegistration;
 
   const CompleteProfilePage({
@@ -73,17 +73,15 @@ class _CompleteProfileViewState extends State<_CompleteProfileView> {
   late final TextEditingController nameController;
   final phoneController = TextEditingController();
 
-  // Birthday controllers
   final dayController = TextEditingController();
   final monthController = TextEditingController();
   final yearController = TextEditingController();
 
-  String? countryCode = '+20'; // Default to Egypt
+  String? countryCode = '+20';
   String selectedRole = 'student';
   String selectedGender = 'male';
-  String selectedReligion = 'muslim'; // Default to Muslim, hidden from user
+  String selectedReligion = 'muslim';
 
-  // Calculated from birthday
   int? calculatedAge;
   int? calculatedSpecialtyId;
   String? specialtyName;
@@ -93,7 +91,6 @@ class _CompleteProfileViewState extends State<_CompleteProfileView> {
     super.initState();
     nameController = TextEditingController(text: widget.name ?? '');
 
-    // Listen to birthday changes
     dayController.addListener(_updateAgeAndSpecialty);
     monthController.addListener(_updateAgeAndSpecialty);
     yearController.addListener(_updateAgeAndSpecialty);
@@ -161,7 +158,6 @@ class _CompleteProfileViewState extends State<_CompleteProfileView> {
 
   void onCompletePressed() {
     if (formKey.currentState!.validate()) {
-      // Check age validity
       if (calculatedAge == null) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -189,8 +185,6 @@ class _CompleteProfileViewState extends State<_CompleteProfileView> {
           ? '$countryCode${phoneController.text.trim()}'
           : phoneController.text.trim();
 
-      // For new users (no backend session yet), register using social token.
-      // For existing users with incomplete profile, update using profile endpoint.
       if (widget.requiresRegistration) {
         context.read<AuthBloc>().add(
               CompleteProfileEvent(
@@ -318,7 +312,6 @@ class _CompleteProfileViewState extends State<_CompleteProfileView> {
                       children: [
                         SizedBox(height: Responsive.spacing(context, 50)),
 
-                        /// Same Register Header
                         const RegisterHeader(
                           title: 'استكمل بياناتك',
                           highlight: 'لنبدأ!',
@@ -326,11 +319,9 @@ class _CompleteProfileViewState extends State<_CompleteProfileView> {
 
                         SizedBox(height: Responsive.spacing(context, 45)),
 
-                        /// Name
                         NameField(controller: nameController),
                         SizedBox(height: Responsive.spacing(context, 16)),
 
-                        /// Phone
                         PhoneField(
                           controller: phoneController,
                           countryCode: countryCode,
@@ -339,21 +330,18 @@ class _CompleteProfileViewState extends State<_CompleteProfileView> {
                         ),
                         SizedBox(height: Responsive.spacing(context, 16)),
 
-                        /// Birthday
                         BirthdayField(
                           dayController: dayController,
                           monthController: monthController,
                           yearController: yearController,
                         ),
 
-                        // Show calculated age and specialty
                         if (calculatedAge != null) ...[
                           SizedBox(height: Responsive.spacing(context, 8)),
                           _buildAgeSpecialtyInfo(context),
                         ],
                         SizedBox(height: Responsive.spacing(context, 16)),
 
-                        /// Gender
                         GenderField(
                           selectedValue: selectedGender,
                           onChanged: (value) {
@@ -368,7 +356,6 @@ class _CompleteProfileViewState extends State<_CompleteProfileView> {
                         ),
                         SizedBox(height: Responsive.spacing(context, 32)),
 
-                        /// Button (same register button)
                         BlocBuilder<AuthBloc, AuthState>(
                           builder: (context, state) {
                             final isLoading = state is AuthLoading;
@@ -403,7 +390,6 @@ class _CompleteProfileViewState extends State<_CompleteProfileView> {
         ),
       );
     } else if (state is AuthAuthenticated) {
-      // Navigate to content preferences page after profile completion
       Navigator.of(context).pushNamedAndRemoveUntil(
         '/content-preferences',
         (_) => false,
@@ -454,7 +440,6 @@ class GenderField extends StatelessWidget {
                 ),
                 child: Row(
                   children: [
-                    /// Icon
                     Icon(
                       Icons.person_outline,
                       color: AppColors.primary,
@@ -462,7 +447,6 @@ class GenderField extends StatelessWidget {
                     ),
                     SizedBox(width: Responsive.spacing(context, 20)),
 
-                    /// Male
                     Expanded(
                       child: RadioListTile<String>(
                         value: 'male',
@@ -485,7 +469,6 @@ class GenderField extends StatelessWidget {
                       ),
                     ),
 
-                    /// Female
                     Expanded(
                       child: RadioListTile<String>(
                         value: 'female',
@@ -512,7 +495,6 @@ class GenderField extends StatelessWidget {
               ),
             ),
 
-            /// Error text
             if (state.hasError)
               Padding(
                 padding: EdgeInsets.only(

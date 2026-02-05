@@ -10,12 +10,10 @@ abstract class SubscriptionEvent extends Equatable {
   List<Object?> get props => [];
 }
 
-/// Load all subscriptions
 class LoadSubscriptionsEvent extends SubscriptionEvent {
   const LoadSubscriptionsEvent();
 }
 
-/// Load a specific subscription by ID
 class LoadSubscriptionByIdEvent extends SubscriptionEvent {
   final int id;
 
@@ -25,7 +23,6 @@ class LoadSubscriptionByIdEvent extends SubscriptionEvent {
   List<Object?> get props => [id];
 }
 
-/// Select a subscription plan
 class SelectSubscriptionEvent extends SubscriptionEvent {
   final int index;
 
@@ -35,7 +32,6 @@ class SelectSubscriptionEvent extends SubscriptionEvent {
   List<Object?> get props => [index];
 }
 
-/// Apply a promo code
 class ApplyPromoCodeEvent extends SubscriptionEvent {
   final String promoCode;
 
@@ -45,7 +41,6 @@ class ApplyPromoCodeEvent extends SubscriptionEvent {
   List<Object?> get props => [promoCode];
 }
 
-/// Create a new subscription (admin only)
 class CreateSubscriptionEvent extends SubscriptionEvent {
   final CreateSubscriptionRequest request;
 
@@ -55,7 +50,6 @@ class CreateSubscriptionEvent extends SubscriptionEvent {
   List<Object?> get props => [request];
 }
 
-/// Update an existing subscription (admin only)
 class UpdateSubscriptionEvent extends SubscriptionEvent {
   final int id;
   final UpdateSubscriptionRequest request;
@@ -69,12 +63,10 @@ class UpdateSubscriptionEvent extends SubscriptionEvent {
   List<Object?> get props => [id, request];
 }
 
-/// Clear subscription state
 class ClearSubscriptionStateEvent extends SubscriptionEvent {
   const ClearSubscriptionStateEvent();
 }
 
-/// Process a payment
 class ProcessPaymentEvent extends SubscriptionEvent {
   final PaymentService service;
   final String currency;
@@ -101,7 +93,7 @@ class VerifyIapReceiptEvent extends SubscriptionEvent {
   final String transactionId;
   final int purchaseId;
   final String store;
-  final PurchaseDetails? purchaseDetails; // لإكمال الشراء بعد التحقق
+  final PurchaseDetails? purchaseDetails;
 
   VerifyIapReceiptEvent({
     required this.receiptData,

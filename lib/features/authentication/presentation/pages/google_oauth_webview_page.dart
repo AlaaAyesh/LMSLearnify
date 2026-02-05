@@ -44,8 +44,7 @@ class _GoogleOAuthWebViewPageState extends State<GoogleOAuthWebViewPage> {
           },
           onNavigationRequest: (request) {
             final url = request.url;
-            
-            // Check if this is the callback URL
+
             if (_isCallbackUrl(url)) {
               _handleCallback(url);
               return NavigationDecision.prevent;
@@ -62,8 +61,6 @@ class _GoogleOAuthWebViewPageState extends State<GoogleOAuthWebViewPage> {
   }
 
   bool _isCallbackUrl(String url) {
-    // Check if URL is our callback URL
-    // The callback URL contains 'auth/google/callback' and has a 'code' parameter
     final uri = Uri.parse(url);
     return url.contains('auth/google/callback') && uri.queryParameters.containsKey('code');
   }
@@ -72,8 +69,7 @@ class _GoogleOAuthWebViewPageState extends State<GoogleOAuthWebViewPage> {
     final uri = Uri.parse(url);
     final code = uri.queryParameters['code'];
     final error = uri.queryParameters['error'];
-    
-    // Check for error from Google
+
     if (error != null && error.isNotEmpty) {
       String errorMessage = 'فشل في تسجيل الدخول';
       if (error == 'access_denied') {
@@ -94,16 +90,12 @@ class _GoogleOAuthWebViewPageState extends State<GoogleOAuthWebViewPage> {
     }
     
     if (code != null && code.isNotEmpty) {
-      // URL decode the code if needed (Google may URL-encode it)
       final decodedCode = Uri.decodeComponent(code);
-      
-      // Send the code to the bloc to complete authentication
+
       context.read<AuthBloc>().add(GoogleCallbackEvent(code: decodedCode));
-      
-      // Close the WebView and wait for authentication result
+
       Navigator.of(context).pop();
     } else {
-      // No code found - show error
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
@@ -122,10 +114,8 @@ class _GoogleOAuthWebViewPageState extends State<GoogleOAuthWebViewPage> {
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
         if (state is AuthAuthenticated) {
-          // Successfully authenticated - navigate to home
           Navigator.of(context).pushNamedAndRemoveUntil('/home', (route) => false);
         } else if (state is AuthError) {
-          // Show error and close
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(

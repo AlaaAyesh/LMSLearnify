@@ -2,88 +2,56 @@ name: learnify_lms
 description: A Flutter LMS Application
 publish_to: 'none'
 version: 1.0.0+2
-
 environment:
   sdk: '>=3.0.0 <4.0.0'
-
 dependencies:
   flutter:
     sdk: flutter
   flutter_localizations:
     sdk: flutter
-
-  # State Management
   flutter_bloc: ^8.1.3
   equatable: ^2.0.5
-
-  # Networking
   dio: ^5.4.0
   pretty_dio_logger: ^1.3.1
   dio_cache_interceptor: ^3.4.2
-
-  # Local Storage
   hive: ^2.2.3
   hive_flutter: ^1.1.0
   flutter_secure_storage: ^9.0.0
   shared_preferences: ^2.5.3
-
-  # Dependency Injection
   get_it: ^7.6.4
-
-  # Functional Programming
   dartz: ^0.10.1
-
-  # UI & Utilities
   flutter_svg: ^2.0.9
   cached_network_image: ^3.3.1
   intl: ^0.19.0
-
-  # Routing
   url_launcher: ^6.3.2
-
-  # Video Player
   video_player: ^2.8.1
   webview_flutter: ^4.13.0
   webview_flutter_android: ^4.3.0
   webview_flutter_wkwebview: ^3.18.0
-
-  # Social Authentication
   google_sign_in: ^6.2.1
   sign_in_with_apple: ^6.1.0
   crypto: ^3.0.3
   in_app_purchase: ^3.2.3
   in_app_purchase_android: ^0.4.0+5
   in_app_purchase_storekit: ^0.4.4
-
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^3.0.0
-
-  # Testing
   mocktail: ^1.0.1
   bloc_test: ^9.1.5
-
-  # Code Generation
   build_runner: ^2.4.7
   hive_generator: ^2.0.1
-
-  # Launcher Icons
   flutter_launcher_icons: ^0.13.1
-
-
 flutter:
   uses-material-design: true
-
   assets:
-    - assets/icons/
     - assets/icons/apple.svg
     - assets/icons/code1.svg
     - assets/icons/google.svg
     - assets/icons/laptop.svg
     - assets/icons/pen011.svg
     - assets/icons/sun1.svg
-    - assets/images/
     - assets/images/app_logo.png
     - assets/images/applogo.png
     - assets/images/instaPay.png
@@ -122,12 +90,9 @@ flutter:
     - family: Cairo-SemiBold
       fonts:
         - asset: assets/fonts/Cairo/Cairo-SemiBold.ttf
-
 flutter_launcher_icons:
   android: true
   ios: true
   image_path: "assets/images/applogo.png"
   adaptive_icon_foreground: "assets/images/applogo.png"
   adaptive_icon_background: "#ffffff"
-
-

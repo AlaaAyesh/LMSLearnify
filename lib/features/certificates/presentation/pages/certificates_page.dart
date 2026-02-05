@@ -63,7 +63,6 @@ class _CertificatesPageState extends State<CertificatesPage> {
       return _UnauthenticatedCertificatesPage();
     }
 
-    // User is authenticated - load certificates
     return BlocProvider(
       create: (context) => sl<CertificateBloc>()..add(LoadOwnedCertificatesEvent()),
       child: const _CertificatesPageContent(),
@@ -71,7 +70,6 @@ class _CertificatesPageState extends State<CertificatesPage> {
   }
 }
 
-// Unauthenticated Certificates Page
 class _UnauthenticatedCertificatesPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -93,7 +91,6 @@ class _UnauthenticatedCertificatesPage extends StatelessWidget {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    // Lock Icon
                     Container(
                       padding: EdgeInsets.all(Responsive.width(context, 32)),
                       decoration: BoxDecoration(
@@ -124,7 +121,6 @@ class _UnauthenticatedCertificatesPage extends StatelessWidget {
                       textAlign: TextAlign.center,
                     ),
                     SizedBox(height: Responsive.spacing(context, 28)),
-                    // Login Button
                     SizedBox(
                       width: double.infinity,
                       height: Responsive.height(context, 56),
@@ -141,7 +137,6 @@ class _UnauthenticatedCertificatesPage extends StatelessWidget {
                         ),
                         child: ElevatedButton(
                           onPressed: () async {
-                            // Go directly to login using the root navigator
                             final result = await Navigator.of(
                               context,
                               rootNavigator: true,
@@ -151,15 +146,14 @@ class _UnauthenticatedCertificatesPage extends StatelessWidget {
                             );
 
                             if (result == true && context.mounted) {
-                              // After successful login, reload the certificates page
                               Navigator.of(context, rootNavigator: true)
                                   .pushReplacementNamed(AppRouter.certificates);
                             }
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppColors.primary,
-                            elevation: 0, // مهم: نشيل elevation الافتراضي
-                            padding: EdgeInsets.zero, // إزالة أي padding
+                            elevation: 0,
+                            padding: EdgeInsets.zero,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(22),
                             ),
@@ -176,7 +170,6 @@ class _UnauthenticatedCertificatesPage extends StatelessWidget {
                       ),
                     ),
                     SizedBox(height: Responsive.spacing(context, 24)),
-                    // Register Button
                     SizedBox(
                       width: double.infinity,
                       height: Responsive.height(context, 56),
@@ -193,7 +186,6 @@ class _UnauthenticatedCertificatesPage extends StatelessWidget {
                         ),
                         child: OutlinedButton(
                           onPressed: () async {
-                            // Go directly to register using the root navigator
                             final result = await Navigator.of(
                               context,
                               rootNavigator: true,
@@ -203,13 +195,12 @@ class _UnauthenticatedCertificatesPage extends StatelessWidget {
                             );
 
                             if (result == true && context.mounted) {
-                              // After successful registration, reload the certificates page
                               Navigator.of(context, rootNavigator: true)
                                   .pushReplacementNamed(AppRouter.certificates);
                             }
                           },
                           style: OutlinedButton.styleFrom(
-                            padding: EdgeInsets.zero, // إزالة margin الداخلي
+                            padding: EdgeInsets.zero,
                             side: const BorderSide(color: AppColors.primary),
                             backgroundColor: Colors.white,
                             shape: RoundedRectangleBorder(
@@ -270,7 +261,6 @@ class _CertificatesPageContent extends StatelessWidget {
                     backgroundColor: Colors.green,
                   ),
                 );
-                // Reload certificates after generating a new one
                 context.read<CertificateBloc>().add(LoadOwnedCertificatesEvent());
               }
             },
@@ -293,7 +283,6 @@ class _CertificatesPageContent extends StatelessWidget {
                 return _buildErrorState(context, state.message);
               }
 
-              // Initial state - show loading
               return Center(
                 child: CircularProgressIndicator(),
               );
@@ -388,7 +377,6 @@ class _CertificatesPageContent extends StatelessWidget {
                 onPressed: () {
                   context.read<CertificateBloc>().add(LoadOwnedCertificatesEvent());
                 },
-                // icon: const Icon(Icons.refresh),
                 label: const Text('تحديث'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFFFFC107),
@@ -507,7 +495,6 @@ class _CertificatesPageContent extends StatelessWidget {
     if (url != null && url.isNotEmpty) {
       _openUrl(url);
     } else {
-      // Load certificate details by ID
       context.read<CertificateBloc>().add(
             LoadCertificateByIdEvent(certificateId: certificate.id),
           );

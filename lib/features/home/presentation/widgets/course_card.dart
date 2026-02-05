@@ -36,7 +36,6 @@ class CourseCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Thumbnail
             Stack(
               children: [
                 ClipRRect(
@@ -81,7 +80,6 @@ class CourseCard extends StatelessWidget {
                           ),
                         ),
                 ),
-                // Soon badge
                 if (course.soon)
                   Positioned(
                     top: Responsive.height(context, 8),
@@ -103,7 +101,6 @@ class CourseCard extends StatelessWidget {
                       ),
                     ),
                   ),
-                // Access badge
                 if (course.hasAccess && !course.soon)
                   Positioned(
                     top: Responsive.height(context, 8),
@@ -127,13 +124,11 @@ class CourseCard extends StatelessWidget {
                   ),
               ],
             ),
-            // Content
             Padding(
               padding: Responsive.padding(context, all: 12),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Course name
                   Text(
                     course.nameAr,
                     maxLines: 2,
@@ -146,7 +141,6 @@ class CourseCard extends StatelessWidget {
                     ),
                   ),
                   SizedBox(height: Responsive.spacing(context, 4)),
-                  // Specialty (Age group)
                   if (course.specialty != null)
                     Text(
                       course.specialty!.nameAr,
@@ -157,7 +151,6 @@ class CourseCard extends StatelessWidget {
                       ),
                     ),
                   SizedBox(height: Responsive.spacing(context, 8)),
-                  // Price
                   Row(
                     children: [
                       if (course.hasDiscount) ...[

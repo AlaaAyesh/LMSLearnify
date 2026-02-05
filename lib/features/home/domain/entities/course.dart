@@ -11,35 +11,29 @@ class Course extends Equatable {
   final String? about;
   final String? whatYouWillLearn;
   final String? thumbnail;
-  
-  // Pricing
+
   final String? price;
   final String? priceBeforeDiscount;
   final String? usdPrice;
   final String? usdPriceBeforeDiscount;
-  
-  // SEO
+
   final String? seoTitle;
   final String? seoDescription;
   final String? seoKeywords;
-  
-  // Relations
+
   final Specialty? specialty;
   final List<Category> categories;
   final Instructor? instructor;
   final List<Chapter> chapters;
-  
-  // Reviews
+
   final int reviews;
   final String? reviewsAvg;
-  
-  // Video
+
   final String? introBunnyUri;
   final String? introBunnyUrl;
   final String? introVideoDuration;
   final String? introVideoStatus;
-  
-  // Access & Status
+
   final int purchaseCount;
   final bool hidden;
   final bool soon;
@@ -86,34 +80,27 @@ class Course extends Equatable {
       priceBeforeDiscount!.isNotEmpty &&
       price != priceBeforeDiscount;
 
-  /// Gets the thumbnail URL - either from the thumbnail field or generated from intro video
   String? get effectiveThumbnail {
-    // First check if we have a direct thumbnail
     if (thumbnail != null && thumbnail!.isNotEmpty) {
       return thumbnail;
     }
-    
-    // Check if intro video URI is a valid Bunny CDN URL (not placeholder)
-    if (introBunnyUri != null && 
+
+    if (introBunnyUri != null &&
         introBunnyUri!.isNotEmpty && 
         introBunnyUri!.startsWith('http') &&
         !introBunnyUri!.contains('placeholder')) {
-      // If URI already contains thumbnail.jpg, use it directly
       if (introBunnyUri!.contains('thumbnail')) {
         return introBunnyUri;
       }
-      // Otherwise generate thumbnail from video URI (Bunny CDN pattern)
       return '${introBunnyUri}/thumbnail.jpg';
     }
-    
-    // Try first lesson's video thumbnail from chapters
+
     for (final chapter in chapters) {
       for (final lesson in chapter.lessons) {
         if (lesson.bunnyUri != null && 
             lesson.bunnyUri!.isNotEmpty &&
             lesson.bunnyUri!.startsWith('http') &&
             !lesson.bunnyUri!.contains('placeholder')) {
-          // If URI already contains thumbnail, use it directly
           if (lesson.bunnyUri!.contains('thumbnail')) {
             return lesson.bunnyUri;
           }
@@ -127,7 +114,6 @@ class Course extends Equatable {
   int get totalLessons => chapters.fold(0, (sum, ch) => sum + ch.lessons.length);
   
   String get totalDuration {
-    // Calculate total duration from lessons
     int totalMinutes = 0;
     for (final chapter in chapters) {
       for (final lesson in chapter.lessons) {

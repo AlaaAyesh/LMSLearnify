@@ -13,20 +13,13 @@ import '../bloc/reels_event.dart';
 import '../bloc/reels_state.dart';
 import 'reels_feed_page.dart';
 
-/// A page that shows a user's profile with their reels
-/// Works like Facebook/TikTok - can view any user's profile
 class CollectedReelsPage extends StatelessWidget {
-  /// The user ID whose profile to display
-  /// If null, displays the current logged-in user's profile
   final int? userId;
-  
-  /// User's display name
+
   final String? userName;
-  
-  /// User's avatar URL
+
   final String? userAvatarUrl;
-  
-  /// User's bio/description
+
   final String? userBio;
 
   const CollectedReelsPage({
@@ -87,7 +80,6 @@ class _CollectedReelsPageContentState extends State<_CollectedReelsPageContent>
   }
 
   Future<void> _initializeProfile() async {
-    // If userId is provided, use it (viewing someone else's profile)
     if (widget.userId != null) {
       setState(() {
         _profileUserId = widget.userId;
@@ -96,8 +88,7 @@ class _CollectedReelsPageContentState extends State<_CollectedReelsPageContent>
         _profileBio = widget.userBio;
         _isLoadingUser = false;
       });
-      
-      // Check if this is the current user's own profile
+
       try {
         final authLocalDataSource = sl<AuthLocalDataSource>();
         final currentUser = await authLocalDataSource.getCachedUser();
@@ -107,8 +98,7 @@ class _CollectedReelsPageContentState extends State<_CollectedReelsPageContent>
           });
         }
       } catch (_) {}
-      
-      // Load user reels
+
       context.read<ReelsBloc>().add(
             LoadUserReelsEvent(
               userId: _profileUserId!,
@@ -116,7 +106,6 @@ class _CollectedReelsPageContentState extends State<_CollectedReelsPageContent>
             ),
           );
     } else {
-      // No userId provided, load current user's profile
       await _loadCurrentUserProfile();
     }
   }
@@ -130,11 +119,10 @@ class _CollectedReelsPageContentState extends State<_CollectedReelsPageContent>
           _profileUserId = user?.id;
           _profileUserName = user?.name;
           _profileAvatarUrl = user?.avatarUrl;
-          _profileBio = null; // Current user might not have bio in cached data
+          _profileBio = null;
           _isLoadingUser = false;
           _isOwnProfile = true;
         });
-        // Load user reels by default (My Videos tab)
         if (_profileUserId != null) {
           context.read<ReelsBloc>().add(
                 LoadUserReelsEvent(
@@ -156,7 +144,6 @@ class _CollectedReelsPageContentState extends State<_CollectedReelsPageContent>
   void _onTabChanged() {
     if (!_tabController.indexIsChanging && _profileUserId != null) {
       if (_tabController.index == 0) {
-        // Videos tab
         context.read<ReelsBloc>().add(
               LoadUserReelsEvent(
                 userId: _profileUserId!,
@@ -164,7 +151,6 @@ class _CollectedReelsPageContentState extends State<_CollectedReelsPageContent>
               ),
             );
       } else if (_tabController.index == 1) {
-        // Liked tab
         context.read<ReelsBloc>().add(
               LoadUserLikedReelsEvent(
                 userId: _profileUserId!,
@@ -194,13 +180,10 @@ class _CollectedReelsPageContentState extends State<_CollectedReelsPageContent>
         child: Column(
           children: [
             const SizedBox(height: 16),
-            // Logo and title
             _buildHeader(),
             const SizedBox(height: 24),
-            // Tabs
             _buildTabs(),
             const SizedBox(height: 16),
-            // Content
             Expanded(
               child: BlocBuilder<ReelsBloc, ReelsState>(
                 builder: (context, state) {
@@ -227,7 +210,6 @@ class _CollectedReelsPageContentState extends State<_CollectedReelsPageContent>
     
     return Column(
       children: [
-        // Avatar Circle
         Container(
           width: 120,
           height: 120,
@@ -255,7 +237,6 @@ class _CollectedReelsPageContentState extends State<_CollectedReelsPageContent>
           ),
         ),
         const SizedBox(height: 16),
-        // Name
         Text(
           displayName,
           style: const TextStyle(
@@ -267,7 +248,6 @@ class _CollectedReelsPageContentState extends State<_CollectedReelsPageContent>
         ),
         if (bio != null && bio.isNotEmpty) ...[
           const SizedBox(height: 4),
-          // Bio
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 32),
             child: Text(
@@ -305,7 +285,6 @@ class _CollectedReelsPageContentState extends State<_CollectedReelsPageContent>
   }
 
   Widget _buildTabs() {
-    // Show "My Videos" only for own profile, otherwise "Videos"
     final videosTabLabel = _isOwnProfile ? 'فيديوهاتي' : 'الفيديوهات';
     final likedTabLabel = _isOwnProfile ? 'المفضلة' : 'المفضلة';
     
@@ -622,7 +601,6 @@ class _CollectedReelsPageContentState extends State<_CollectedReelsPageContent>
     final safeInitialIndex =
         initialIndex.clamp(0, (reels.isEmpty ? 0 : reels.length - 1));
 
-    // Open viewer seeded with the chosen list, without category filters
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => BlocProvider(
@@ -630,8 +608,8 @@ class _CollectedReelsPageContentState extends State<_CollectedReelsPageContent>
           child: ReelsFeedPage(
             initialIndex: safeInitialIndex,
             showBackButton: true,
-            freeReelsLimit: 0, // don't show paywall when opening from profile lists
-            isTabActive: true, // allow playback outside the Shorts tab
+            freeReelsLimit: 0,
+            isTabActive: true,
             hideCategoryFilters: true,
           ),
         ),

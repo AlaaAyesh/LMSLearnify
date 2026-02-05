@@ -59,7 +59,6 @@ class MenuButton extends StatelessWidget {
             ),
           ),
 
-          /// BADGE
           if (badge != null)
             Positioned(
               right: -10,

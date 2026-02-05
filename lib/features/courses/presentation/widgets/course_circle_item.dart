@@ -6,8 +6,6 @@ import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/utils/responsive.dart';
 import '../../../home/domain/entities/course.dart';
 
-/// A circular course item widget used in the All Courses Page
-/// Displays the course image in a circle with the name below
 class CourseCircleItem extends StatelessWidget {
   final Course course;
   final VoidCallback? onTap;
@@ -23,18 +21,13 @@ class CourseCircleItem extends StatelessWidget {
     final bool isComingSoon = course.soon;
     final bool isTablet = Responsive.isTablet(context);
 
-    // نستخدم LayoutBuilder لضبط حجم الدائرة حسب ارتفاع الخلية ومنع الـ overflow
     return LayoutBuilder(
       builder: (context, constraints) {
-        // ارتفاع الخلية داخل الـ Grid
         final maxHeight = constraints.maxHeight;
 
-        // حجم افتراضي للدائرة (أصغر قليلاً في التابلت)
         final double baseSize = isTablet ? 100 : 120;
         double circleSize = Responsive.width(context, baseSize);
 
-        // نتأكد أن مجموع (الدائرة + المسافة + العنوان) لا يتجاوز ارتفاع الخلية
-        // نترك تقريبًا 60 بكسل للعنوان والمسافات
         final double maxCircleSize = math.max(0, maxHeight - Responsive.height(context, 60));
         circleSize = math.min(circleSize, maxCircleSize);
 
@@ -46,7 +39,6 @@ class CourseCircleItem extends StatelessWidget {
               child: Stack(
                 alignment: Alignment.center,
                 children: [
-                  // Main Circle
                   Container(
                     width: circleSize,
                     height: circleSize,
@@ -69,7 +61,6 @@ class CourseCircleItem extends StatelessWidget {
                     ),
                   ),
 
-                  // Coming Soon Overlay (centered like image)
                   if (isComingSoon)
                     Container(
                       width: circleSize,
@@ -102,7 +93,6 @@ class CourseCircleItem extends StatelessWidget {
 
             SizedBox(height: Responsive.spacing(context, 8)),
 
-            // Course Title
             Flexible(
               child: Text(
                 course.nameAr,

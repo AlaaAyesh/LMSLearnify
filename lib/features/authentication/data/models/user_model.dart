@@ -26,7 +26,6 @@ class UserModel extends User {
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
     try {
-      // Handle specialty_id which can be int or String
       int? specialtyIdValue;
       final rawSpecialtyId = json['specialty_id'];
       if (rawSpecialtyId is int) {
@@ -35,7 +34,6 @@ class UserModel extends User {
         specialtyIdValue = int.tryParse(rawSpecialtyId);
       }
 
-      // Handle specialty which can be String or Map
       String? specialtyValue;
       final rawSpecialty = json['specialty'];
       if (rawSpecialty is String) {
@@ -44,7 +42,6 @@ class UserModel extends User {
         specialtyValue = rawSpecialty['name_ar']?.toString() ?? rawSpecialty['name']?.toString();
       }
 
-      // Handle about which can be String or null
       String? aboutValue;
       final rawAbout = json['about'];
       if (rawAbout is String) {

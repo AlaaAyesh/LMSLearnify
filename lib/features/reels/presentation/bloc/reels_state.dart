@@ -9,27 +9,24 @@ abstract class ReelsState extends Equatable {
   List<Object?> get props => [];
 }
 
-/// Initial state
 class ReelsInitial extends ReelsState {
   const ReelsInitial();
 }
 
-/// Loading initial reels
 class ReelsLoading extends ReelsState {
   const ReelsLoading();
 }
 
-/// Reels loaded successfully
 class ReelsLoaded extends ReelsState {
   final List<Reel> reels;
-  final String? nextCursor; // Deprecated, use nextPageUrl instead
-  final String? nextPageUrl; // URL for next page from API
+  final String? nextCursor;
+  final String? nextPageUrl;
   final bool hasMore;
   final bool isLoadingMore;
   final Map<int, bool> likedReels;
-  final Map<int, int> viewCounts;  // Track updated view counts
-  final Map<int, int> likeCounts;  // Track updated like counts
-  final List<ReelCategoryModel> categories; // Categories for filtering
+  final Map<int, int> viewCounts;
+  final Map<int, int> likeCounts;
+  final List<ReelCategoryModel> categories;
 
   const ReelsLoaded({
     required this.reels,
@@ -43,12 +40,10 @@ class ReelsLoaded extends ReelsState {
     this.categories = const [],
   });
 
-  /// Get view count for a reel (local update or original)
   int getViewCount(Reel reel) {
     return viewCounts[reel.id] ?? reel.viewsCount;
   }
 
-  /// Get like count for a reel (local update or original)
   int getLikeCount(Reel reel) {
     return likeCounts[reel.id] ?? reel.likesCount;
   }
@@ -81,12 +76,10 @@ class ReelsLoaded extends ReelsState {
   List<Object?> get props => [reels, nextCursor, nextPageUrl, hasMore, isLoadingMore, likedReels, viewCounts, likeCounts, categories];
 }
 
-/// No reels available
 class ReelsEmpty extends ReelsState {
   const ReelsEmpty();
 }
 
-/// Error loading reels
 class ReelsError extends ReelsState {
   final String message;
 
@@ -96,7 +89,6 @@ class ReelsError extends ReelsState {
   List<Object?> get props => [message];
 }
 
-/// Reels state with categories
 class ReelsWithCategories extends ReelsState {
   final List<ReelCategoryModel> categories;
 

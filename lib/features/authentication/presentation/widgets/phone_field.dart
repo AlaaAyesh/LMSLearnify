@@ -147,7 +147,6 @@ class _CountryPickerSheet extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        // Header
         Container(
           padding: Responsive.padding(context, all: 16),
           decoration: BoxDecoration(
@@ -183,7 +182,6 @@ class _CountryPickerSheet extends StatelessWidget {
             ],
           ),
         ),
-        // Country List
         Flexible(
           child: ListView.builder(
             shrinkWrap: true,

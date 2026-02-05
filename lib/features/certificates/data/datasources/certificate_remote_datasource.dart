@@ -5,16 +5,10 @@ import '../../../../core/network/dio_client.dart';
 import '../models/certificate_model.dart';
 
 abstract class CertificateRemoteDataSource {
-  /// Generate/Request a certificate for a completed course
-  /// Throws [ServerException] on failure
   Future<CertificateModel> generateCertificate(int courseId);
 
-  /// Get all certificates owned by the authenticated user
-  /// Throws [ServerException] on failure
   Future<List<CertificateModel>> getOwnedCertificates();
 
-  /// Get a specific certificate by its ID
-  /// Throws [ServerException] on failure
   Future<CertificateModel> getCertificateById(int certificateId);
 }
 
@@ -42,13 +36,11 @@ class CertificateRemoteDataSourceImpl implements CertificateRemoteDataSource {
         if (responseData.certificate != null) {
           return responseData.certificate!;
         }
-        
-        // If certificate is in a different structure
+
         if (response.data['certificate'] != null) {
           return CertificateModel.fromJson(response.data['certificate']);
         }
-        
-        // If the response itself is the certificate
+
         return CertificateModel.fromJson(response.data);
       }
 
@@ -84,21 +76,16 @@ class CertificateRemoteDataSourceImpl implements CertificateRemoteDataSource {
       final response = await dioClient.get(ApiConstants.ownedCertificates);
 
       if (response.statusCode == 200) {
-        // Handle nested response structure: { data: { data: [...], meta: {...} } }
         List<dynamic> certificatesJson;
         
         final responseData = response.data;
         if (responseData['data'] is Map && responseData['data']['data'] is List) {
-          // Nested structure: { data: { data: [...] } }
           certificatesJson = responseData['data']['data'];
         } else if (responseData['data'] is List) {
-          // Direct structure: { data: [...] }
           certificatesJson = responseData['data'];
         } else if (responseData['certificates'] is List) {
-          // Alternative structure: { certificates: [...] }
           certificatesJson = responseData['certificates'];
         } else if (responseData is List) {
-          // Raw list response
           certificatesJson = responseData;
         } else {
           certificatesJson = [];
@@ -139,8 +126,7 @@ class CertificateRemoteDataSourceImpl implements CertificateRemoteDataSource {
       if (response.statusCode == 200) {
         final responseData = response.data;
         Map<String, dynamic> certificateData;
-        
-        // Handle nested structure: { data: { data: {...} } }
+
         if (responseData['data'] is Map && responseData['data']['data'] is Map) {
           certificateData = responseData['data']['data'];
         } else if (responseData['data'] is Map) {

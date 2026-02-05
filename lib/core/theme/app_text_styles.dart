@@ -2,9 +2,8 @@ import 'package:flutter/material.dart';
 import 'app_colors.dart';
 
 class AppTextStyles {
-  AppTextStyles._(); // Private constructor
+  AppTextStyles._();
 
-  // Display Styles
   static TextStyle get displayLarge => TextStyle(
     fontFamily: 'Cairo',
     fontSize: 32,
@@ -21,7 +20,6 @@ class AppTextStyles {
     height: 1.3,
   );
 
-  // Headline Styles
   static TextStyle get headlineLarge => TextStyle(
     fontFamily: 'Cairo',
     fontSize: 24,
@@ -38,7 +36,6 @@ class AppTextStyles {
     height: 1.4,
   );
 
-  // Body Styles
   static TextStyle get bodyLarge => TextStyle(
     fontFamily: 'Cairo',
     fontSize: 16,
@@ -55,7 +52,6 @@ class AppTextStyles {
     height: 1.5,
   );
 
-  // Label Styles
   static TextStyle get labelLarge => TextStyle(
     fontFamily: 'Cairo',
     fontSize: 14,
@@ -70,7 +66,6 @@ class AppTextStyles {
     color: AppColors.textSecondary,
   );
 
-  // Button Styles
   static TextStyle get button => TextStyle(
     fontFamily: 'Cairo',
     fontSize: 16,

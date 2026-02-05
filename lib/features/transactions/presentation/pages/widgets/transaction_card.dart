@@ -40,7 +40,6 @@ class TransactionCard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              /// ===== Header =====
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -76,7 +75,6 @@ class TransactionCard extends StatelessWidget {
               SizedBox(height: Responsive.spacing(context, 12)),
               _divider(),
 
-              /// ===== Info Section =====
               SizedBox(height: Responsive.spacing(context, 12)),
               Row(
                 children: [
@@ -138,7 +136,6 @@ class TransactionCard extends StatelessWidget {
     );
   }
 
-  /// ===== Status Badge =====
   Widget _buildStatusBadge(BuildContext context) {
     late Color backgroundColor;
     late Color textColor;
@@ -179,7 +176,6 @@ class TransactionCard extends StatelessWidget {
     );
   }
 
-  /// ===== Info Item =====
   Widget _buildInfoItem(
       BuildContext context,
       IconData icon,
@@ -232,7 +228,6 @@ class TransactionCard extends StatelessWidget {
     color: Colors.grey.shade200,
   );
 
-  /// ===== Helpers =====
   String _getPaymentServiceName(String service) {
     switch (service.toLowerCase()) {
       case 'kashier':

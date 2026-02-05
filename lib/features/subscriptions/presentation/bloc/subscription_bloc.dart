@@ -1,4 +1,3 @@
-// في ملف subscription_bloc.dart
 import 'dart:io';
 import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -23,11 +22,10 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
   final SubscriptionRepository subscriptionRepository;
   final VerifyIapReceiptUseCase verifyIapReceiptUseCase;
 
-  // خدمة Google Play Billing
   late final GooglePlayBillingService _billingService;
   bool _billingInitialized = false;
-  int? _pendingPurchaseId; // حفظ purchase ID من الباك إند
-  Timer? _paymentTimeoutTimer; // Timer لإغلاق الـ loading بعد 5 ثواني
+  int? _pendingPurchaseId;
+  Timer? _paymentTimeoutTimer;
 
   SubscriptionBloc({
     required this.getSubscriptionsUseCase,
@@ -50,7 +48,6 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
     on<VerifyIapReceiptEvent>(_onVerifyIapReceipt);
   }
 
-  /// تهيئة Google Play Billing
   Future<void> _initializeGooglePlayBilling(
       Emitter<SubscriptionState> emit,
       ) async {
@@ -61,7 +58,6 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
       await _billingService.initialize(
         onPurchaseUpdated: (PurchaseDetails purchase) async {
           print('Purchase updated callback triggered');
-          // التحقق من الشراء مع الباك إند
           await _verifyAndCompletePurchase(purchase, emit);
         },
         onError: (String error) {
@@ -78,14 +74,12 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
     }
   }
 
-  /// التحقق من الشراء وإكماله
   Future<void> _verifyAndCompletePurchase(
       PurchaseDetails purchase,
       Emitter<SubscriptionState> emit,
       ) async {
     print('Verifying purchase: ${purchase.productID}');
-    
-    // التحقق من وجود purchase ID من الباك إند
+
     if (_pendingPurchaseId == null) {
       print('No pending purchase ID found');
       emit(PaymentFailed('خطأ: لم يتم العثور على معرف الدفع'));
@@ -96,7 +90,6 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
     }
 
     try {
-      // بيانات التحقق من الشراء
       final verificationData = purchase.verificationData;
 
       print('Verification data: ${verificationData.serverVerificationData}');
@@ -104,11 +97,10 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
       print('Product ID: ${purchase.productID}');
       print('Purchase ID from backend: $_pendingPurchaseId');
 
-      // إرسال للباك إند للتحقق
       add(VerifyIapReceiptEvent(
         receiptData: verificationData.serverVerificationData,
         transactionId: purchase.purchaseID ?? '',
-        purchaseId: _pendingPurchaseId!, // استخدام purchase ID من الباك إند
+        purchaseId: _pendingPurchaseId!,
         store: Platform.isAndroid ? 'google_play' : 'app_store',
         purchaseDetails: purchase,
       ));
@@ -142,35 +134,29 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
 
     result.fold(
       (failure) {
-        _paymentTimeoutTimer?.cancel(); // إلغاء الـ timeout عند الفشل
+        _paymentTimeoutTimer?.cancel();
         print('Verification failed: ${failure.message}');
         emit(IapVerificationFailure(failure.message));
-        // إكمال الشراء حتى في حالة الفشل لتجنب تكرار المحاولات
         if (event.purchaseDetails != null && event.purchaseDetails!.pendingCompletePurchase) {
           _billingService.completePurchase(event.purchaseDetails!);
         }
-        _pendingPurchaseId = null; // إعادة تعيين
+        _pendingPurchaseId = null;
       },
       (_) async {
-        _paymentTimeoutTimer?.cancel(); // إلغاء الـ timeout عند النجاح
+        _paymentTimeoutTimer?.cancel();
         print('Verification successful');
-        // إكمال الشراء بعد التحقق الناجح
         if (event.purchaseDetails != null && event.purchaseDetails!.pendingCompletePurchase) {
           _billingService.completePurchase(event.purchaseDetails!);
         }
         emit(IapVerificationSuccess());
-        // بعد التحقق الناجح، أظهر رسالة النجاح
         emit(PaymentCompleted(
           purchase: null,
           message: 'تم تفعيل اشتراكك بنجاح',
         ));
-        // انتظر قليلاً قبل إعادة التحميل لضمان تحديث البيانات في الباك إند
         await Future.delayed(const Duration(milliseconds: 500));
-        // أعد تحميل الاشتراكات لتحديث الحالة وإعادة بناء الصفحة
         print('Reloading subscriptions after successful payment...');
-        // إعادة تحميل مباشرة باستخدام emit
         await _onLoadSubscriptions(const LoadSubscriptionsEvent(), emit);
-        _pendingPurchaseId = null; // إعادة تعيين بعد النجاح
+        _pendingPurchaseId = null;
       },
     );
   }
@@ -181,7 +167,6 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
       ) async {
     emit(SubscriptionLoading());
 
-    // Get subscriptions
     final subscriptionsResult = await getSubscriptionsUseCase();
     
     await subscriptionsResult.fold(
@@ -192,7 +177,6 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
         if (subscriptions.isEmpty) {
           emit(SubscriptionsEmpty());
         } else {
-          // Get user transactions to find active subscription
           int? activeSubscriptionId;
           try {
             print('Fetching user transactions to find active subscription...');
@@ -203,12 +187,10 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
             
             transactionsResult.fold(
               (failure) {
-                // If transactions fetch fails, continue without marking active subscription
                 print('Failed to fetch transactions: ${failure.message}');
               },
               (transactionsResponse) {
                 print('Transactions fetched: ${transactionsResponse.transactions.length} transactions');
-                // Find the most recent successful subscription transaction
                 final activeTransaction = transactionsResponse.activeSubscriptionTransaction;
                 if (activeTransaction != null) {
                   activeSubscriptionId = activeTransaction.purchasableId;
@@ -219,11 +201,9 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
               },
             );
           } catch (e) {
-            // If transactions fetch fails, continue without marking active subscription
             print('Error fetching transactions: $e');
           }
 
-          // Mark subscriptions as active based on transactions
           print('Marking subscriptions as active. Active subscription ID: $activeSubscriptionId');
           final subscriptionsWithActive = subscriptions.map((subscription) {
             final isActive = activeSubscriptionId != null && 
@@ -231,7 +211,6 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
             if (isActive) {
               print('✓ Subscription ${subscription.id} (${subscription.nameAr}) is marked as ACTIVE');
             }
-            // Create new SubscriptionModel from Subscription with updated isActive
             return SubscriptionModel(
               id: subscription.id,
               nameAr: subscription.nameAr,
@@ -473,35 +452,28 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
       ProcessPaymentEvent event,
       Emitter<SubscriptionState> emit,
       ) async {
-    // إلغاء أي timer سابق
     _paymentTimeoutTimer?.cancel();
     
     emit(PaymentProcessing());
-    
-    // إضافة timeout بعد 5 ثواني لإغلاق الـ loading
+
     _paymentTimeoutTimer = Timer(const Duration(seconds: 5), () {
       final currentState = state;
-      // إذا كانت العملية لا تزال قيد الانتظار، أغلق الـ loading
       if (currentState is PaymentProcessing || currentState is PaymentInitiated) {
-        // إعادة تحميل الاشتراكات لإظهار الحالة الحالية
         add(const LoadSubscriptionsEvent());
       }
     });
 
-    // إذا كان الدفع عبر Google Play
     if (event.service == PaymentService.gplay) {
       try {
         print('Processing Google Play payment...');
         print('Subscription ID: ${event.subscriptionId}');
 
-        // التحقق من أن subscriptionId ليس null
         if (event.subscriptionId == null) {
           print('Subscription ID is null');
           emit(PaymentFailed('يرجى اختيار باقة أولاً'));
           return;
         }
 
-        // الخطوة 1: إنشاء سجل الدفع في الباك إند أولاً
         print('Step 1: Creating payment record in backend...');
         final request = ProcessPaymentRequest(
           service: event.service,
@@ -516,12 +488,11 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
         
         await paymentResult.fold(
           (failure) {
-            _paymentTimeoutTimer?.cancel(); // إلغاء الـ timeout عند الفشل
+            _paymentTimeoutTimer?.cancel();
             print('Failed to create payment record: ${failure.message}');
             emit(PaymentFailed('فشل إنشاء سجل الدفع: ${failure.message}'));
           },
           (response) async {
-            // الحصول على purchase ID من الاستجابة
             if (response.purchase == null) {
               print('No purchase ID in response');
               emit(PaymentFailed('فشل: لم يتم الحصول على معرف الدفع من السيرفر'));
@@ -531,12 +502,10 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
             _pendingPurchaseId = response.purchase!.id;
             print('Payment record created with ID: $_pendingPurchaseId');
 
-            // تهيئة نظام الدفع إذا لم يكن مهيئاً
             if (!_billingInitialized) {
               await _initializeGooglePlayBilling(emit);
             }
 
-            // الحصول على معرف المنتج من Google Play
             final productId = GooglePlayBillingService.getProductId(event.subscriptionId!);
 
             if (productId == null) {
@@ -551,7 +520,6 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
 
             print('Product ID for subscription ${event.subscriptionId}: $productId');
 
-            // جلب تفاصيل المنتج من Google Play
             final products = await _billingService.getProducts([productId]);
 
             if (products.isEmpty) {
@@ -574,12 +542,10 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
             );
             print('Product found: ${product.id}, Price: ${product.price}, Title: $displayName');
 
-            // بدء عملية الشراء من Google Play
             print('Step 2: Initiating Google Play purchase...');
             await _billingService.purchaseProduct(product);
 
-            // في انتظار تأكيد الشراء
-            _paymentTimeoutTimer?.cancel(); // إلغاء الـ timeout عند بدء العملية
+            _paymentTimeoutTimer?.cancel();
             emit(PaymentInitiated(
               purchase: response.purchase,
               message: 'جارٍ معالجة عملية الشراء عبر Google Play...',
@@ -588,15 +554,14 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
         );
 
       } catch (e) {
-        _paymentTimeoutTimer?.cancel(); // إلغاء الـ timeout عند الخطأ
+        _paymentTimeoutTimer?.cancel();
         print('Google Play payment error: $e');
         emit(PaymentFailed('فشل عملية الشراء: $e'));
-        _pendingPurchaseId = null; // إعادة تعيين في حالة الخطأ
+        _pendingPurchaseId = null;
       }
       return;
     }
 
-    // الكود الأصلي لطرق الدفع الأخرى (Kashier, إلخ)
     final currentState = state;
     double finalPrice = 0.0;
 
@@ -626,11 +591,11 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
 
     result.fold(
           (failure) {
-            _paymentTimeoutTimer?.cancel(); // إلغاء الـ timeout عند الفشل
+            _paymentTimeoutTimer?.cancel();
             emit(PaymentFailed(failure.message));
           },
           (response) {
-        _paymentTimeoutTimer?.cancel(); // إلغاء الـ timeout عند اكتمال العملية
+        _paymentTimeoutTimer?.cancel();
         if (response.isSuccess) {
           if (response.isFreeSubscription ||
               (finalPrice == 0 && response.subscriptionData != null)) {
@@ -639,11 +604,9 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
               purchase: null,
               message: response.dataMessage ?? response.message ?? 'تم تفعيل الاشتراك بنجاح',
             ));
-            // إعادة تحميل الاشتراكات بعد نجاح الدفع
             print('Payment completed, reloading subscriptions in 0.5 seconds...');
             Future.delayed(const Duration(milliseconds: 500), () async {
               print('Reloading subscriptions after successful payment...');
-              // استخدام emit مباشرة لإعادة تحميل الاشتراكات
               await _onLoadSubscriptions(const LoadSubscriptionsEvent(), emit);
             });
           } else if (response.hasCheckoutUrl) {
@@ -657,11 +620,9 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
                 purchase: response.purchase!,
                 message: response.dataMessage ?? 'تمت عملية الدفع بنجاح',
               ));
-              // إعادة تحميل الاشتراكات بعد نجاح الدفع
               print('Payment completed, reloading subscriptions in 0.5 seconds...');
               Future.delayed(const Duration(milliseconds: 500), () async {
                 print('Reloading subscriptions after successful payment...');
-                // استخدام emit مباشرة لإعادة تحميل الاشتراكات
                 await _onLoadSubscriptions(const LoadSubscriptionsEvent(), emit);
               });
             } else {
@@ -676,11 +637,9 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
                 purchase: null,
                 message: response.dataMessage ?? response.message ?? 'تم تفعيل الاشتراك بنجاح',
               ));
-              // إعادة تحميل الاشتراكات بعد نجاح الدفع
               print('Payment completed, reloading subscriptions in 0.5 seconds...');
               Future.delayed(const Duration(milliseconds: 500), () async {
                 print('Reloading subscriptions after successful payment...');
-                // استخدام emit مباشرة لإعادة تحميل الاشتراكات
                 await _onLoadSubscriptions(const LoadSubscriptionsEvent(), emit);
               });
             } else {
@@ -699,7 +658,7 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
   @override
   @override
   Future<void> close() {
-    _paymentTimeoutTimer?.cancel(); // إلغاء الـ timer عند إغلاق الـ bloc
+    _paymentTimeoutTimer?.cancel();
     _billingService.dispose();
     return super.close();
   }

@@ -83,7 +83,6 @@ class AuthLocalDataSourceImpl implements AuthLocalDataSource {
   @override
   Future<bool> isLoggedIn() async {
     try {
-      // Check if user has a valid access token
       final token = await getAccessToken();
       return token != null && token.isNotEmpty;
     } catch (e) {

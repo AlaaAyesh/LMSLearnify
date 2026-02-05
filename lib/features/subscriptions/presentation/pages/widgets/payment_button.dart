@@ -22,7 +22,7 @@ class PaymentButton extends StatelessWidget {
           borderRadius: BorderRadius.circular(Responsive.radius(context, 16)),
           boxShadow: isEnabled ? const [
             BoxShadow(
-              color: Color(0x806B46C1), // #6B46C180
+              color: Color(0x806B46C1),
               blurRadius: 7,
               offset: Offset(0, 4),
             ),
@@ -46,7 +46,7 @@ class PaymentButton extends StatelessWidget {
           style: TextStyle(
             fontFamily: 'Cairo',
             fontSize: Responsive.fontSize(context, 18),
-            height: 28 / 18, // line-height
+            height: 28 / 18,
             color: Colors.white,
             fontWeight: FontWeight.w600,
           ),

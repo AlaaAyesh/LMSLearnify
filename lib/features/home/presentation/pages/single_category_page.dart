@@ -17,7 +17,7 @@ import 'main_navigation_page.dart';
 
 class SingleCategoryPage extends StatefulWidget {
   final Category category;
-  final List<Course>? initialCourses; // Optional initial courses
+  final List<Course>? initialCourses;
 
   const SingleCategoryPage({
     super.key,
@@ -35,14 +35,12 @@ class _SingleCategoryPageState extends State<SingleCategoryPage> {
   @override
   void initState() {
     super.initState();
-    // Create bloc instance
     _coursesBloc = sl<CoursesBloc>();
-    // Load courses for this category from API
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _coursesBloc.add(
         LoadCoursesEvent(
           categoryId: widget.category.id,
-          perPage: 50, // Load more courses
+          perPage: 50,
           refresh: true,
         ),
       );
@@ -221,7 +219,6 @@ class _CourseGridItem extends StatelessWidget {
                 fit: StackFit.expand,
                 children: [
                   _buildThumbnail(),
-                  // Coming Soon overlay
                   if (isComingSoon)
                     Container(
                       width: Responsive.width(context, 120),

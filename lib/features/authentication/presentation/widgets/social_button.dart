@@ -15,8 +15,7 @@ class SocialButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isTablet = Responsive.isTablet(context);
-    
-    // على التابلت: أحجام أصغر لتجنب overflow
+
     final buttonWidth = isTablet ? 70.0 : Responsive.width(context, 89);
     final buttonHeight = isTablet ? 50.0 : Responsive.height(context, 44);
     final iconHeight = isTablet ? 22.0 : Responsive.height(context, 18);

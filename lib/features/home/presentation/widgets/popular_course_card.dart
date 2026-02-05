@@ -21,7 +21,7 @@ class PopularCourseCard extends StatelessWidget {
             : constraints.maxWidth;
 
         final radius = cardWidth * 0.09;
-        final imageHeight = cardWidth * 0.75; // 👈 زي الصورة
+        final imageHeight = cardWidth * 0.75;
         final playSize = cardWidth * 0.26;
 
         return GestureDetector(
@@ -48,9 +48,8 @@ class PopularCourseCard extends StatelessWidget {
               ],
             ),
             child: Column(
-              mainAxisSize: MainAxisSize.min, // 👈 مهم
+              mainAxisSize: MainAxisSize.min,
               children: [
-                /// IMAGE
                 SizedBox(
                   height: imageHeight,
                   child: Stack(
@@ -63,7 +62,6 @@ class PopularCourseCard extends StatelessWidget {
                         child: _buildThumbnail(),
                       ),
 
-                      /// PLAY BUTTON
                       Container(
                         width: playSize,
                         height: playSize,
@@ -81,7 +79,6 @@ class PopularCourseCard extends StatelessWidget {
                   ),
                 ),
 
-                /// TITLE (tight)
                 Padding(
                   padding: EdgeInsets.symmetric(
                     horizontal: cardWidth * 0.06,
@@ -116,7 +113,7 @@ class PopularCourseCard extends StatelessWidget {
         imageUrl: thumbnailUrl,
         width: double.infinity,
         height: double.infinity,
-        fit: BoxFit.cover, // 👈 مهم
+        fit: BoxFit.cover,
         placeholder: (_, __) => _placeholder(),
         errorWidget: (_, __, ___) => _placeholder(),
       );

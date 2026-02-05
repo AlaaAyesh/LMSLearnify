@@ -17,7 +17,6 @@ class PaymentMethodsRow extends StatelessWidget {
     return Padding(
       padding: Responsive.padding(context, horizontal: 12),
       child: isTablet
-          // في التابلت: صف واحد في الأفقي، Wrap في الرأسي لتجنب overflow
           ? isLandscape
               ? Row(
                   mainAxisAlignment: MainAxisAlignment.end,
@@ -92,7 +91,6 @@ class PaymentMethodsRow extends StatelessWidget {
                     ),
                   ],
                 )
-          // على الموبايل يبقى السلوك السابق باستخدام Wrap
           : Wrap(
         alignment: WrapAlignment.center,
         crossAxisAlignment: WrapCrossAlignment.center,

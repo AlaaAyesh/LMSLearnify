@@ -20,12 +20,8 @@ class _BunnyVideoPlayerState extends State<BunnyVideoPlayer> {
   bool _isLoading = true;
 
   String _getEmbedUrl(String url) {
-    // Convert play URL to embed URL for better responsiveness
-    // From: https://iframe.mediadelivery.net/play/332604/video-id
-    // To: https://iframe.mediadelivery.net/embed/332604/video-id
     String embedUrl = url.replaceFirst('/play/', '/embed/');
-    
-    // Add parameters to make video fill width and remove black bars
+
     if (!embedUrl.contains('?')) {
       embedUrl = '$embedUrl?autoplay=true&responsive=true&aspectRatio=16:9';
     } else {
@@ -40,7 +36,6 @@ class _BunnyVideoPlayerState extends State<BunnyVideoPlayer> {
 
     final embedUrl = _getEmbedUrl(widget.videoUrl);
 
-    // Create responsive HTML wrapper
     final html = '''
 <!DOCTYPE html>
 <html>

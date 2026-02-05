@@ -13,7 +13,6 @@ class TransactionsResponseModel extends TransactionsResponse {
   });
 
   factory TransactionsResponseModel.fromJson(Map<String, dynamic> json) {
-    // Handle nested data structure: { "status": "success", "data": { "data": [...], "meta": {...} } }
     final responseData = json['data'] as Map<String, dynamic>?;
     final data = responseData?['data'] as List<dynamic>? ?? [];
     final meta = responseData?['meta'] as Map<String, dynamic>? ?? {};

@@ -48,7 +48,6 @@ class _OtpVerificationPageContentState
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
 
-  // Resend timer
   int _resendSeconds = 60;
   Timer? _resendTimer;
   bool _canResend = false;
@@ -205,7 +204,6 @@ class _OtpVerificationPageContentState
                     children: [
                       SizedBox(height: Responsive.spacing(context, 20)),
 
-                      // Title
                       Text(
                         'التحقق من البريد',
                         style: AppTextStyles.displayMedium.copyWith(
@@ -216,7 +214,6 @@ class _OtpVerificationPageContentState
 
                       SizedBox(height: Responsive.spacing(context, 12)),
 
-                      // Subtitle
                       Text(
                         'أدخل رمز التحقق المرسل إلى\n${widget.email}',
                         style: AppTextStyles.bodyMedium.copyWith(
@@ -228,7 +225,6 @@ class _OtpVerificationPageContentState
 
                       SizedBox(height: Responsive.spacing(context, 32)),
 
-                      // OTP Input Fields
                       Directionality(
                         textDirection: TextDirection.ltr,
                         child: Row(
@@ -295,7 +291,6 @@ class _OtpVerificationPageContentState
 
                       SizedBox(height: Responsive.spacing(context, 16)),
 
-                      // Resend Timer
                       Center(
                         child: _canResend
                             ? TextButton(
@@ -321,7 +316,6 @@ class _OtpVerificationPageContentState
 
                       SizedBox(height: Responsive.spacing(context, 32)),
 
-                      // Divider
                       Row(
                         children: [
                           Expanded(
@@ -352,7 +346,6 @@ class _OtpVerificationPageContentState
 
                       SizedBox(height: Responsive.spacing(context, 24)),
 
-                      // New Password Field
                       PasswordField(
                         controller: _passwordController,
                         obscure: _obscurePassword,
@@ -365,7 +358,6 @@ class _OtpVerificationPageContentState
 
                       SizedBox(height: Responsive.spacing(context, 16)),
 
-                      // Confirm Password Field
                       PasswordField(
                         controller: _confirmPasswordController,
                         obscure: _obscureConfirmPassword,
@@ -378,7 +370,6 @@ class _OtpVerificationPageContentState
 
                       SizedBox(height: Responsive.spacing(context, 32)),
 
-                      // Reset Password Button
                       BlocBuilder<AuthBloc, AuthState>(
                         builder: (context, state) {
                           final isLoading = state is AuthLoading;

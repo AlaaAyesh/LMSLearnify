@@ -8,9 +8,9 @@ class RegisterRequestModel {
   final String role;
   final String phone;
   final int specialtyId;
-  final String gender; // 'male' or 'female'
-  final String? religion; // 'muslim' or 'christian'
-  final String? birthday; // Format: YYYY-MM-DD
+  final String gender;
+  final String? religion;
+  final String? birthday;
 
   RegisterRequestModel({
     required this.name,
@@ -25,7 +25,6 @@ class RegisterRequestModel {
     this.birthday,
   });
 
-  /// Convert to FormData for multipart/form-data request
   FormData toFormData() {
     final map = <String, dynamic>{
       'name': name,
@@ -38,11 +37,10 @@ class RegisterRequestModel {
       'gender': gender,
     };
 
-    // Religion is required by the API, default to 'muslim' if not provided
     if (religion != null && religion!.isNotEmpty) {
       map['religion'] = religion;
     } else {
-      map['religion'] = 'muslim'; // Default to Muslim
+      map['religion'] = 'muslim';
     }
 
     if (birthday != null && birthday!.isNotEmpty) {

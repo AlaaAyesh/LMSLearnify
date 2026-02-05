@@ -72,9 +72,7 @@ class LoginPageViewState extends State<LoginPageView> {
           _passwordController.text = rememberedPassword!;
         }
       });
-    } catch (_) {
-      // ignore - don't block login if prefs fails
-    }
+    } catch (_) {}
   }
 
   Future<void> _setRememberMe(bool value) async {
@@ -88,9 +86,7 @@ class LoginPageViewState extends State<LoginPageView> {
         await secureStorage.clearRememberedPassword();
         _passwordController.clear();
       }
-    } catch (_) {
-      // ignore
-    }
+    } catch (_) {}
   }
 
   void _onLoginPressed() {
@@ -98,7 +94,6 @@ class LoginPageViewState extends State<LoginPageView> {
       context.read<AuthBloc>().add(
             LoginEvent(
               email: _emailController.text.trim(),
-              // Avoid treating trailing spaces as part of the password
               password: _passwordController.text.trimRight(),
             ),
           );
@@ -114,7 +109,6 @@ class LoginPageViewState extends State<LoginPageView> {
     }
   }
 
-  /// الهاتف (التصميم الحالي كما هو)
   Widget _buildPhoneLayout(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.white,
@@ -180,14 +174,12 @@ class LoginPageViewState extends State<LoginPageView> {
     );
   }
 
-  /// تصميم خاص بالتابلت: تقسيم الشاشة إلى جزء معلومات وجزء فورم
   Widget _buildTabletLayout(BuildContext context) {
     final isPortrait = Responsive.isPortrait(context);
 
     return GestureDetector(
       behavior: HitTestBehavior.translucent,
       onTap: () {
-        // إغلاق الكيبورد عند الضغط خارج الحقول
         FocusScope.of(context).unfocus();
       },
       child: Scaffold(
@@ -228,11 +220,9 @@ class LoginPageViewState extends State<LoginPageView> {
     );
   }
 
-  /// تصميم التابلت في الوضع الأفقي (Row)
   Widget _buildLandscapeTabletLayout(BuildContext context) {
     return Row(
       children: [
-        // الفورم (يمين في التابلت)
         Expanded(
           flex: 6,
           child: Directionality(
@@ -321,7 +311,6 @@ class LoginPageViewState extends State<LoginPageView> {
             ),
           ),
         ),
-        // بانل الترحيب الصفراء (يسار في التابلت)
         Expanded(
           flex: 4,
           child: MediaQuery(
@@ -342,7 +331,6 @@ class LoginPageViewState extends State<LoginPageView> {
                     textDirection: TextDirection.rtl,
                     child: Stack(
                       children: [
-                        // Decorative circles
                         Positioned(
                           top: 40,
                           right: 20,
@@ -367,7 +355,6 @@ class LoginPageViewState extends State<LoginPageView> {
                             ),
                           ),
                         ),
-                        // Content - ثابت لا يتأثر بالكيبورد
                         Align(
                           alignment: Alignment.center,
                           child: Padding(
@@ -415,12 +402,10 @@ class LoginPageViewState extends State<LoginPageView> {
     );
   }
 
-  /// تصميم التابلت في الوضع الرأسي (Column)
   Widget _buildPortraitTabletLayout(BuildContext context) {
     return SingleChildScrollView(
       child: Column(
         children: [
-          // بانل الترحيب الصفراء (أعلى في الوضع الرأسي)
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 40),
             decoration: const BoxDecoration(
@@ -434,7 +419,6 @@ class LoginPageViewState extends State<LoginPageView> {
               textDirection: TextDirection.rtl,
               child: Stack(
                 children: [
-                  // Decorative circles
                   Positioned(
                     top: 20,
                     right: 20,
@@ -459,7 +443,6 @@ class LoginPageViewState extends State<LoginPageView> {
                       ),
                     ),
                   ),
-                  // Content
                   Column(
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.center,
@@ -488,7 +471,6 @@ class LoginPageViewState extends State<LoginPageView> {
               ),
             ),
           ),
-          // الفورم (أسفل في الوضع الرأسي)
           LayoutBuilder(
             builder: (context, constraints) {
               return StreamBuilder<Object>(
@@ -600,14 +582,12 @@ class LoginPageViewState extends State<LoginPageView> {
         ),
       );
     } else if (state is AuthAuthenticated) {
-      // Persist remembered email only after successful login
       try {
         final prefs = sl<SharedPreferences>();
         final secureStorage = sl<SecureStorageService>();
         prefs.setBool(_kRememberMeKey, _rememberMe);
         if (_rememberMe) {
           prefs.setString(_kRememberedEmailKey, _emailController.text.trim());
-          // Store the normalized password (no trailing spaces)
           unawaited(
             secureStorage
                 .saveRememberedPassword(_passwordController.text.trimRight()),
@@ -616,11 +596,8 @@ class LoginPageViewState extends State<LoginPageView> {
           prefs.remove(_kRememberedEmailKey);
           unawaited(secureStorage.clearRememberedPassword());
         }
-      } catch (_) {
-        // ignore
-      }
+      } catch (_) {}
 
-      // Check if we came from a specific page that needs return
       final args =
           ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
       final returnTo = args?['returnTo'] as String?;
@@ -628,14 +605,10 @@ class LoginPageViewState extends State<LoginPageView> {
       if (returnTo == 'subscriptions' ||
           returnTo == 'profile' ||
           returnTo == 'certificates') {
-        // Return true to indicate successful login
         Navigator.of(context).pop(true);
       } else if (returnTo == 'course' || returnTo == 'payment') {
-        // Return to the calling page (course details or payment flow)
         Navigator.of(context).pop(true);
-        // The calling page will handle refreshing/continuing the flow
       } else {
-        // Navigate to home - server handles verification
         Navigator.of(context).pushNamedAndRemoveUntil(
           '/home',
           (route) => false,

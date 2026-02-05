@@ -9,8 +9,8 @@ class Subscription extends Equatable {
   final String priceBeforeDiscount;
   final String usdPriceBeforeDiscount;
   final int duration;
-  final String? currency; // العملة من الباك إند (EGP, USD, إلخ)
-  final bool isActive; // هل المستخدم مشترك في هذه الباقة
+  final String? currency;
+  final bool isActive;
   final String? createdAt;
   final String? updatedAt;
 
@@ -29,17 +29,14 @@ class Subscription extends Equatable {
     this.updatedAt,
   });
 
-  /// Returns the name based on locale (defaults to Arabic)
   String getName({bool isEnglish = false}) => isEnglish ? nameEn : nameAr;
 
-  /// Check if the subscription has a discount
   bool get hasDiscount {
     final currentPrice = double.tryParse(price) ?? 0;
     final originalPrice = double.tryParse(priceBeforeDiscount) ?? 0;
     return originalPrice > currentPrice;
   }
 
-  /// Calculate discount percentage
   int get discountPercentage {
     final currentPrice = double.tryParse(price) ?? 0;
     final originalPrice = double.tryParse(priceBeforeDiscount) ?? 0;
@@ -47,11 +44,9 @@ class Subscription extends Equatable {
     return (((originalPrice - currentPrice) / originalPrice) * 100).round();
   }
 
-  /// Get currency symbol based on currency code
-  /// EGP -> "جم", USD -> "$"
   String getCurrencySymbol() {
     if (currency == null || currency!.isEmpty) {
-      return 'جم'; // افتراضي
+      return 'جم';
     }
     switch (currency!.toUpperCase()) {
       case 'EGP':
@@ -59,7 +54,7 @@ class Subscription extends Equatable {
       case 'USD':
         return '\$';
       default:
-        return 'جم'; // افتراضي
+        return 'جم';
     }
   }
 

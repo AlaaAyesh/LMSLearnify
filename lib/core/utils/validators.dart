@@ -1,5 +1,4 @@
 class Validators {
-  // Email Validator
   static String? email(String? value) {
     if (value == null || value.isEmpty) {
       return 'البريد الإلكتروني مطلوب';
@@ -13,7 +12,6 @@ class Validators {
     return null;
   }
 
-  // Password Validator
   static String? password(String? value) {
     if (value == null || value.isEmpty) {
       return 'كلمة المرور مطلوبة';
@@ -23,14 +21,14 @@ class Validators {
     }
     return null;
   }
-// Required Field Validator
+
   static String? required(String? value) {
     if (value == null || value.trim().isEmpty) {
       return 'هذا الحقل مطلوب';
     }
     return null;
   }
-// Phone Validator
+
   static String? phone(String? value) {
     if (value == null || value.isEmpty) {
       return 'رقم الهاتف مطلوب';
@@ -40,7 +38,7 @@ class Validators {
     }
     return null;
   }
-// Age Validator
+
   static String? age(String? value) {
     if (value == null || value.isEmpty) {
       return 'السن مطلوب';

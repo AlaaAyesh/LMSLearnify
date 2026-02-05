@@ -32,7 +32,6 @@ class AuthError extends AuthState {
   List<Object?> get props => [message];
 }
 
-// Forgot password states
 class ForgotPasswordSuccess extends AuthState {
   final String email;
 
@@ -44,7 +43,6 @@ class ForgotPasswordSuccess extends AuthState {
 
 class PasswordResetSuccess extends AuthState {}
 
-// Email verification states
 class EmailOtpSent extends AuthState {}
 
 class EmailVerified extends AuthState {}
@@ -58,19 +56,13 @@ class EmailVerificationStatus extends AuthState {
   List<Object?> get props => [isVerified];
 }
 
-// Change password states
 class PasswordChanged extends AuthState {}
 
-// Social login states
 class SocialLoginNeedsCompletion extends AuthState {
   final String email;
   final String? name;
   final String providerId;
-  final String accessToken; // Google/Apple token to be used after profile completion
-  // If true => we don't have a backend session yet (new user), so we must
-  // complete profile using social token via `auth/mobile/login`.
-  // If false => user already logged in but profile is incomplete, so we can
-  // complete profile using `auth/update-profile`.
+  final String accessToken;
   final bool requiresRegistration;
 
   const SocialLoginNeedsCompletion({
@@ -85,7 +77,6 @@ class SocialLoginNeedsCompletion extends AuthState {
   List<Object?> get props => [email, name, providerId, accessToken, requiresRegistration];
 }
 
-// Google OAuth states
 class GoogleAuthUrlLoaded extends AuthState {
   final String url;
 
@@ -95,7 +86,6 @@ class GoogleAuthUrlLoaded extends AuthState {
   List<Object?> get props => [url];
 }
 
-// Profile update states
 class ProfileUpdated extends AuthState {
   final User user;
 

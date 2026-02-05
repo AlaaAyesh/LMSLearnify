@@ -17,7 +17,6 @@ class SocialLoginButtons extends StatelessWidget {
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
         if (state is SocialLoginNeedsCompletion) {
-          // مستخدم جديد → يكمل البروفايل
           Navigator.of(context).push(
             MaterialPageRoute(
               builder: (_) => CompleteProfilePage(
@@ -31,7 +30,6 @@ class SocialLoginButtons extends StatelessWidget {
           );
         }
         else if (state is AuthAuthenticated) {
-          // مستخدم قديم → يروح مباشرة للهوم
           Navigator.of(context).pushNamedAndRemoveUntil(
             '/home',
                 (route) => false,

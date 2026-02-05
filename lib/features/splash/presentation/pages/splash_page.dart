@@ -56,32 +56,25 @@ class _SplashPageState extends State<SplashPage>
     setState(() {
       _isFirstTime = isFirstTime == null || isFirstTime == true;
     });
-    
-    // Wait for auth status check to complete
+
     await Future.delayed(const Duration(milliseconds: 500));
     if (!mounted) return;
-    
-    // Listen to auth state to determine navigation
+
     final authBloc = context.read<AuthBloc>();
-    
-    // Wait for auth state to be determined (not initial)
+
     await Future.delayed(const Duration(milliseconds: 300));
     if (!mounted) return;
     
     final authState = authBloc.state;
     
     if (_isFirstTime) {
-      // First time: Show welcome screen for 2 seconds, then go to Home
       await Future.delayed(const Duration(seconds: 2));
       if (!mounted) return;
-      
-      // Mark as not first time
+
       await hiveService.saveData(AppConstants.keyIsFirstTime, false);
-      
-      // Go directly to Home
+
       Navigator.of(context).pushReplacementNamed('/home');
     } else {
-      // Not first time: Always go to home (onboarding only shows after registration)
       Navigator.of(context).pushReplacementNamed('/home');
     }
   }
@@ -95,10 +88,7 @@ class _SplashPageState extends State<SplashPage>
   @override
   Widget build(BuildContext context) {
     return BlocListener<AuthBloc, AuthState>(
-      listener: (context, state) {
-        // Auth state changes are handled in _checkFirstTime
-        // This listener ensures we react to auth state changes
-      },
+      listener: (context, state) {},
       child: Scaffold(
         backgroundColor: AppColors.primary,
         body: FadeTransition(
@@ -113,7 +103,6 @@ class _SplashPageState extends State<SplashPage>
     );
   }
 
-  /// تصميم السلاش للهاتف (التصميم الحالي)
   Widget _buildPhoneContent(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
     final topPadding = MediaQuery.of(context).padding.top;
@@ -159,7 +148,6 @@ class _SplashPageState extends State<SplashPage>
     );
   }
 
-  /// تصميم خاص بالتابلت: محتوى متمركز داخل Card لطيف
   Widget _buildTabletContent(BuildContext context) {
     return Center(
       child: ConstrainedBox(

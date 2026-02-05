@@ -47,7 +47,6 @@ class CourseGridCard extends StatelessWidget {
                   fit: StackFit.expand,
                   children: [
                     _buildThumbnail(context),
-                    // Soon overlay
                     if (course.soon)
                       Container(
                         color: Colors.black.withOpacity(0.5),

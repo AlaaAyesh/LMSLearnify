@@ -17,8 +17,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     on<RefreshHomeDataEvent>(_onRefreshHomeData);
     on<StartRealtimeUpdatesEvent>(_onStartRealtimeUpdates);
     on<StopRealtimeUpdatesEvent>(_onStopRealtimeUpdates);
-    
-    // Start real-time updates when bloc is created
+
     add(StartRealtimeUpdatesEvent());
   }
   
@@ -26,15 +25,13 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     StartRealtimeUpdatesEvent event,
     Emitter<HomeState> emit,
   ) async {
-    // Start polling for home data updates
     _realtimeUpdateService.startPolling(
       key: 'home_data',
       updateCallback: () async {
-        // Silently refresh data in background
         final result = await getHomeDataUseCase();
         result.fold(
-          (_) {}, // Ignore errors in background updates
-          (homeData) => emit(HomeLoaded(homeData)),
+          (_) {},
+              (homeData) => emit(HomeLoaded(homeData)),
         );
       },
     );
@@ -57,13 +54,10 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     LoadHomeDataEvent event,
     Emitter<HomeState> emit,
   ) async {
-    // Prevent duplicate loading
     if (_isLoading) return;
-    
-    // Show cached data immediately if available (optimistic update)
+
     final currentState = state;
     if (currentState is HomeLoaded) {
-      // Keep showing cached data while loading
       _isLoading = true;
       emit(HomeLoading(cachedData: currentState.homeData));
     } else {
@@ -76,7 +70,6 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     _isLoading = false;
     result.fold(
       (failure) {
-        // On error, keep showing cached data if available
         if (currentState is HomeLoaded) {
           emit(HomeError(failure.message, cachedData: currentState.homeData));
         } else {
@@ -91,7 +84,6 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     RefreshHomeDataEvent event,
     Emitter<HomeState> emit,
   ) async {
-    // Don't show loading state during refresh, keep current data visible
     final currentState = state;
     final cachedData = currentState is HomeLoaded ? currentState.homeData : null;
     
@@ -99,7 +91,6 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
 
     result.fold(
       (failure) {
-        // On error, keep showing cached data if available
         if (cachedData != null) {
           emit(HomeError(failure.message, cachedData: cachedData));
         } else {

@@ -30,7 +30,6 @@ class AllCoursesPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (context) => sl<CoursesBloc>()
-        // Load user's owned courses from myCourses endpoint
         ..add(const LoadMyCoursesEvent()),
       child: _AllCoursesPageContent(
         title: title ?? ' كورساتي',
@@ -121,13 +120,11 @@ class _AllCoursesPageContent extends StatelessWidget {
       },
       child: RefreshIndicator(
         onRefresh: () async {
-          // Refresh user's courses list
           context.read<CoursesBloc>().add(const LoadMyCoursesEvent());
         },
         color: AppColors.primary,
         child: CustomScrollView(
           slivers: [
-            // Circular course items in a grid
             SliverPadding(
               padding: Responsive.padding(context, all: 16),
               sliver: SliverLayoutBuilder(
@@ -207,7 +204,6 @@ class _AllCoursesPageContent extends StatelessWidget {
             onPressed: () {
               context.read<CoursesBloc>().add(const LoadMyCoursesEvent());
             },
-            // icon: Icon(Icons.refresh, size: Responsive.iconSize(context, 20)),
             label: const Text('تحديث'),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primary,
@@ -224,13 +220,11 @@ class _AllCoursesPageContent extends StatelessWidget {
   }
 
   Widget _buildErrorState(BuildContext context, String message) {
-    // Check if error is due to unauthorized access
-    final isAuthError = message.contains('يجب تسجيل الدخول أولاً') || 
+    final isAuthError = message.contains('يجب تسجيل الدخول أولاً') ||
                         message.contains('تسجيل الدخول') ||
                         message.toLowerCase().contains('unauthorized');
 
     if (isAuthError) {
-      // Show same design as certificates page for unauthorized users
       return Center(
         child: Padding(
           padding: Responsive.padding(
@@ -243,7 +237,6 @@ class _AllCoursesPageContent extends StatelessWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // Lock Icon
                 Container(
                   padding: EdgeInsets.all(Responsive.width(context, 32)),
                   decoration: BoxDecoration(
@@ -274,7 +267,6 @@ class _AllCoursesPageContent extends StatelessWidget {
                   textAlign: TextAlign.center,
                 ),
                 SizedBox(height: Responsive.spacing(context, 28)),
-                // Login Button
                 SizedBox(
                   width: double.infinity,
                   height: Responsive.height(context, 56),
@@ -291,7 +283,6 @@ class _AllCoursesPageContent extends StatelessWidget {
                     ),
                     child: ElevatedButton(
                       onPressed: () async {
-                        // Go directly to login using the root navigator
                         final result = await Navigator.of(
                           context,
                           rootNavigator: true,
@@ -301,7 +292,6 @@ class _AllCoursesPageContent extends StatelessWidget {
                         );
 
                         if (result == true && context.mounted) {
-                          // After successful login, reload the courses page
                           context.read<CoursesBloc>().add(const LoadMyCoursesEvent());
                         }
                       },
@@ -325,7 +315,6 @@ class _AllCoursesPageContent extends StatelessWidget {
                   ),
                 ),
                 SizedBox(height: Responsive.spacing(context, 24)),
-                // Register Button
                 SizedBox(
                   width: double.infinity,
                   height: Responsive.height(context, 56),
@@ -342,7 +331,6 @@ class _AllCoursesPageContent extends StatelessWidget {
                     ),
                     child: OutlinedButton(
                       onPressed: () async {
-                        // Go directly to register using the root navigator
                         final result = await Navigator.of(
                           context,
                           rootNavigator: true,
@@ -352,7 +340,6 @@ class _AllCoursesPageContent extends StatelessWidget {
                         );
 
                         if (result == true && context.mounted) {
-                          // After successful registration, reload the courses page
                           context.read<CoursesBloc>().add(const LoadMyCoursesEvent());
                         }
                       },
@@ -383,7 +370,6 @@ class _AllCoursesPageContent extends StatelessWidget {
       );
     }
 
-    // Default error state for other errors
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,

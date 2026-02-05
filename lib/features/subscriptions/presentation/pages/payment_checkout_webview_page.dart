@@ -37,8 +37,7 @@ class _PaymentCheckoutWebViewPageState extends State<PaymentCheckoutWebViewPage>
           },
           onPageFinished: (url) {
             setState(() => _isLoading = false);
-            
-            // Check if payment was completed (redirect URLs)
+
             if (_isPaymentComplete(url)) {
               _handlePaymentComplete();
             } else if (_isPaymentFailed(url)) {
@@ -47,8 +46,7 @@ class _PaymentCheckoutWebViewPageState extends State<PaymentCheckoutWebViewPage>
           },
           onNavigationRequest: (request) {
             final url = request.url;
-            
-            // Check if payment was completed or failed
+
             if (_isPaymentComplete(url)) {
               _handlePaymentComplete();
               return NavigationDecision.prevent;
@@ -76,15 +74,12 @@ class _PaymentCheckoutWebViewPageState extends State<PaymentCheckoutWebViewPage>
   }
 
   bool _isPaymentComplete(String url) {
-    // Check if URL indicates successful payment
-    // Kashier redirects to merchantRedirect URL on success
     final uri = Uri.parse(url);
     final host = uri.host.toLowerCase();
     
     print('Checking payment completion for URL: $url');
     print('Host: $host, Path: ${uri.path}, Query: ${uri.queryParameters}');
-    
-    // Check for success indicators in URL
+
     final isSuccess = uri.path.contains('success') ||
            uri.path.contains('payment-success') ||
            (uri.queryParameters.containsKey('payment_status') &&
@@ -92,8 +87,7 @@ class _PaymentCheckoutWebViewPageState extends State<PaymentCheckoutWebViewPage>
            (uri.queryParameters.containsKey('status') &&
            uri.queryParameters['status'] == 'success') ||
            uri.queryParameters.containsKey('payment_success') ||
-           // Check if redirected to merchant redirect URL (usually means success)
-           (host.contains('learnify') && !host.contains('checkout') && !host.contains('api'));
+        (host.contains('learnify') && !host.contains('checkout') && !host.contains('api'));
     
     if (isSuccess) {
       print('Payment completion detected!');
@@ -103,7 +97,6 @@ class _PaymentCheckoutWebViewPageState extends State<PaymentCheckoutWebViewPage>
   }
 
   bool _isPaymentFailed(String url) {
-    // Check if URL indicates failed payment
     final uri = Uri.parse(url);
     return uri.path.contains('failure') ||
            uri.path.contains('payment-failed') ||
@@ -119,8 +112,7 @@ class _PaymentCheckoutWebViewPageState extends State<PaymentCheckoutWebViewPage>
     if (mounted) {
       print('Handling payment completion...');
       setState(() => _isLoading = false);
-      
-      // Show success message
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('تم إتمام عملية الدفع بنجاح'),
@@ -128,12 +120,11 @@ class _PaymentCheckoutWebViewPageState extends State<PaymentCheckoutWebViewPage>
           duration: const Duration(seconds: 2),
         ),
       );
-      
-      // Wait a bit for backend to process, then close
+
       Future.delayed(const Duration(seconds: 2), () {
         if (mounted) {
           print('Returning success from payment checkout page');
-          Navigator.of(context).pop(true); // Return true to indicate success
+          Navigator.of(context).pop(true);
         }
       });
     }
@@ -143,8 +134,7 @@ class _PaymentCheckoutWebViewPageState extends State<PaymentCheckoutWebViewPage>
     if (mounted) {
       print('Handling payment failure...');
       setState(() => _isLoading = false);
-      
-      // Show error message
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('فشلت عملية الدفع. يرجى المحاولة مرة أخرى'),
@@ -152,12 +142,11 @@ class _PaymentCheckoutWebViewPageState extends State<PaymentCheckoutWebViewPage>
           duration: const Duration(seconds: 3),
         ),
       );
-      
-      // Wait a bit then close
+
       Future.delayed(const Duration(seconds: 2), () {
         if (mounted) {
           print('Returning failure from payment checkout page');
-          Navigator.of(context).pop(false); // Return false to indicate failure
+          Navigator.of(context).pop(false);
         }
       });
     }

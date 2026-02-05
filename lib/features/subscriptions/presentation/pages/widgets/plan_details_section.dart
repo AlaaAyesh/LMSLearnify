@@ -26,7 +26,6 @@ class PlanDetailsSection extends StatelessWidget {
           children: [
             RadioIndicator(isSelected: isSelected),
             SizedBox(width: Responsive.width(context, 8)),
-            // استخدام Flexible للنص لضمان عدم الـ overflow
             Flexible(
               child: Text(
                 title,

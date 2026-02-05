@@ -1,7 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'lesson.dart';
 
-/// Lightweight course info embedded in chapter response
 class ChapterCourseInfo extends Equatable {
   final int id;
   final String nameAr;
@@ -37,8 +36,7 @@ class Chapter extends Equatable {
   });
 
   String getName(String locale) => locale == 'ar' ? nameAr : nameEn;
-  
-  /// Get the course name (from embedded course info if available)
+
   String? getCourseName(String locale) => course?.getName(locale);
 
   @override

@@ -10,7 +10,6 @@ class BenefitItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final bool isTablet = Responsive.isTablet(context);
 
-    // ضبط النِسَب في التابلت: أيقونة أصغر، مسافة أقل، خط أكبر قليلاً
     final double circleSize =
         isTablet ? 26 : Responsive.width(context, 22);
     final double iconSize =

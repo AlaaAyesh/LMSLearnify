@@ -8,13 +8,10 @@ abstract class ChapterState extends Equatable {
   List<Object?> get props => [];
 }
 
-/// Initial state
 class ChapterInitial extends ChapterState {}
 
-/// Loading state
 class ChapterLoading extends ChapterState {}
 
-/// Chapter loaded successfully
 class ChapterLoaded extends ChapterState {
   final Chapter chapter;
 
@@ -24,7 +21,6 @@ class ChapterLoaded extends ChapterState {
   List<Object?> get props => [chapter];
 }
 
-/// Error state
 class ChapterError extends ChapterState {
   final String message;
 

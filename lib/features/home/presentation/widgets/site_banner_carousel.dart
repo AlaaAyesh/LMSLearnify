@@ -73,10 +73,8 @@ class _SiteBannerCarouselState extends State<SiteBannerCarousel> {
   }
 
   Future<void> _handleBannerTap(banner_entity.Banner banner) async {
-    // Record click
     await _recordBannerClickUseCase(banner.id);
 
-    // Open URL
     final uri = Uri.parse(banner.bannerUrl);
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
@@ -93,7 +91,7 @@ class _SiteBannerCarouselState extends State<SiteBannerCarousel> {
 
     final bool isTablet = Responsive.isTablet(context);
     final double bannerHeight = isTablet 
-        ? Responsive.height(context, 200) // تقليل الارتفاع في التابلت لتجنب overflow
+        ? Responsive.height(context, 200)
         : Responsive.height(context, 210);
     
     return Column(
@@ -124,7 +122,6 @@ class _SiteBannerCarouselState extends State<SiteBannerCarousel> {
 
   Widget _buildBannerCard(BuildContext context, banner_entity.Banner banner, int totalBanners) {
     final bool isTablet = Responsive.isTablet(context);
-    // في التابلت نقلل نصف القطر ليتناسب مع ارتفاع البانر ولا يكون شبه كبسولة
     final double cardRadius = isTablet ? 26.0 : Responsive.radius(context, 22);
 
     return GestureDetector(
@@ -151,7 +148,6 @@ class _SiteBannerCarouselState extends State<SiteBannerCarousel> {
           child: Stack(
             fit: StackFit.expand,
             children: [
-              // Background image from mobile_image_url
               if (banner.mobileImageUrl.isNotEmpty)
                 CachedNetworkImage(
                   imageUrl: banner.mobileImageUrl,
@@ -188,7 +184,6 @@ class _SiteBannerCarouselState extends State<SiteBannerCarousel> {
                   ),
                 )
               else
-                // Fallback to gradient if no image
                 Container(
                   decoration: const BoxDecoration(
                     gradient: LinearGradient(
@@ -201,15 +196,13 @@ class _SiteBannerCarouselState extends State<SiteBannerCarousel> {
                     ),
                   ),
                 ),
-              
-              // Content overlay
+
               Padding(
                 padding: Responsive.padding(context, horizontal: 20, vertical: 10),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // Title at the start
                     Padding(
                       padding: Responsive.padding(context, top: 18),
                       child: Text(
@@ -233,10 +226,8 @@ class _SiteBannerCarouselState extends State<SiteBannerCarousel> {
                       ),
                     ),
 
-                    // Spacer
                     const Spacer(),
 
-                    // Button at the end (left aligned) - uses button_description as text
                     if (banner.buttonDescription.isNotEmpty)
                       Align(
                         alignment: Alignment.centerLeft,
@@ -268,7 +259,6 @@ class _SiteBannerCarouselState extends State<SiteBannerCarousel> {
                         ),
                       ),
 
-                    // Circles at the bottom center
                     if (totalBanners > 1)
                       Padding(
                         padding: Responsive.padding(context, top: 6),

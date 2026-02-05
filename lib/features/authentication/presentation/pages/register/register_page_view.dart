@@ -34,18 +34,16 @@ class RegisterPageViewState extends State<RegisterPageView> {
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
 
-  // Birthday controllers
   final dayController = TextEditingController();
   final monthController = TextEditingController();
   final yearController = TextEditingController();
 
   bool obscurePassword = true;
-  String? countryCode; // Default to Egypt
+  String? countryCode;
   String selectedRole = 'student';
   String selectedGender = 'male';
-  String selectedReligion = 'muslim'; // Default to Muslim, hidden from user
+  String selectedReligion = 'muslim';
 
-  // Calculated from birthday
   int? calculatedAge;
   int? calculatedSpecialtyId;
   String? specialtyName;
@@ -53,7 +51,6 @@ class RegisterPageViewState extends State<RegisterPageView> {
   @override
   void initState() {
     super.initState();
-    // Listen to birthday changes
     dayController.addListener(_updateAgeAndSpecialty);
     monthController.addListener(_updateAgeAndSpecialty);
     yearController.addListener(_updateAgeAndSpecialty);
@@ -123,7 +120,6 @@ class RegisterPageViewState extends State<RegisterPageView> {
 
   void onRegisterPressed() {
     if (formKey.currentState!.validate()) {
-      // Check age validity
       if (calculatedAge == null) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -152,7 +148,7 @@ class RegisterPageViewState extends State<RegisterPageView> {
               name: nameController.text.trim(),
               email: emailController.text.trim(),
               password: passwordController.text,
-              passwordConfirmation: passwordController.text, // Same as password
+              passwordConfirmation: passwordController.text,
               role: selectedRole,
               phone: countryCode != null
                   ? '$countryCode${phoneController.text.trim()}'
@@ -175,7 +171,6 @@ class RegisterPageViewState extends State<RegisterPageView> {
     }
   }
 
-  /// تصميم الهاتف (الحالي) كما هو
   Widget _buildPhoneLayout(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.white,
@@ -251,14 +246,12 @@ class RegisterPageViewState extends State<RegisterPageView> {
     );
   }
 
-  /// تصميم خاص بالتابلت: عمود فورم أنيق داخل Card مع معلومات في الأعلى
   Widget _buildTabletLayout(BuildContext context) {
     final isPortrait = Responsive.isPortrait(context);
 
     return GestureDetector(
       behavior: HitTestBehavior.translucent,
       onTap: () {
-        // إغلاق الكيبورد عند الضغط خارج الحقول
         FocusScope.of(context).unfocus();
       },
       child: Scaffold(
@@ -299,11 +292,9 @@ class RegisterPageViewState extends State<RegisterPageView> {
     );
   }
 
-  /// تصميم التابلت في الوضع الأفقي (Row)
   Widget _buildLandscapeTabletLayout(BuildContext context) {
     return Row(
       children: [
-        // الفورم (يمين في التابلت)
         Expanded(
           flex: 6,
           child: Directionality(
@@ -423,7 +414,6 @@ class RegisterPageViewState extends State<RegisterPageView> {
             ),
           ),
         ),
-        // بانل الترحيب الصفراء (يسار في التابلت)
         Expanded(
           flex: 4,
           child: MediaQuery(
@@ -444,7 +434,6 @@ class RegisterPageViewState extends State<RegisterPageView> {
                     textDirection: TextDirection.rtl,
                     child: Stack(
                       children: [
-                        // Decorative circles
                         Positioned(
                           top: 40,
                           right: 20,
@@ -469,7 +458,6 @@ class RegisterPageViewState extends State<RegisterPageView> {
                             ),
                           ),
                         ),
-                        // Content - ثابت لا يتأثر بالكيبورد
                         Align(
                           alignment: Alignment.center,
                           child: Padding(
@@ -524,12 +512,10 @@ class RegisterPageViewState extends State<RegisterPageView> {
     );
   }
 
-  /// تصميم التابلت في الوضع الرأسي (Column)
   Widget _buildPortraitTabletLayout(BuildContext context) {
     return SingleChildScrollView(
       child: Column(
         children: [
-          // بانل الترحيب الصفراء (أعلى في الوضع الرأسي)
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 40),
             decoration: const BoxDecoration(
@@ -543,7 +529,6 @@ class RegisterPageViewState extends State<RegisterPageView> {
               textDirection: TextDirection.rtl,
               child: Stack(
                 children: [
-                  // Decorative circles
                   Positioned(
                     top: 20,
                     right: 20,
@@ -568,7 +553,6 @@ class RegisterPageViewState extends State<RegisterPageView> {
                       ),
                     ),
                   ),
-                  // Content
                   Column(
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.center,
@@ -598,7 +582,6 @@ class RegisterPageViewState extends State<RegisterPageView> {
               ),
             ),
           ),
-          // الفورم (أسفل في الوضع الرأسي)
           Directionality(
             textDirection: TextDirection.rtl,
             child: SingleChildScrollView(
@@ -795,7 +778,6 @@ class RegisterPageViewState extends State<RegisterPageView> {
         ),
       );
     } else if (state is AuthAuthenticated) {
-      // Check if we came from a specific page that needs return
       final args =
           ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
       final returnTo = args?['returnTo'] as String?;
@@ -803,10 +785,8 @@ class RegisterPageViewState extends State<RegisterPageView> {
       if (returnTo == 'profile' ||
           returnTo == 'subscriptions' ||
           returnTo == 'certificates') {
-        // Return true to indicate successful registration
         Navigator.of(context).pop(true);
       } else {
-        // Navigate to content preferences page after registration
         Navigator.of(context).pushReplacementNamed('/content-preferences');
       }
     }

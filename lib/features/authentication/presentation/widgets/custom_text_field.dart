@@ -130,7 +130,6 @@ class CustomTextField extends StatelessWidget {
                   width: 1.5,
                 ),
               ),
-              // Hide the default error text below the field
               errorStyle: const TextStyle(
                 height: 0,
                 fontSize: 0,

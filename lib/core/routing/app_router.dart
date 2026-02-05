@@ -65,16 +65,6 @@ class AppRouter {
       case forgotPassword:
         return MaterialPageRoute(builder: (_) => const ForgotPasswordPage());
 
-      // case createNewPassword:
-      //   final args = settings.arguments as Map<String, dynamic>?;
-      //   return MaterialPageRoute(
-      //     builder: (_) => CreateNewPasswordPage(
-      //       resetToken: args?['resetToken'] ?? '',
-      //       email: args?['email'],
-      //       otp: args?['otp'],
-      //     ),
-      //   );
-
       case otpVerification:
         final args = settings.arguments as Map<String, dynamic>;
         return MaterialPageRoute(
@@ -91,9 +81,6 @@ class AppRouter {
           ),
         );
 
-      // case changePassword:
-      //   return MaterialPageRoute(builder: (_) => const ChangePasswordPage());
-
       case completeProfile:
         final args = settings.arguments as Map<String, dynamic>?;
         return MaterialPageRoute(
@@ -102,8 +89,6 @@ class AppRouter {
             name: args?['name'],
             providerId: args?['providerId'] ?? 'google',
             accessToken: args?['accessToken'] ?? '',
-            // When navigated via named route we assume this is a new
-            // registration flow that still needs to create the user.
             requiresRegistration: args?['requiresRegistration'] ?? true,
           ),
         );
@@ -185,7 +170,6 @@ class AppRouter {
     }
   }
 
-  /// انتقال مخصص لصفحات تسجيل الدخول / إنشاء الحساب على التابلت فقط
   static PageRoute _buildAuthPageRoute(
     Widget child, {
     required bool fromRight,
@@ -195,7 +179,6 @@ class AppRouter {
       transitionDuration: const Duration(milliseconds: 400),
       reverseTransitionDuration: const Duration(milliseconds: 400),
       transitionsBuilder: (ctx, animation, secondaryAnimation, child) {
-        // على الموبايل: بدون أنميشن خاص (إرجاع الطفل مباشرة)
         if (!Responsive.isTablet(ctx)) {
           return child;
         }

@@ -4,8 +4,7 @@ class ReelsFeedMeta extends Equatable {
   final int perPage;
   final String? nextCursor;
   final bool hasMore;
-  
-  // New pagination fields
+
   final int? remaining;
   final String? limitMessage;
   final int? total;

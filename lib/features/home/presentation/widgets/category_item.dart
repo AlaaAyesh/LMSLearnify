@@ -22,12 +22,9 @@ class CategoryItem extends StatelessWidget {
       child: GestureDetector(
         onTap: onTap,
         child: SizedBox(
-          // height: Responsive.height(context, 160),
-          // width: Responsive.width(context, 80),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              // Image takes remaining space
               Expanded(
                 child: category.imageUrl != null &&
                     category.imageUrl!.isNotEmpty
@@ -48,7 +45,6 @@ class CategoryItem extends StatelessWidget {
 
               SizedBox(height: Responsive.spacing(context, 4)),
 
-              // Category Name (fixed height, no overflow)
               SizedBox(
                 height: Responsive.height(context, 28),
                 child: Text(

@@ -8,12 +8,6 @@ import '../models/reels_feed_meta_model.dart';
 import '../models/reels_feed_response_model.dart';
 
 abstract class ReelsRemoteDataSource {
-  /// Get reels feed with pagination
-  /// [perPage] - Number of reels per page (default: 10)
-  /// [cursor] - Cursor for pagination (null for first page) - deprecated, use nextPageUrl instead
-  /// [nextPageUrl] - Full URL for next page from meta.next_page_url
-  /// [categoryId] - Filter reels by category ID (optional)
-  /// Throws [ServerException] on failure
   Future<ReelsFeedResponseModel> getReelsFeed({
     int perPage = 10,
     String? cursor,
@@ -21,42 +15,20 @@ abstract class ReelsRemoteDataSource {
     int? categoryId,
   });
 
-  /// Record a view for a reel
-  /// [reelId] - The ID of the reel being viewed
-  /// Throws [ServerException] on failure
   Future<void> recordReelView(int reelId);
 
-  /// Like a reel
-  /// [reelId] - The ID of the reel to like
-  /// Throws [ServerException] on failure
   Future<void> likeReel(int reelId);
 
-  /// Unlike a reel
-  /// [reelId] - The ID of the reel to unlike
-  /// Throws [ServerException] on failure
   Future<void> unlikeReel(int reelId);
 
-  /// Get reel categories with their reel counts
-  /// Returns a list of categories with the number of reels in each category
-  /// Throws [ServerException] on failure
   Future<List<ReelCategoryModel>> getReelCategoriesWithReels();
 
-  /// Get user reels (reels created by a specific user)
-  /// [userId] - The ID of the user whose reels to retrieve
-  /// [perPage] - Number of reels per page (default: 10)
-  /// [page] - Page number (default: 1)
-  /// Throws [ServerException] on failure
   Future<ReelsFeedResponseModel> getUserReels({
     required int userId,
     int perPage = 10,
     int page = 1,
   });
 
-  /// Get user liked reels (reels that a specific user has liked)
-  /// [userId] - The ID of the user whose liked reels to retrieve
-  /// [perPage] - Number of reels per page (default: 10)
-  /// [page] - Page number (default: 1)
-  /// Throws [ServerException] on failure
   Future<ReelsFeedResponseModel> getUserLikedReels({
     required int userId,
     int perPage = 10,
@@ -80,14 +52,10 @@ class ReelsRemoteDataSourceImpl implements ReelsRemoteDataSource {
       String endpoint = ApiConstants.reelsFeed;
       Map<String, dynamic>? queryParams;
 
-      // If next_page_url is provided, use it directly
       if (nextPageUrl != null && nextPageUrl.isNotEmpty) {
-        // Extract path and query params from next_page_url
         final uri = Uri.parse(nextPageUrl);
-        
-        // If it's a full URL, extract just the path part (remove base URL)
+
         if (nextPageUrl.startsWith('http')) {
-          // Extract path after /api/
           final pathParts = uri.path.split('/api/');
           if (pathParts.length > 1) {
             endpoint = pathParts[1];
@@ -95,24 +63,19 @@ class ReelsRemoteDataSourceImpl implements ReelsRemoteDataSource {
             endpoint = uri.path.replaceFirst('/', '');
           }
         } else {
-          // Relative URL - remove /api/ prefix if present
           endpoint = nextPageUrl.replaceFirst('/api/', '').replaceFirst('api/', '');
         }
-        
-        // Extract query parameters from URL
+
         queryParams = uri.queryParameters.isNotEmpty ? uri.queryParameters : null;
       } else {
-        // Build query params for initial request
         queryParams = <String, dynamic>{
           'per_page': perPage,
         };
 
-        // Add category filter if provided
         if (categoryId != null) {
           queryParams['categories'] = categoryId;
         }
 
-        // Support cursor-based pagination if provided (backward compatibility)
         if (cursor != null && cursor.isNotEmpty) {
           queryParams['cursor'] = cursor;
         }
@@ -126,12 +89,10 @@ class ReelsRemoteDataSourceImpl implements ReelsRemoteDataSource {
       if (response.statusCode == 200) {
         final responseData = response.data;
 
-        // Handle standard response format: { "status": "success", "data": { "items": [...], "meta": {...} } }
         if (responseData['status'] == 'success' && responseData['data'] != null) {
           return ReelsFeedResponseModel.fromJson(responseData['data']);
         }
 
-        // Handle case where data and meta are at root level
         if (responseData['data'] != null || responseData['items'] != null) {
           return ReelsFeedResponseModel.fromJson(responseData);
         }
@@ -147,8 +108,6 @@ class ReelsRemoteDataSourceImpl implements ReelsRemoteDataSource {
         statusCode: response.statusCode,
       );
     } on DioException catch (e) {
-      // For 401 errors on getReelsFeed, return empty reels instead of throwing error
-      // This allows users to view free reels without authentication
       if (e.response?.statusCode == 401) {
         return const ReelsFeedResponseModel(
           reels: [],
@@ -302,11 +261,9 @@ class ReelsRemoteDataSourceImpl implements ReelsRemoteDataSource {
       if (response.statusCode == 200) {
         final responseData = response.data;
 
-        // Handle standard response format: { "status": "success", "data": { "data": [...] } }
         if (responseData['status'] == 'success' && responseData['data'] != null) {
           final data = responseData['data'];
-          
-          // Check if data is wrapped in another 'data' key
+
           final categoriesList = data['data'] ?? data;
           
           if (categoriesList is List) {
@@ -316,7 +273,6 @@ class ReelsRemoteDataSourceImpl implements ReelsRemoteDataSource {
           }
         }
 
-        // Handle case where data might be at root level
         if (responseData['data'] is List) {
           return (responseData['data'] as List)
               .map((json) => ReelCategoryModel.fromJson(json as Map<String, dynamic>))
@@ -368,12 +324,10 @@ class ReelsRemoteDataSourceImpl implements ReelsRemoteDataSource {
       if (response.statusCode == 200) {
         final responseData = response.data;
 
-        // Handle standard response format: { "status": "success", "data": { "data": [...], "meta": {...} } }
         if (responseData['status'] == 'success' && responseData['data'] != null) {
           return ReelsFeedResponseModel.fromJson(responseData['data']);
         }
 
-        // Handle case where data and meta are at root level
         if (responseData['data'] != null || responseData['items'] != null) {
           return ReelsFeedResponseModel.fromJson(responseData);
         }
@@ -426,12 +380,10 @@ class ReelsRemoteDataSourceImpl implements ReelsRemoteDataSource {
       if (response.statusCode == 200) {
         final responseData = response.data;
 
-        // Handle standard response format: { "status": "success", "data": { "data": [...], "meta": {...} } }
         if (responseData['status'] == 'success' && responseData['data'] != null) {
           return ReelsFeedResponseModel.fromJson(responseData['data']);
         }
 
-        // Handle case where data and meta are at root level
         if (responseData['data'] != null || responseData['items'] != null) {
           return ReelsFeedResponseModel.fromJson(responseData);
         }

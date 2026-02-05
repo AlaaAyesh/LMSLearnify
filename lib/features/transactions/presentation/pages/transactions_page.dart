@@ -107,7 +107,6 @@ class _UnauthenticatedTransactionsPage extends StatelessWidget {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    // Lock Icon
                     Container(
                       padding: EdgeInsets.all(Responsive.width(context, 32)),
                       decoration: BoxDecoration(
@@ -138,7 +137,6 @@ class _UnauthenticatedTransactionsPage extends StatelessWidget {
                       textAlign: TextAlign.center,
                     ),
                     SizedBox(height: Responsive.spacing(context, 28)),
-                    // Login Button
                     SizedBox(
                       width: double.infinity,
                       height: Responsive.height(context, 56),
@@ -164,7 +162,6 @@ class _UnauthenticatedTransactionsPage extends StatelessWidget {
                             );
 
                             if (result == true && context.mounted) {
-                              // After successful login, reload the transactions page
                               Navigator.of(context, rootNavigator: true)
                                   .pushReplacementNamed(AppRouter.transactions);
                             }
@@ -189,7 +186,6 @@ class _UnauthenticatedTransactionsPage extends StatelessWidget {
                       ),
                     ),
                     SizedBox(height: Responsive.spacing(context, 24)),
-                    // Register Button
                     SizedBox(
                       width: double.infinity,
                       height: Responsive.height(context, 56),
@@ -215,7 +211,6 @@ class _UnauthenticatedTransactionsPage extends StatelessWidget {
                             );
 
                             if (result == true && context.mounted) {
-                              // After successful registration, reload the transactions page
                               Navigator.of(context, rootNavigator: true)
                                   .pushReplacementNamed(AppRouter.transactions);
                             }

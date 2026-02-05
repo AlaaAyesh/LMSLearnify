@@ -66,7 +66,6 @@ class _BannerCarouselState extends State<BannerCarousel> {
   }
 
   void _onUserInteraction() {
-    // Restart auto-scroll after user interaction
     _stopAutoScroll();
     _startAutoScroll();
   }
@@ -130,7 +129,6 @@ class _BannerCarouselState extends State<BannerCarousel> {
             ),
           ),
         ),
-        // Dots indicator
         if (widget.banners.length > 1)
           Padding(
             padding: Responsive.padding(context, top: 12),

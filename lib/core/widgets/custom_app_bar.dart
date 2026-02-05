@@ -24,7 +24,6 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   Widget build(BuildContext context) {
     final bool isTablet = Responsive.isTablet(context);
 
-    // أحجام مخصصة للتابلت حتى لا تكبر الأيقونة بشكل مبالغ فيه
     final double backButtonSize =
         isTablet ? 32 : Responsive.width(context, 26);
     final double backIconSize =
@@ -56,9 +55,9 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                 color: AppColors.primary,
                 shadows: [
                   Shadow(
-                    offset: const Offset(1, 1), // اتجاه الظل
-                    blurRadius: 3,        // نعومة الظل
-                    color: Colors.black.withOpacity(0.4), // لون الظل
+                    offset: const Offset(1, 1),
+                    blurRadius: 3,
+                    color: Colors.black.withOpacity(0.4),
                   ),
                 ],
               ),

@@ -25,16 +25,13 @@ class HomeData extends Equatable {
     this.categoryCourseBlocks = const [],
   });
 
-  /// Get unique categories from all courses
   List<Category> get categories {
     final Map<int, Category> categoriesMap = {};
-    
-    // Add categories from category_course_blocks
+
     for (final block in categoryCourseBlocks) {
       categoriesMap[block.category.id] = block.category;
     }
-    
-    // Add categories from individual course lists
+
     for (final course in [...latestCourses, ...freeCourses, ...popularCourses]) {
       for (final category in course.categories) {
         categoriesMap[category.id] = category;
@@ -44,7 +41,6 @@ class HomeData extends Equatable {
     return categoriesMap.values.toList();
   }
 
-  /// Get courses grouped by category
   Map<Category, List<Course>> get coursesByCategory {
     final Map<int, Category> categoriesMap = {};
     final Map<int, List<Course>> coursesMap = {};

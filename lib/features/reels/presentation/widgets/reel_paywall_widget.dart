@@ -21,7 +21,6 @@ class ReelPaywallWidget extends StatelessWidget {
     return Stack(
       fit: StackFit.expand,
       children: [
-        // Background image with yellow overlay
         if (thumbnailUrl != null && thumbnailUrl!.isNotEmpty)
           CachedNetworkImage(
             imageUrl: thumbnailUrl!,
@@ -39,8 +38,7 @@ class ReelPaywallWidget extends StatelessWidget {
           Container(
             color: AppColors.primary,
           ),
-        
-        // Content overlay
+
         Container(
           color: Colors.black.withOpacity(0.3),
           child: SafeArea(
@@ -50,15 +48,13 @@ class ReelPaywallWidget extends StatelessWidget {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    // Lock Icon
                     Icon(
                       Icons.lock_outline,
                       size: Responsive.iconSize(context, 80),
                       color: Colors.white,
                     ),
                     SizedBox(height: Responsive.spacing(context, 24)),
-                    
-                    // Title
+
                     Text(
                       'اشترك لفتح باقي الفيديوهات',
                       style: TextStyle(
@@ -70,8 +66,7 @@ class ReelPaywallWidget extends StatelessWidget {
                       textAlign: TextAlign.center,
                     ),
                     SizedBox(height: Responsive.spacing(context, 32)),
-                    
-                    // Subscribe Button
+
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(

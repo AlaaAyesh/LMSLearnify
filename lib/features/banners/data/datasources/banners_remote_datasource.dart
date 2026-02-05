@@ -4,13 +4,6 @@ import '../../../../core/network/dio_client.dart';
 import '../models/banners_response_model.dart';
 
 abstract class BannersRemoteDataSource {
-  /// Get site banners with optional filters
-  /// [perPage] - Number of banners per page (default: 10)
-  /// [page] - Page number (default: 1)
-  /// [fromDate] - Start date filter (format: YYYY-MM-DD)
-  /// [toDate] - End date filter (format: YYYY-MM-DD)
-  /// [search] - Search query (e.g., "title:Neve")
-  /// Throws [ServerException] on failure
   Future<BannersResponseModel> getSiteBanners({
     int perPage = 10,
     int page = 1,
@@ -19,9 +12,6 @@ abstract class BannersRemoteDataSource {
     String? search,
   });
 
-  /// Record a click on a banner
-  /// [bannerId] - The ID of the banner that was clicked
-  /// Throws [ServerException] on failure
   Future<void> recordBannerClick(int bannerId);
 }
 
