@@ -638,11 +638,10 @@ class _TabletPopularCourseCard extends StatelessWidget {
               ],
             ),
             child: Column(
-              mainAxisSize: MainAxisSize.min,
+              mainAxisSize: MainAxisSize.max,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                SizedBox(
-                  height: imageHeight,
+                Expanded(
                   child: Stack(
                     fit: StackFit.expand,
                     children: [

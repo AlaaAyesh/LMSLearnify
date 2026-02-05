@@ -25,6 +25,11 @@ class SubscriptionPlanCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final media = MediaQuery.of(context);
+    final isTablet = media.size.shortestSide >= 600;
+    final isLandscape = media.orientation == Orientation.landscape;
+    final isPortrait = media.orientation == Orientation.portrait;
+
     final colors = _getCardColors();
 
     return GestureDetector(
@@ -43,6 +48,7 @@ class SubscriptionPlanCard extends StatelessWidget {
             ),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Flexible(
                   flex: 1,
@@ -52,7 +58,7 @@ class SubscriptionPlanCard extends StatelessWidget {
                     isSelected: isSelected,
                   ),
                 ),
-                SizedBox(width: Responsive.width(context, 8)),
+                // SizedBox(width: Responsive.width(context, isLandscape ?90:isPortrait?22:8)),
                 PriceSection(
                   originalPrice: plan.originalPrice,
                   discountedPrice: plan.discountedPrice,

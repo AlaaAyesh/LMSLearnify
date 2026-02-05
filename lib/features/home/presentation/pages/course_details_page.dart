@@ -684,14 +684,14 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
         Icon(
           icon,
           color: Colors.black,
-          size: Responsive.iconSize(context, 16),
+          size: Responsive.iconSize(context, 14),
         ),
-        SizedBox(width: Responsive.width(context, 6)),
+        SizedBox(width: Responsive.width(context, 4)),
         Text(
           text,
           style: TextStyle(
             fontFamily: 'Cairo',
-            fontSize: Responsive.fontSize(context, 14),
+            fontSize: Responsive.fontSize(context, 12),
             color: Colors.black,
             fontWeight: FontWeight.w600,
           ),
@@ -725,13 +725,13 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
             'دروس الدورة',
             style: TextStyle(
               fontFamily: 'Cairo',
-              fontSize: Responsive.fontSize(context, 20),
+              fontSize: Responsive.fontSize(context, 14),
               fontWeight: FontWeight.w800,
               color: AppColors.textPrimary,
             ),
           ),
 
-          SizedBox(width: context.rs(8)),
+          SizedBox(width: context.rs(6)),
 
           const Spacer(),
 
@@ -1855,52 +1855,52 @@ class _LessonCard extends StatelessWidget {
               Expanded(
                 flex: 1,
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 14,
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    mainAxisSize: MainAxisSize.max,
-                    children: [
-                      Align(
-                        alignment: Alignment.topRight,
-                        child: Text(
-                          lesson.nameAr,
-                          style: TextStyle(
-                            fontFamily: 'Cairo',
-                            fontSize:
-                                isTablet ? Responsive.fontSize(context, 14) : 14,
-                            fontWeight: FontWeight.w600,
-                            color: (hasAccess || isAvailable)
-                                ? AppColors.textPrimary
-                                : Colors.grey[500],
-                            height: 1.3,
-                          ),
-                          textAlign: TextAlign.right,
-                          maxLines:  1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      if (lesson.duration != null || lesson.videoDuration != null)
+                  padding:  Responsive.padding(context, horizontal: 8,vertical: 8),
+                  child: Container(
+                    color: Colors.white,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
                         Align(
-                          alignment: Alignment.bottomLeft,
+                          alignment: Alignment.topRight,
                           child: Text(
-                            _formatDuration(
-                              lesson.videoDuration ?? lesson.duration!,
-                            ),
+                            lesson.nameAr,
                             style: TextStyle(
                               fontFamily: 'Cairo',
-                              fontSize: isTablet ? 11.5 : 11,
-                              fontWeight: FontWeight.w500,
+                              fontSize:
+                                  isTablet ? Responsive.fontSize(context, 12) : 14,
+                              fontWeight: FontWeight.w600,
                               color: (hasAccess || isAvailable)
                                   ? AppColors.textPrimary
                                   : Colors.grey[500],
+                              height: 1.2,
                             ),
+                            textAlign: TextAlign.right,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                    ],
+                        if (lesson.duration != null || lesson.videoDuration != null)
+                          Align(
+                            alignment: Alignment.bottomLeft,
+                            child: Text(
+                              _formatDuration(
+                                lesson.videoDuration ?? lesson.duration!,
+                              ),
+                              style: TextStyle(
+                                fontFamily: 'Cairo',
+                                fontSize: isTablet ? 11.5 : 11,
+                                fontWeight: FontWeight.w500,
+                                color: (hasAccess || isAvailable)
+                                    ? AppColors.textPrimary
+                                    : Colors.grey[500],
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
                   ),
                 ),
               ),

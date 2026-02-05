@@ -19,12 +19,11 @@ class CourseGridCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
-      child: SizedBox(
-        width: Responsive.width(context, 90),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
+      child: Column(
+        mainAxisSize: MainAxisSize.max,
+        children: [
+          Expanded(
+            child: Container(
               width: Responsive.width(context, 80),
               height: Responsive.width(context, 80),
               decoration: BoxDecoration(
@@ -66,22 +65,22 @@ class CourseGridCard extends StatelessWidget {
                 ),
               ),
             ),
-            SizedBox(height: Responsive.spacing(context, 6)),
-            Text(
-              course.nameAr,
-              textAlign: TextAlign.center,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                fontFamily: 'Cairo',
-                fontSize: Responsive.fontSize(context, 11),
-                fontWeight: FontWeight.w600,
-                color: AppColors.textPrimary,
-                height: 1.2,
-              ),
+          ),
+          SizedBox(height: Responsive.spacing(context, 6)),
+          Text(
+            course.nameAr,
+            textAlign: TextAlign.center,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              fontFamily: 'Cairo',
+              fontSize: Responsive.fontSize(context, 11),
+              fontWeight: FontWeight.w600,
+              color: AppColors.textPrimary,
+              height: 1.2,
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

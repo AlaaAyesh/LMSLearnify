@@ -48,10 +48,9 @@ class PopularCourseCard extends StatelessWidget {
               ],
             ),
             child: Column(
-              mainAxisSize: MainAxisSize.min,
+              mainAxisSize: MainAxisSize.max,
               children: [
-                SizedBox(
-                  height: imageHeight,
+                Expanded(
                   child: Stack(
                     alignment: Alignment.center,
                     children: [
@@ -91,7 +90,7 @@ class PopularCourseCard extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
                       fontFamily: 'Cairo',
-                      fontSize: cardWidth * 0.075,
+                      fontSize: cardWidth * 0.070,
                       fontWeight: FontWeight.bold,
                       color: const Color(0xFF171A1F),
                     ),

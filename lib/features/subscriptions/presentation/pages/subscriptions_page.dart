@@ -277,11 +277,11 @@ class _SubscriptionsPageContentState extends State<_SubscriptionsPageContent> wi
 
   String _getDurationDescription(int duration) {
     if (duration == 1) {
-      return 'الوصول للكورسات والشروحات لمدة شهر';
+      return 'الوصول للكورسات و الشورتس لمدة شهر';
     } else if (duration == 12) {
-      return 'الوصول للكورسات والشروحات لمدة سنة';
+      return 'الوصول للكورسات الشورتس لمدة سنة';
     } else {
-      return 'الوصول للكورسات والشروحات لمدة $duration شهور';
+      return 'الوصول للكورسات الشورتس لمدة $duration شهور';
     }
   }
 
@@ -602,8 +602,8 @@ class _SubscriptionsPageContentState extends State<_SubscriptionsPageContent> wi
                         SizedBox(height: Responsive.spacing(ctx, 12)),
                         _PaymentOptionTile(
                           title: 'Google Play',
-                          subtitle: 'ادفع عبر Google Play (In‑App Purchase)',
-                          icon: Icons.shop_2_outlined,
+                          subtitle: 'ادفع عبر Google Play ',
+                          icon: Icons.payment,
                           onTap: () {
                             bloc.add(
                               ProcessPaymentEvent(

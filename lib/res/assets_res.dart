@@ -7,7 +7,7 @@ class AssetsRes {
   AssetsRes._();
 
   static const String PLUGIN_NAME = 'learnify_lms';
-  static const String PLUGIN_VERSION = '1.0.0+4';
+  static const String PLUGIN_VERSION = '1.0.0+5';
   static const String APPLE = 'assets/icons/apple.svg';
   static const String CODE1 = 'assets/icons/code1.svg';
   static const String GOOGLE = 'assets/icons/google.svg';
