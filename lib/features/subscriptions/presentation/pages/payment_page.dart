@@ -114,6 +114,14 @@ class _PaymentPageContentState extends State<_PaymentPageContent> {
                 backgroundColor: Colors.red,
               ),
             );
+          } else if (state is SubscriptionLoading ||
+              state is SubscriptionsLoaded ||
+              state is SubscriptionError ||
+              state is SubscriptionInitial) {
+            // إذا رجع البلوك لحالة عامة نوقف الـ loading الاحتياطي
+            if (_isLoading) {
+              setState(() => _isLoading = false);
+            }
           }
         },
         child: Stack(

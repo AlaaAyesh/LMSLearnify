@@ -118,6 +118,14 @@ class _KashierPaymentPageContentState extends State<_KashierPaymentPageContent> 
                 backgroundColor: Colors.red,
               ),
             );
+          } else if (state is SubscriptionLoading ||
+              state is SubscriptionsLoaded ||
+              state is SubscriptionError ||
+              state is SubscriptionInitial) {
+            // أي انتقال لحالة عامة من البلوك يوقف الـ loading
+            if (_isLoading) {
+              setState(() => _isLoading = false);
+            }
           }
         },
         child: SingleChildScrollView(

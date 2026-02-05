@@ -279,6 +279,14 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
                       backgroundColor: Colors.red,
                     ),
                   );
+                } else if (state is SubscriptionLoading ||
+                    state is SubscriptionsLoaded ||
+                    state is SubscriptionError ||
+                    state is SubscriptionInitial) {
+                  // في أي حالة عامة أخرى نضمن إيقاف الـ loading
+                  if (_isPaymentLoading) {
+                    setState(() => _isPaymentLoading = false);
+                  }
                 }
               },
             child: Scaffold(
