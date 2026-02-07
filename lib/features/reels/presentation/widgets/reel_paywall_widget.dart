@@ -25,6 +25,8 @@ class ReelPaywallWidget extends StatelessWidget {
           CachedNetworkImage(
             imageUrl: thumbnailUrl!,
             fit: BoxFit.cover,
+            memCacheWidth: _fullScreenCacheWidth(context),
+            memCacheHeight: _fullScreenCacheHeight(context),
             color: AppColors.primary.withOpacity(0.7),
             colorBlendMode: BlendMode.overlay,
             placeholder: (context, url) => Container(
@@ -99,5 +101,16 @@ class ReelPaywallWidget extends StatelessWidget {
     );
   }
 
+  static int _fullScreenCacheWidth(BuildContext context) {
+    final size = MediaQuery.sizeOf(context);
+    final dpr = MediaQuery.of(context).devicePixelRatio;
+    return (size.width * dpr).round().clamp(540, 1080);
+  }
+
+  static int _fullScreenCacheHeight(BuildContext context) {
+    final size = MediaQuery.sizeOf(context);
+    final dpr = MediaQuery.of(context).devicePixelRatio;
+    return (size.height * dpr).round().clamp(960, 1920);
+  }
 }
 

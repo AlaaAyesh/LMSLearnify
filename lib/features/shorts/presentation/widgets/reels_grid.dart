@@ -100,6 +100,11 @@ class ReelsGrid extends StatelessWidget {
       ),
     );
   }
+
+  static int thumbnailCachePx(BuildContext context) {
+    final dpr = MediaQuery.of(context).devicePixelRatio;
+    return (Responsive.width(context, 240) * dpr).round().clamp(240, 720);
+  }
 }
 
 class _ReelTile extends StatelessWidget {
@@ -136,7 +141,8 @@ class _ReelTile extends StatelessWidget {
             CachedNetworkImage(
               imageUrl: reel.thumbnailUrl,
               fit: BoxFit.cover,
-              memCacheWidth: (Responsive.width(context, 240)).toInt(),
+              memCacheWidth: ReelsGrid.thumbnailCachePx(context),
+              memCacheHeight: ReelsGrid.thumbnailCachePx(context),
               placeholder: (context, url) => ColoredBox(
                 color: AppColors.primaryOpacity10,
                 child: Center(
@@ -220,6 +226,5 @@ class _ReelTile extends StatelessWidget {
     );
   }
 }
-
 
 

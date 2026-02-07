@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:learnify_lms/core/theme/app_text_styles.dart';
 
+import '../../../../core/di/injection_container.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../authentication/presentation/bloc/auth_bloc.dart';
 import '../../../authentication/presentation/bloc/auth_state.dart';
@@ -9,6 +10,8 @@ import '../../../authentication/presentation/pages/register/complete_profile_pag
 import '../../../menu/presentation/pages/menu_page.dart';
 import '../../../shorts/presentation/pages/shorts_page.dart';
 import '../../../subscriptions/presentation/pages/subscriptions_page.dart';
+import '../bloc/home_bloc.dart';
+import '../bloc/home_event.dart';
 import 'home_tab.dart';
 
 class TabIndexNotifier extends ValueNotifier<int> {
@@ -102,7 +105,13 @@ class MainNavigationPageState extends State<MainNavigationPage> {
             body: IndexedStack(
               index: _selectedIndex,
               children: [
-                _buildNavigator(0, const HomeTab()),
+                _buildNavigator(
+                  0,
+                  BlocProvider(
+                    create: (_) => sl<HomeBloc>()..add(LoadHomeDataEvent()),
+                    child: const HomeTab(),
+                  ),
+                ),
                 _buildNavigator(1, const ShortsPage()),
                 _buildNavigator(2, const SubscriptionsPage(showBackButton: false)),
                 _buildNavigator(3, const MenuPage()),

@@ -69,12 +69,10 @@ class _HomeTabState extends State<HomeTab> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => sl<HomeBloc>()..add(LoadHomeDataEvent()),
-      child: _HomeTabContent(
-        siteBanners: _siteBanners,
-        isLoadingBanners: _isLoadingBanners,
-      ),
+    // HomeBloc is provided by MainNavigationPage so it isn't recreated on setState (banners).
+    return _HomeTabContent(
+      siteBanners: _siteBanners,
+      isLoadingBanners: _isLoadingBanners,
     );
   }
 }
@@ -97,6 +95,7 @@ class _HomeTabContent extends StatelessWidget {
           const CustomBackground(),
           SafeArea(
             child: BlocBuilder<HomeBloc, HomeState>(
+              buildWhen: (previous, current) => previous != current,
               builder: (context, state) {
                 if (state is HomeLoading) {
                   if (state.cachedData != null) {
@@ -176,11 +175,13 @@ class _HomeTabContent extends StatelessWidget {
                   itemCount: homeData.categories.length,
                   itemBuilder: (context, index) {
                     final category = homeData.categories[index];
-                    return Padding(
-                      padding: Responsive.padding(context, left: 16),
-                      child: CategoryItem(
-                        category: category,
-                        onTap: () => _onCategoryTap(context, category, homeData),
+                    return RepaintBoundary(
+                      child: Padding(
+                        padding: Responsive.padding(context, left: 16),
+                        child: CategoryItem(
+                          category: category,
+                          onTap: () => _onCategoryTap(context, category, homeData),
+                        ),
                       ),
                     );
                   },
@@ -202,11 +203,13 @@ class _HomeTabContent extends StatelessWidget {
                   itemCount: homeData.popularCourses.length,
                   itemBuilder: (context, index) {
                     final course = homeData.popularCourses[index];
-                    return Padding(
-                      padding: Responsive.padding(context, left: 16),
-                      child: PopularCourseCard(
-                        course: course,
-                        onTap: () => _onCourseTap(context, course),
+                    return RepaintBoundary(
+                      child: Padding(
+                        padding: Responsive.padding(context, left: 16),
+                        child: PopularCourseCard(
+                          course: course,
+                          onTap: () => _onCourseTap(context, course),
+                        ),
                       ),
                     );
                   },
@@ -285,11 +288,13 @@ class _HomeTabContent extends StatelessWidget {
         itemCount: courses.length,
         itemBuilder: (context, index) {
           final course = courses[index];
-          return Padding(
-            padding: Responsive.padding(context, left: 20),
-            child: CourseGridCard(
-              course: course,
-              onTap: () => _onCourseTap(context, course),
+          return RepaintBoundary(
+            child: Padding(
+              padding: Responsive.padding(context, left: 20),
+              child: CourseGridCard(
+                course: course,
+                onTap: () => _onCourseTap(context, course),
+              ),
             ),
           );
         },

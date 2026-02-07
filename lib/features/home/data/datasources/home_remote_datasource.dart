@@ -1,9 +1,15 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import '../../../../core/constants/api_constants.dart';
 import '../../../../core/error/exceptions.dart';
 import '../../../../core/network/dio_client.dart';
 import '../../../../core/network/cache_service.dart';
 import '../models/home_data_model.dart';
+
+/// Top-level for [compute]; parses home JSON on a background isolate.
+HomeDataModel parseHomeDataInIsolate(Map<String, dynamic> json) {
+  return HomeDataModel.fromJson(json);
+}
 
 abstract class HomeRemoteDataSource {
   Future<HomeDataModel> getHomeData();
@@ -20,15 +26,18 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
       final response = await dioClient.get(ApiConstants.homeApi);
 
       if (response.statusCode == 200) {
-        final responseData = response.data;
+        final responseData = response.data as Map<String, dynamic>?;
+        if (responseData == null) return const HomeDataModel();
 
+        final Map<String, dynamic> raw;
         if (responseData['data'] != null) {
-          return HomeDataModel.fromJson(responseData['data']);
+          raw = responseData['data'] as Map<String, dynamic>;
         } else if (responseData['banners'] != null || responseData['latest_courses'] != null) {
-          return HomeDataModel.fromJson(responseData);
+          raw = responseData;
+        } else {
+          return const HomeDataModel();
         }
-        
-        return const HomeDataModel();
+        return compute(parseHomeDataInIsolate, raw);
       }
 
       throw ServerException(

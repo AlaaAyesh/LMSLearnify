@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:learnify_lms/core/theme/app_text_styles.dart';
 import 'package:learnify_lms/features/home/presentation/pages/tablet/tablet_home_tab.dart';
 
+import '../../../../../../core/di/injection_container.dart';
 import '../../../../../../core/theme/app_colors.dart';
+
 import '../../../../../../core/utils/responsive.dart';
 import '../../../../authentication/presentation/bloc/auth_bloc.dart';
 import '../../../../authentication/presentation/bloc/auth_state.dart';
@@ -11,6 +12,8 @@ import '../../../../authentication/presentation/pages/register/complete_profile_
 import '../../../../menu/presentation/pages/tablet/tablet_menu_page.dart';
 import '../../../../shorts/presentation/pages/tablet/tablet_shorts_page.dart';
 import '../../../../subscriptions/presentation/pages/tablet/tablet_subscriptions_page.dart';
+import '../../bloc/home_bloc.dart';
+import '../../bloc/home_event.dart';
 import '../main_navigation_page.dart';
 
 
@@ -96,7 +99,13 @@ class _TabletMainNavigationPageState extends State<TabletMainNavigationPage> {
                 child: IndexedStack(
                   index: _selectedIndex,
                   children: [
-                    _buildNavigator(0, const TabletHomeTab()),
+                    _buildNavigator(
+                      0,
+                      BlocProvider(
+                        create: (_) => sl<HomeBloc>()..add(LoadHomeDataEvent()),
+                        child: const TabletHomeTab(),
+                      ),
+                    ),
                     _buildNavigator(1, const TabletShortsPage()),
                     _buildNavigator(2, const TabletSubscriptionsPage()),
                     _buildNavigator(3, const TabletMenuPage()),

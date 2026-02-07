@@ -27,7 +27,7 @@ class ShortsGrid extends StatelessWidget {
               size: 80,
               color: Colors.grey[400],
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             Text(
               'لا توجد فيديوهات',
               style: TextStyle(
@@ -81,6 +81,8 @@ class _ShortVideoTile extends StatelessWidget {
             CachedNetworkImage(
               imageUrl: video.thumbnailUrl,
               fit: BoxFit.cover,
+              memCacheWidth: _thumbnailCacheSize(context),
+              memCacheHeight: _thumbnailCacheSize(context),
               placeholder: (context, url) => Container(
                 color: AppColors.primary.withOpacity(0.1),
                 child: Center(
@@ -122,7 +124,7 @@ class _ShortVideoTile extends StatelessWidget {
                       color: Colors.white,
                       size: 14,
                     ),
-                    SizedBox(width: 4),
+                    const SizedBox(width: 4),
                     Expanded(
                       child: Text(
                         video.formattedViews,
@@ -144,9 +146,12 @@ class _ShortVideoTile extends StatelessWidget {
       ),
     );
   }
+
+  static int _thumbnailCacheSize(BuildContext context) {
+    final width = MediaQuery.sizeOf(context).width;
+    final dpr = MediaQuery.of(context).devicePixelRatio;
+    final tileWidth = (width - 32) / 3;
+    return (tileWidth * dpr).round().clamp(240, 480);
+  }
 }
-
-
-
-
 

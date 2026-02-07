@@ -7,6 +7,11 @@ import '../models/reel_category_model.dart';
 import '../models/reels_feed_meta_model.dart';
 import '../models/reels_feed_response_model.dart';
 
+/// Top-level for [compute]; parses reels feed JSON on a background isolate.
+ReelsFeedResponseModel parseReelsFeedInIsolate(Map<String, dynamic> json) {
+  return ReelsFeedResponseModel.fromJson(json);
+}
+
 abstract class ReelsRemoteDataSource {
   Future<ReelsFeedResponseModel> getReelsFeed({
     int perPage = 10,
@@ -87,14 +92,22 @@ class ReelsRemoteDataSourceImpl implements ReelsRemoteDataSource {
       );
 
       if (response.statusCode == 200) {
-        final responseData = response.data;
+        final responseData = response.data as Map<String, dynamic>?;
+        if (responseData == null) {
+          return const ReelsFeedResponseModel(
+            reels: [],
+            meta: ReelsFeedMetaModel(perPage: 10, hasMore: false),
+          );
+        }
 
         if (responseData['status'] == 'success' && responseData['data'] != null) {
-          return ReelsFeedResponseModel.fromJson(responseData['data']);
+          final data = responseData['data'];
+          final map = data is Map<String, dynamic> ? data : responseData;
+          return compute(parseReelsFeedInIsolate, map);
         }
 
         if (responseData['data'] != null || responseData['items'] != null) {
-          return ReelsFeedResponseModel.fromJson(responseData);
+          return compute(parseReelsFeedInIsolate, responseData);
         }
 
         return const ReelsFeedResponseModel(

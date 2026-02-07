@@ -31,6 +31,8 @@ class CategoryItem extends StatelessWidget {
                     ? CachedNetworkImage(
                   imageUrl: category.imageUrl!,
                   fit: BoxFit.contain,
+                  memCacheWidth: _cacheSize(context),
+                  memCacheHeight: _cacheSize(context),
                   errorWidget: (context, url, error) =>
                       Image.asset(
                         'assets/images/programing.png',
@@ -65,6 +67,11 @@ class CategoryItem extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  static int _cacheSize(BuildContext context) {
+    final dpr = MediaQuery.of(context).devicePixelRatio;
+    return (Responsive.height(context, 80) * dpr).round().clamp(160, 320);
   }
 }
 

@@ -646,9 +646,15 @@ class _ReelPlayerWidgetState extends State<ReelPlayerWidget>
       );
     }
 
+    final size = MediaQuery.sizeOf(context);
+    final dpr = MediaQuery.of(context).devicePixelRatio;
+    final cacheW = (size.width * dpr).round().clamp(540, 1080);
+    final cacheH = (size.height * dpr).round().clamp(960, 1920);
     return CachedNetworkImage(
       imageUrl: widget.reel.thumbnailUrl,
       fit: BoxFit.cover,
+      memCacheWidth: cacheW,
+      memCacheHeight: cacheH,
       placeholder: (context, url) => Container(
         color: const Color(0xFF1A1A1A),
         child: Center(
@@ -702,6 +708,7 @@ class _ReelPlayerWidgetState extends State<ReelPlayerWidget>
       return defaultAvatar();
     }
 
+    final cacheSize = (size * MediaQuery.of(context).devicePixelRatio).round().clamp(72, 256);
     return ClipOval(
       child: Container(
         width: size,
@@ -710,6 +717,8 @@ class _ReelPlayerWidgetState extends State<ReelPlayerWidget>
         child: CachedNetworkImage(
           imageUrl: widget.reel.owner.avatarUrl,
           fit: BoxFit.cover,
+          memCacheWidth: cacheSize,
+          memCacheHeight: cacheSize,
           placeholder: (context, url) => defaultAvatar(),
           errorWidget: (context, url, error) => defaultAvatar(),
         ),

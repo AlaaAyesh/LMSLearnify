@@ -21,9 +21,8 @@ void main() async {
     _setSystemUI(),
   ]);
 
-  await CacheService.init();
-  
-  await initDependencies();
+  // Run cache and DI in parallel to reduce startup time
+  await Future.wait([CacheService.init(), initDependencies()]);
 
   if (kReleaseMode) {
     debugPrint = (String? message, {int? wrapWidth}) {};

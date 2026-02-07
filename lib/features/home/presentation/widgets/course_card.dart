@@ -48,6 +48,8 @@ class CourseCard extends StatelessWidget {
                           height: Responsive.height(context, 120),
                           width: double.infinity,
                           fit: BoxFit.cover,
+                          memCacheWidth: _thumbCacheW(context),
+                          memCacheHeight: _thumbCacheH(context),
                           placeholder: (context, url) => Container(
                             height: Responsive.height(context, 120),
                             color: AppColors.primary.withOpacity(0.1),
@@ -188,8 +190,14 @@ class CourseCard extends StatelessWidget {
       ),
     );
   }
+
+  static int _thumbCacheW(BuildContext context) {
+    final dpr = MediaQuery.of(context).devicePixelRatio;
+    return (Responsive.width(context, 180) * dpr).round().clamp(360, 720);
+  }
+
+  static int _thumbCacheH(BuildContext context) {
+    final dpr = MediaQuery.of(context).devicePixelRatio;
+    return (Responsive.height(context, 120) * dpr).round().clamp(240, 480);
+  }
 }
-
-
-
-

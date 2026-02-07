@@ -88,9 +88,13 @@ class CourseGridCard extends StatelessWidget {
   Widget _buildThumbnail(BuildContext context) {
     final thumbnailUrl = course.effectiveThumbnail;
     if (thumbnailUrl != null && thumbnailUrl.isNotEmpty) {
+      final dpr = MediaQuery.of(context).devicePixelRatio;
+      final cacheSize = (Responsive.width(context, 80) * dpr).round().clamp(160, 480);
       return CachedNetworkImage(
         imageUrl: thumbnailUrl,
         fit: BoxFit.cover,
+        memCacheWidth: cacheSize,
+        memCacheHeight: cacheSize,
         placeholder: (context, url) => _buildPlaceholder(context),
         errorWidget: (context, url, error) => _buildPlaceholder(context),
       );

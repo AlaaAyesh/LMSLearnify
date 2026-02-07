@@ -809,15 +809,15 @@ class _ReelsFeedPageState extends State<ReelsFeedPage>
 
         _checkPaywall(index);
 
-        final thresholdIndex =
-            state.reels.isNotEmpty ? state.reels.length - 1 : 0;
-        final isAtPaginationThreshold =
-            state.reels.isNotEmpty && index >= thresholdIndex;
+        // Load next page when user is 2 items from end to avoid waiting on last item
+        const paginationTriggerOffset = 2;
+        final thresholdIndex = state.reels.isNotEmpty
+            ? (state.reels.length - paginationTriggerOffset).clamp(0, state.reels.length)
+            : 0;
+        final isNearEnd = state.reels.isNotEmpty && index >= thresholdIndex;
         final isLoaderIndex = index >= state.reels.length;
 
-        if (isAtPaginationThreshold &&
-            state.hasMore &&
-            !state.isLoadingMore) {
+        if (isNearEnd && state.hasMore && !state.isLoadingMore) {
           try {
             context.read<ReelsBloc>().add(const LoadMoreReelsEvent());
           } catch (e) {
@@ -826,9 +826,7 @@ class _ReelsFeedPageState extends State<ReelsFeedPage>
           return;
         }
 
-        if ((isAtPaginationThreshold || isLoaderIndex) &&
-            !state.hasMore &&
-            !state.isLoadingMore) {
+        if ((isNearEnd || isLoaderIndex) && !state.hasMore && !state.isLoadingMore) {
           _loadNextCategoryIfAvailable();
         }
       },

@@ -58,7 +58,7 @@ class PopularCourseCard extends StatelessWidget {
                         borderRadius: BorderRadius.vertical(
                           top: Radius.circular(radius),
                         ),
-                        child: _buildThumbnail(),
+                        child: _buildThumbnail(context, cardWidth, imageHeight),
                       ),
 
                       Container(
@@ -104,15 +104,20 @@ class PopularCourseCard extends StatelessWidget {
     );
   }
 
-  Widget _buildThumbnail() {
+  Widget _buildThumbnail(BuildContext context, double cardWidth, double imageHeight) {
     final thumbnailUrl = course.effectiveThumbnail;
 
     if (thumbnailUrl != null && thumbnailUrl.isNotEmpty) {
+      final dpr = MediaQuery.of(context).devicePixelRatio;
+      final cacheW = (cardWidth * dpr).round().clamp(320, 960);
+      final cacheH = (imageHeight * dpr).round().clamp(320, 720);
       return CachedNetworkImage(
         imageUrl: thumbnailUrl,
         width: double.infinity,
         height: double.infinity,
         fit: BoxFit.cover,
+        memCacheWidth: cacheW,
+        memCacheHeight: cacheH,
         placeholder: (_, __) => _placeholder(),
         errorWidget: (_, __, ___) => _placeholder(),
       );

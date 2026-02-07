@@ -65,12 +65,10 @@ class _TabletHomeTabState extends State<TabletHomeTab> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => sl<HomeBloc>()..add(LoadHomeDataEvent()),
-      child: _TabletHomeTabContent(
-        siteBanners: _siteBanners,
-        isLoadingBanners: _isLoadingBanners,
-      ),
+    // HomeBloc is provided by TabletMainNavigationPage so it isn't recreated on setState (banners).
+    return _TabletHomeTabContent(
+      siteBanners: _siteBanners,
+      isLoadingBanners: _isLoadingBanners,
     );
   }
 }
@@ -93,6 +91,7 @@ class _TabletHomeTabContent extends StatelessWidget {
           const CustomBackground(),
           SafeArea(
             child: BlocBuilder<HomeBloc, HomeState>(
+              buildWhen: (previous, current) => previous != current,
               builder: (context, state) {
                 if (state is HomeLoading) {
                   if (state.cachedData != null) {
