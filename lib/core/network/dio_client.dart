@@ -29,6 +29,8 @@ class DioClient {
       ),
     );
 
+    _dio.interceptors.add(_CacheUserInterceptor(_secureStorage));
+
     final cacheOptions = CacheService.cacheOptions;
     if (cacheOptions != null) {
       _dio.interceptors.add(DioCacheInterceptor(options: cacheOptions));
@@ -206,6 +208,23 @@ class DioClient {
       }
       rethrow;
     }
+  }
+}
+
+class _CacheUserInterceptor extends QueuedInterceptor {
+  final SecureStorageService _secureStorage;
+  static const String _headerKey = 'X-Cache-User';
+
+  _CacheUserInterceptor(this._secureStorage);
+
+  @override
+  Future<void> onRequest(
+    RequestOptions options,
+    RequestInterceptorHandler handler,
+  ) async {
+    final token = await _secureStorage.getAccessToken();
+    options.headers[_headerKey] = (token != null && token.isNotEmpty) ? 'auth' : 'guest';
+    handler.next(options);
   }
 }
 

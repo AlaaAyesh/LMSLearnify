@@ -1,3 +1,6 @@
+import 'dart:io' show Platform;
+
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:learnify_lms/core/theme/app_text_styles.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -51,25 +54,31 @@ class SocialLoginButtons extends StatelessWidget {
         builder: (context) {
           final isTablet = Responsive.isTablet(context);
           final spacing = isTablet ? 16.0 : Responsive.width(context, 24);
-          
-          return Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            mainAxisSize: MainAxisSize.min,
-            children: [
+          final showApple = kIsWeb || Platform.isIOS;
+          final showGoogle = kIsWeb || Platform.isAndroid;
+
+          final buttons = <Widget>[
+            if (showApple)
               SocialButton(
                 asset: 'assets/icons/apple.svg',
                 onTap: () {
                   context.read<AuthBloc>().add(NativeAppleSignInEvent());
                 },
               ),
-              SizedBox(width: spacing),
+            if (showApple && showGoogle) SizedBox(width: spacing),
+            if (showGoogle)
               SocialButton(
                 asset: 'assets/icons/google.svg',
                 onTap: () {
                   context.read<AuthBloc>().add(NativeGoogleSignInEvent());
                 },
               ),
-            ],
+          ];
+
+          return Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: buttons,
           );
         },
       ),

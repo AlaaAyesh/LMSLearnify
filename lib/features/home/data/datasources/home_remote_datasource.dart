@@ -6,7 +6,6 @@ import '../../../../core/network/dio_client.dart';
 import '../../../../core/network/cache_service.dart';
 import '../models/home_data_model.dart';
 
-/// Top-level for [compute]; parses home JSON on a background isolate.
 HomeDataModel parseHomeDataInIsolate(Map<String, dynamic> json) {
   return HomeDataModel.fromJson(json);
 }

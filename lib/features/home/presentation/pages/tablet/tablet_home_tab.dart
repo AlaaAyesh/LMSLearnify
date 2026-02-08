@@ -65,7 +65,6 @@ class _TabletHomeTabState extends State<TabletHomeTab> {
 
   @override
   Widget build(BuildContext context) {
-    // HomeBloc is provided by TabletMainNavigationPage so it isn't recreated on setState (banners).
     return _TabletHomeTabContent(
       siteBanners: _siteBanners,
       isLoadingBanners: _isLoadingBanners,

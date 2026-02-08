@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/widgets/premium_subscription_popup.dart';
 import '../../../../core/utils/responsive.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/di/injection_container.dart';
@@ -264,25 +265,70 @@ class _ContentPreferencesPageState extends State<ContentPreferencesPage> {
   Future<bool> _onWillPop() async {
     final shouldPop = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(
-          'تأكيد',
-          style: TextStyle(fontFamily: 'Cairo'),
-        ),
-        content: Text(
-          'يجب إكمال اختيار التفضيلات للمتابعة. هل تريد الخروج من التطبيق؟',
-          style: TextStyle(fontFamily: 'Cairo'),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: Text('إلغاء', style: TextStyle(fontFamily: 'Cairo')),
+      builder: (ctx) => Dialog(
+        backgroundColor: Colors.transparent,
+        insetPadding: const EdgeInsets.symmetric(horizontal: 24),
+        child: PremiumDialogCard(
+          onClose: () => Navigator.of(ctx).pop(false),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'تأكيد',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontFamily: 'Cairo',
+                  fontSize: Responsive.fontSize(context, 18),
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+              SizedBox(height: Responsive.spacing(context, 12)),
+              Text(
+                'يجب إكمال اختيار التفضيلات للمتابعة. هل تريد الخروج من التطبيق؟',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontFamily: 'Cairo',
+                  fontSize: Responsive.fontSize(context, 15),
+                  color: AppColors.textSecondary,
+                ),
+              ),
+              SizedBox(height: Responsive.spacing(context, 24)),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () => Navigator.of(ctx).pop(false),
+                      style: OutlinedButton.styleFrom(
+                        padding: EdgeInsets.symmetric(vertical: Responsive.spacing(context, 12)),
+                        side: BorderSide(color: AppColors.greyLight),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(Responsive.radius(context, 28)),
+                        ),
+                      ),
+                      child: Text('إلغاء', style: TextStyle(fontFamily: 'Cairo', color: AppColors.textSecondary)),
+                    ),
+                  ),
+                  SizedBox(width: Responsive.spacing(context, 12)),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () => Navigator.of(ctx).pop(true),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        padding: EdgeInsets.symmetric(vertical: Responsive.spacing(context, 12)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(Responsive.radius(context, 28)),
+                        ),
+                        elevation: 0,
+                      ),
+                      child: Text('خروج', style: TextStyle(fontFamily: 'Cairo', color: Colors.white)),
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: Text('خروج', style: TextStyle(fontFamily: 'Cairo')),
-          ),
-        ],
+        ),
       ),
     );
     

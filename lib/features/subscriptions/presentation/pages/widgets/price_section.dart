@@ -32,7 +32,6 @@ class PriceSection extends StatelessWidget {
     final isTablet = media.size.shortestSide >= 600;
 
     return SizedBox(
-      // width: Responsive.width(context, isNarrow ? 70 :isTablet?70: 120),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,

@@ -23,6 +23,8 @@ import '../../features/transactions/presentation/pages/transactions_page.dart';
 import '../di/injection_container.dart';
 import '../utils/responsive.dart';
 
+final RouteObserver<PageRoute<dynamic>> routeObserver = RouteObserver<PageRoute<dynamic>>();
+
 class AppRouter {
   static const String splash = '/';
   static const String login = '/login';

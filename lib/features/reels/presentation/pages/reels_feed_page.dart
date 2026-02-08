@@ -23,8 +23,6 @@ import '../widgets/reel_paywall_widget.dart';
 import '../widgets/reel_player_widget.dart';
 import 'collected_reels_page.dart';
 
-final RouteObserver<PageRoute> routeObserver = RouteObserver<PageRoute>();
-
 class ReelsFeedPage extends StatefulWidget {
   final int initialIndex;
   final bool showBackButton;
@@ -809,7 +807,6 @@ class _ReelsFeedPageState extends State<ReelsFeedPage>
 
         _checkPaywall(index);
 
-        // Load next page when user is 2 items from end to avoid waiting on last item
         const paginationTriggerOffset = 2;
         final thresholdIndex = state.reels.isNotEmpty
             ? (state.reels.length - paginationTriggerOffset).clamp(0, state.reels.length)

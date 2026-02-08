@@ -49,7 +49,7 @@ class AuthLocalDataSourceImpl implements AuthLocalDataSource {
   @override
   Future<void> clearCache() async {
     try {
-      await hiveService.deleteData(cachedUserKey);
+      await hiveService.clearAll();
       await secureStorage.clearAll();
     } catch (e) {
       throw CacheException(message: 'فشل مسح البيانات');

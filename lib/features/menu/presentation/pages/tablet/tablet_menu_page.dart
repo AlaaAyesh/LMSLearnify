@@ -4,7 +4,10 @@ import 'package:learnify_lms/features/home/presentation/pages/tablet/tablet_main
 import 'package:learnify_lms/features/menu/presentation/pages/widgets/menu_button.dart';
 import 'package:learnify_lms/features/menu/presentation/pages/widgets/menu_outline_button.dart';
 import '../../../../../../core/di/injection_container.dart';
+import '../../../../../../core/routing/app_router.dart';
 import '../../../../../../core/theme/app_colors.dart';
+import '../../../../../../core/utils/responsive.dart';
+import '../../../../../../core/widgets/premium_subscription_popup.dart';
 import '../../../../../../core/widgets/support_section.dart';
 import '../../../../about/presentation/pages/about_page.dart';
 import '../../../../authentication/presentation/bloc/auth_bloc.dart';
@@ -35,7 +38,18 @@ class _TabletMenuPageState extends State<TabletMenuPage> {
 
   @override
   Widget build(BuildContext context) {
-    return const _TabletMenuPageContent();
+    return BlocListener<AuthBloc, AuthState>(
+      listenWhen: (previous, current) => current is AuthUnauthenticated,
+      listener: (context, state) {
+        if (state is AuthUnauthenticated) {
+          Navigator.of(context, rootNavigator: true).pushNamedAndRemoveUntil(
+            AppRouter.splash,
+            (route) => false,
+          );
+        }
+      },
+      child: const _TabletMenuPageContent(),
+    );
   }
 }
 
@@ -155,45 +169,91 @@ class _TabletMenuPageContent extends StatelessWidget {
   void _showLogoutDialog(BuildContext context) {
     showDialog(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
-        title: const Text(
-          'تسجيل الخروج',
-          style: TextStyle(
-              fontFamily: 'Cairo',
-              fontWeight: FontWeight.w800,
-              color: AppColors.soonText),
-          textAlign: TextAlign.center,
-        ),
-        content: const Text(
-          'هل أنت متأكد من تسجيل الخروج؟',
-          style: TextStyle(fontFamily: 'Cairo'),
-          textAlign: TextAlign.center,
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: const Text(
-              'إلغاء',
-              style: TextStyle(fontFamily: 'Cairo'),
-            ),
+      builder: (dialogContext) => Dialog(
+        backgroundColor: Colors.transparent,
+        insetPadding: const EdgeInsets.symmetric(horizontal: 24),
+        child: PremiumOvalPopup(
+          showCloseButton: true,
+          onClose: () => Navigator.pop(dialogContext),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                'تسجيل الخروج',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontFamily: 'Cairo',
+                  fontSize: Responsive.fontSize(context, 18),
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+              SizedBox(height: Responsive.spacing(context, 12)),
+              Text(
+                'هل أنت متأكد من تسجيل الخروج؟',
+                style: TextStyle(
+                  fontFamily: 'Cairo',
+                  fontSize: Responsive.fontSize(context, 15),
+                  color: AppColors.textSecondary,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              SizedBox(height: Responsive.spacing(context, 24)),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () => Navigator.pop(dialogContext),
+                      style: OutlinedButton.styleFrom(
+                        padding: EdgeInsets.symmetric(vertical: Responsive.spacing(context, 12)),
+                        side: const BorderSide(color: AppColors.greyLight),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(Responsive.radius(context, 28)),
+                        ),
+                      ),
+                      child: Text(
+                        'إلغاء',
+                        style: TextStyle(
+                          fontFamily: 'Cairo',
+                          fontSize: Responsive.fontSize(context, 16),
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                    ),
+                  ),
+                  SizedBox(width: Responsive.spacing(context, 12)),
+                  Expanded(
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        padding: EdgeInsets.symmetric(vertical: Responsive.spacing(context, 12)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(Responsive.radius(context, 28)),
+                        ),
+                        elevation: 0,
+                      ),
+                      onPressed: () {
+                        Navigator.pop(dialogContext);
+                        context.read<AuthBloc>().add(LogoutEvent());
+                      },
+                      child: Text(
+                        'تسجيل الخروج',
+                        style: TextStyle(
+                          fontFamily: 'Cairo',
+                          fontSize: Responsive.fontSize(context, 16),
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.white,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.soonText,
-            ),
-            onPressed: () {
-              Navigator.pop(dialogContext);
-              context.read<AuthBloc>().add(LogoutEvent());
-            },
-            child: const Text(
-              'تسجيل الخروج',
-              style: TextStyle(fontFamily: 'Cairo'),
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }

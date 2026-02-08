@@ -7,7 +7,6 @@ import '../models/reel_category_model.dart';
 import '../models/reels_feed_meta_model.dart';
 import '../models/reels_feed_response_model.dart';
 
-/// Top-level for [compute]; parses reels feed JSON on a background isolate.
 ReelsFeedResponseModel parseReelsFeedInIsolate(Map<String, dynamic> json) {
   return ReelsFeedResponseModel.fromJson(json);
 }

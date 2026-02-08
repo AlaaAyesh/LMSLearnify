@@ -1,6 +1,12 @@
+import 'package:dio/dio.dart';
 import 'package:dio_cache_interceptor/dio_cache_interceptor.dart';
 import 'package:flutter/foundation.dart';
 import '../constants/app_constants.dart';
+
+String _cacheKeyBuilder(RequestOptions request) {
+  final cacheUser = request.headers['X-Cache-User'] ?? 'guest';
+  return '${cacheUser}_${request.uri}';
+}
 
 class CacheService {
   static CacheOptions? _cacheOptions;
@@ -20,7 +26,7 @@ class CacheService {
         maxStale: const Duration(days: 7),
         priority: CachePriority.normal,
         cipher: null,
-        keyBuilder: CacheOptions.defaultCacheKeyBuilder,
+        keyBuilder: _cacheKeyBuilder,
         allowPostMethod: false,
       );
     } catch (e) {
@@ -31,6 +37,7 @@ class CacheService {
         policy: CachePolicy.request,
         hitCacheOnErrorExcept: [401, 403],
         maxStale: const Duration(days: 7),
+        keyBuilder: _cacheKeyBuilder,
       );
     }
   }

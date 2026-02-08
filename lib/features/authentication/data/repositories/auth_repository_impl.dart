@@ -1,6 +1,9 @@
 import 'package:dartz/dartz.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../core/error/exceptions.dart';
 import '../../../../core/error/failures.dart';
+import '../../../../core/network/cache_service.dart';
+import '../../../../core/storage/secure_storage_service.dart';
 import '../../domain/entities/user.dart';
 import '../../domain/repositories/auth_repository.dart';
 import '../datasources/auth_local_datasource.dart';
@@ -10,12 +13,19 @@ import '../models/register_request_model.dart';
 import '../models/user_model.dart';
 
 class AuthRepositoryImpl implements AuthRepository {
+  static const String _kRememberMeKey = 'auth_remember_me';
+  static const String _kRememberedEmailKey = 'auth_remembered_email';
+
   final AuthRemoteDataSource remoteDataSource;
   final AuthLocalDataSource localDataSource;
+  final SharedPreferences sharedPreferences;
+  final SecureStorageService secureStorage;
 
   AuthRepositoryImpl({
     required this.remoteDataSource,
     required this.localDataSource,
+    required this.sharedPreferences,
+    required this.secureStorage,
   });
 
   @override
@@ -96,12 +106,44 @@ class AuthRepositoryImpl implements AuthRepository {
         await remoteDataSource.logout();
       } catch (_) {}
 
+      final rememberMe = sharedPreferences.getBool(_kRememberMeKey) ?? false;
+      final rememberedEmail = sharedPreferences.getString(_kRememberedEmailKey) ?? '';
+      final rememberedPassword = await secureStorage.getRememberedPassword();
+
       await localDataSource.clearCache();
-      
+      await CacheService.clearCache();
+      await sharedPreferences.clear();
+
+      if (rememberMe) {
+        await sharedPreferences.setBool(_kRememberMeKey, true);
+        if (rememberedEmail.isNotEmpty) {
+          await sharedPreferences.setString(_kRememberedEmailKey, rememberedEmail);
+        }
+        if (rememberedPassword != null && rememberedPassword.isNotEmpty) {
+          await secureStorage.saveRememberedPassword(rememberedPassword);
+        }
+      }
+
       return const Right(null);
     } catch (_) {
       try {
+        final rememberMe = sharedPreferences.getBool(_kRememberMeKey) ?? false;
+        final rememberedEmail = sharedPreferences.getString(_kRememberedEmailKey) ?? '';
+        final rememberedPassword = await secureStorage.getRememberedPassword();
+
         await localDataSource.clearCache();
+        await CacheService.clearCache();
+        await sharedPreferences.clear();
+
+        if (rememberMe) {
+          await sharedPreferences.setBool(_kRememberMeKey, true);
+          if (rememberedEmail.isNotEmpty) {
+            await sharedPreferences.setString(_kRememberedEmailKey, rememberedEmail);
+          }
+          if (rememberedPassword != null && rememberedPassword.isNotEmpty) {
+            await secureStorage.saveRememberedPassword(rememberedPassword);
+          }
+        }
       } catch (_) {}
       return const Right(null);
     }

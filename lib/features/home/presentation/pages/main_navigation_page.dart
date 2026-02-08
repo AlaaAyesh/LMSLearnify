@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:learnify_lms/core/theme/app_text_styles.dart';
 
@@ -38,7 +39,11 @@ class MainNavigationPage extends StatefulWidget {
 }
 
 class MainNavigationPageState extends State<MainNavigationPage> {
+  static const int _maxTabHistory = 4;
+  static const int _homeTabIndex = 0;
+
   int _selectedIndex = 0;
+  final List<int> _tabHistory = [];
   late final TabIndexNotifier _tabIndexNotifier;
 
   final List<GlobalKey<NavigatorState>> _navigatorKeys = [
@@ -94,12 +99,32 @@ class MainNavigationPageState extends State<MainNavigationPage> {
           canPop: false,
           onPopInvokedWithResult: (didPop, result) {
             if (didPop) return;
+            final rootNav = Navigator.of(context, rootNavigator: true);
+            if (rootNav.canPop()) {
+              rootNav.pop();
+              return;
+            }
             final currentNavigator = _navigatorKeys[_selectedIndex].currentState;
             if (currentNavigator != null && currentNavigator.canPop()) {
               currentNavigator.pop();
-            } else {
-              Navigator.of(context).maybePop();
+              return;
             }
+            if (_tabHistory.isNotEmpty) {
+              final prevTab = _tabHistory.removeLast();
+              setState(() {
+                _selectedIndex = prevTab;
+                _tabIndexNotifier.value = prevTab;
+              });
+              return;
+            }
+            if (_selectedIndex != _homeTabIndex) {
+              setState(() {
+                _selectedIndex = _homeTabIndex;
+                _tabIndexNotifier.value = _homeTabIndex;
+              });
+              return;
+            }
+            SystemNavigator.pop();
           },
           child: Scaffold(
             body: IndexedStack(
@@ -175,6 +200,14 @@ class MainNavigationPageState extends State<MainNavigationPage> {
           _navigatorKeys[index].currentState?.popUntil((route) => route.isFirst);
         } else {
           setState(() {
+            if (index != _homeTabIndex) {
+              _tabHistory.add(_selectedIndex);
+              if (_tabHistory.length > _maxTabHistory) {
+                _tabHistory.removeAt(0);
+              }
+            } else {
+              _tabHistory.clear();
+            }
             _selectedIndex = index;
             _tabIndexNotifier.value = index;
           });
@@ -214,7 +247,19 @@ class MainNavigationPageState extends State<MainNavigationPage> {
   }
 
   void switchToTab(int index) {
-    setState(() => _selectedIndex = index);
+    if (_selectedIndex == index) return;
+    setState(() {
+      if (index != _homeTabIndex) {
+        _tabHistory.add(_selectedIndex);
+        if (_tabHistory.length > _maxTabHistory) {
+          _tabHistory.removeAt(0);
+        }
+      } else {
+        _tabHistory.clear();
+      }
+      _selectedIndex = index;
+      _tabIndexNotifier.value = index;
+    });
   }
 }
 

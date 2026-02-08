@@ -69,7 +69,6 @@ class _HomeTabState extends State<HomeTab> {
 
   @override
   Widget build(BuildContext context) {
-    // HomeBloc is provided by MainNavigationPage so it isn't recreated on setState (banners).
     return _HomeTabContent(
       siteBanners: _siteBanners,
       isLoadingBanners: _isLoadingBanners,
@@ -195,21 +194,32 @@ class _HomeTabContent extends StatelessWidget {
                 title: 'الأكثر مشاهدة',
               ),
               SizedBox(height: Responsive.spacing(context, 12)),
-              SizedBox(
-                height: Responsive.height(context, 200),
-                child: ListView.builder(
-                  scrollDirection: Axis.horizontal,
-                  padding: Responsive.padding(context, right: 16),
-                  itemCount: homeData.popularCourses.length,
-                  itemBuilder: (context, index) {
-                    final course = homeData.popularCourses[index];
-                    return RepaintBoundary(
-                      child: Padding(
-                        padding: Responsive.padding(context, left: 16),
-                        child: PopularCourseCard(
-                          course: course,
-                          onTap: () => _onCourseTap(context, course),
-                        ),
+              Padding(
+                padding: Responsive.padding(context, right: 10),
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    final spacing = Responsive.width(context, 16);
+                    final cardMargin = Responsive.width(context, 8);
+                    final cardWidth = (constraints.maxWidth - spacing - 2 * cardMargin) / 2;
+                    return SizedBox(
+                      height: Responsive.height(context, 150),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+
+                        children: homeData.popularCourses
+                            .map(
+                              (course) => RepaintBoundary(
+                                child: Padding(
+                                  padding: Responsive.padding(context, horizontal: 4),
+                                  child: PopularCourseCard(
+                                    course: course,
+                                    onTap: () => _onCourseTap(context, course),
+                                    width: cardWidth,
+                                  ),
+                                ),
+                              ),
+                            )
+                            .toList(),
                       ),
                     );
                   },
@@ -256,6 +266,7 @@ class _HomeTabContent extends StatelessWidget {
           onSeeAll: () => _navigateToSingleCategory(context, block.category, block.courses),
         ),
         SizedBox(height: Responsive.spacing(context, 12)),
+
         _buildCoursesGrid(context, block.courses),
         SizedBox(height: Responsive.spacing(context, 24)),
       ],

@@ -122,7 +122,6 @@ class _KashierPaymentPageContentState extends State<_KashierPaymentPageContent> 
               state is SubscriptionsLoaded ||
               state is SubscriptionError ||
               state is SubscriptionInitial) {
-            // أي انتقال لحالة عامة من البلوك يوقف الـ loading
             if (_isLoading) {
               setState(() => _isLoading = false);
             }

@@ -34,7 +34,6 @@ class BirthdayField extends StatelessWidget {
         ),
         child: Row(
           children: [
-            // Prefix Icon
             Padding(
               padding: EdgeInsets.only(
                 right: Responsive.spacing(context, 20),
@@ -47,7 +46,6 @@ class BirthdayField extends StatelessWidget {
               ),
             ),
 
-            // Day Field
             Expanded(
               flex: 1,
               child: _buildDatePart(
@@ -67,7 +65,6 @@ class BirthdayField extends StatelessWidget {
               ),
             ),
 
-            // Month Field
             Expanded(
               flex: 1,
               child: _buildDatePart(
@@ -87,7 +84,6 @@ class BirthdayField extends StatelessWidget {
               ),
             ),
 
-            // Year Field
             Expanded(
               flex: 2,
               child: _buildDatePart(

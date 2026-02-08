@@ -76,21 +76,17 @@ import '../services/realtime_update_service.dart';
 final sl = GetIt.instance;
 
 Future<void> initDependencies() async {
-  // External
   final sharedPreferences = await SharedPreferences.getInstance();
   sl.registerLazySingleton(() => sharedPreferences);
 
   const secureStorage = FlutterSecureStorage();
   sl.registerLazySingleton(() => secureStorage);
 
-  // Core
   sl.registerLazySingleton(() => SecureStorageService(sl()));
   sl.registerLazySingleton(() => HiveService());
   sl.registerLazySingleton(() => DioClient(sl()));
   sl.registerLazySingleton(() => RealtimeUpdateService());
 
-
-  // Features
   _initAuth();
   _initCertificates();
   _initHome();
@@ -104,7 +100,6 @@ Future<void> initDependencies() async {
 }
 
 void _initAuth() {
-  // Data Sources
   sl.registerLazySingleton<AuthRemoteDataSource>(
         () => AuthRemoteDataSourceImpl(sl()),
   );
@@ -116,19 +111,18 @@ void _initAuth() {
     ),
   );
 
-  // Repository
   sl.registerLazySingleton<AuthRepository>(
         () => AuthRepositoryImpl(
       remoteDataSource: sl(),
       localDataSource: sl(),
+      sharedPreferences: sl(),
+      secureStorage: sl(),
     ),
   );
 
-  // Use Cases
   sl.registerLazySingleton(() => LoginUseCase(sl()));
   sl.registerLazySingleton(() => RegisterUseCase(sl()));
 
-  // Bloc
   sl.registerFactory(
         () => AuthBloc(
       loginUseCase: sl(),
@@ -139,24 +133,20 @@ void _initAuth() {
 }
 
 void _initCertificates() {
-  // Data Sources
   sl.registerLazySingleton<CertificateRemoteDataSource>(
         () => CertificateRemoteDataSourceImpl(sl()),
   );
 
-  // Repository
   sl.registerLazySingleton<CertificateRepository>(
         () => CertificateRepositoryImpl(
       remoteDataSource: sl(),
     ),
   );
 
-  // Use Cases
   sl.registerLazySingleton(() => GenerateCertificateUseCase(sl()));
   sl.registerLazySingleton(() => GetOwnedCertificatesUseCase(sl()));
   sl.registerLazySingleton(() => GetCertificateByIdUseCase(sl()));
 
-  // Bloc
   sl.registerFactory(
         () => CertificateBloc(
       generateCertificateUseCase: sl(),
@@ -167,22 +157,18 @@ void _initCertificates() {
 }
 
 void _initHome() {
-  // Data Sources
   sl.registerLazySingleton<HomeRemoteDataSource>(
         () => HomeRemoteDataSourceImpl(sl()),
   );
 
-  // Repository
   sl.registerLazySingleton<HomeRepository>(
         () => HomeRepositoryImpl(
       remoteDataSource: sl(),
     ),
   );
 
-  // Use Cases
   sl.registerLazySingleton(() => GetHomeDataUseCase(sl()));
 
-  // Bloc
   sl.registerFactory(
         () => HomeBloc(
       getHomeDataUseCase: sl(),
@@ -191,26 +177,22 @@ void _initHome() {
 }
 
 void _initSubscriptions() {
-  // Data Sources
   sl.registerLazySingleton<SubscriptionRemoteDataSource>(
         () => SubscriptionRemoteDataSourceImpl(sl()),
   );
 
-  // Repository
   sl.registerLazySingleton<SubscriptionRepository>(
         () => SubscriptionRepositoryImpl(
       remoteDataSource: sl(),
     ),
   );
 
-  // Use Cases
   sl.registerLazySingleton(() => GetSubscriptionsUseCase(sl()));
   sl.registerLazySingleton(() => GetSubscriptionByIdUseCase(sl()));
   sl.registerLazySingleton(() => CreateSubscriptionUseCase(sl()));
   sl.registerLazySingleton(() => UpdateSubscriptionUseCase(sl()));
   sl.registerLazySingleton(() => VerifyIapReceiptUseCase(sl()));
 
-  // Bloc
   sl.registerFactory(
         () => SubscriptionBloc(
       getSubscriptionsUseCase: sl(),
@@ -224,24 +206,20 @@ void _initSubscriptions() {
 }
 
 void _initCourses() {
-  // Data Sources
   sl.registerLazySingleton<CourseRemoteDataSource>(
         () => CourseRemoteDataSourceImpl(sl()),
   );
 
-  // Repository
   sl.registerLazySingleton<CourseRepository>(
         () => CourseRepositoryImpl(
       remoteDataSource: sl(),
     ),
   );
 
-  // Use Cases
   sl.registerLazySingleton(() => GetCoursesUseCase(sl()));
   sl.registerLazySingleton(() => GetCourseByIdUseCase(sl()));
   sl.registerLazySingleton(() => GetMyCoursesUseCase(sl()));
 
-  // Bloc
   sl.registerFactory(
         () => CoursesBloc(
       getCoursesUseCase: sl(),
@@ -252,23 +230,19 @@ void _initCourses() {
 }
 
 void _initLessons() {
-  // Data Sources
   sl.registerLazySingleton<LessonRemoteDataSource>(
         () => LessonRemoteDataSourceImpl(sl()),
   );
 
-  // Repository
   sl.registerLazySingleton<LessonRepository>(
         () => LessonRepositoryImpl(
       remoteDataSource: sl(),
     ),
   );
 
-  // Use Cases
   sl.registerLazySingleton(() => GetLessonByIdUseCase(sl()));
   sl.registerLazySingleton(() => MarkLessonViewedUseCase(sl()));
 
-  // Bloc
   sl.registerFactory(
         () => LessonBloc(
       getLessonByIdUseCase: sl(),
@@ -278,22 +252,18 @@ void _initLessons() {
 }
 
 void _initChapters() {
-  // Data Sources
   sl.registerLazySingleton<ChapterRemoteDataSource>(
         () => ChapterRemoteDataSourceImpl(sl()),
   );
 
-  // Repository
   sl.registerLazySingleton<ChapterRepository>(
         () => ChapterRepositoryImpl(
       remoteDataSource: sl(),
     ),
   );
 
-  // Use Cases
   sl.registerLazySingleton(() => GetChapterByIdUseCase(sl()));
 
-  // Bloc
   sl.registerFactory(
         () => ChapterBloc(
       getChapterByIdUseCase: sl(),
@@ -302,19 +272,16 @@ void _initChapters() {
 }
 
 void _initReels() {
-  // Data Sources
   sl.registerLazySingleton<ReelsRemoteDataSource>(
         () => ReelsRemoteDataSourceImpl(sl()),
   );
 
-  // Repository
   sl.registerLazySingleton<ReelsRepository>(
         () => ReelsRepositoryImpl(
       remoteDataSource: sl(),
     ),
   );
 
-  // Use Cases
   sl.registerLazySingleton(() => GetReelsFeedUseCase(sl()));
   sl.registerLazySingleton(() => RecordReelViewUseCase(sl()));
   sl.registerLazySingleton(() => ToggleReelLikeUseCase(sl()));
@@ -322,7 +289,6 @@ void _initReels() {
   sl.registerLazySingleton(() => GetUserReelsUseCase(sl()));
   sl.registerLazySingleton(() => GetUserLikedReelsUseCase(sl()));
 
-  // Bloc
   sl.registerFactory(
         () => ReelsBloc(
       getReelsFeedUseCase: sl(),
@@ -336,36 +302,29 @@ void _initReels() {
 }
 
 void _initBanners() {
-  // Data Sources
   sl.registerLazySingleton<BannersRemoteDataSource>(
         () => BannersRemoteDataSourceImpl(sl()),
   );
 
-  // Repository
   sl.registerLazySingleton<BannersRepository>(
         () => BannersRepositoryImpl(sl()),
   );
 
-  // Use Cases
   sl.registerLazySingleton(() => GetSiteBannersUseCase(sl()));
   sl.registerLazySingleton(() => RecordBannerClickUseCase(sl()));
 }
 
 void _initTransactions() {
-  // Data Sources
   sl.registerLazySingleton<TransactionsRemoteDataSource>(
         () => TransactionsRemoteDataSourceImpl(sl()),
   );
 
-  // Repository
   sl.registerLazySingleton<TransactionsRepository>(
         () => TransactionsRepositoryImpl(remoteDataSource: sl()),
   );
 
-  // Use Cases
   sl.registerLazySingleton(() => GetMyTransactionsUseCase(sl()));
 
-  // Bloc
   sl.registerFactory(
         () => TransactionsBloc(
       getMyTransactionsUseCase: sl(),

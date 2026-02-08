@@ -403,7 +403,7 @@ class _AuthenticatedProfilePageState extends State<_AuthenticatedProfilePage> {
             _populateUserData(state.user);
           } else if (state is AuthUnauthenticated) {
             Navigator.of(context, rootNavigator: true).pushNamedAndRemoveUntil(
-              '/login',
+              AppRouter.splash,
               (route) => false,
             );
           } else if (state is AuthError) {

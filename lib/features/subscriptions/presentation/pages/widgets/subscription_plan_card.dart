@@ -58,7 +58,6 @@ class SubscriptionPlanCard extends StatelessWidget {
                     isSelected: isSelected,
                   ),
                 ),
-                // SizedBox(width: Responsive.width(context, isLandscape ?90:isPortrait?22:8)),
                 PriceSection(
                   originalPrice: plan.originalPrice,
                   discountedPrice: plan.discountedPrice,

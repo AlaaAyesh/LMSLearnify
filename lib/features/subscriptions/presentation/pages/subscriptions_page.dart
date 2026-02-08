@@ -15,6 +15,7 @@ import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/utils/responsive.dart';
 import '../../../../core/widgets/custom_app_bar.dart';
 import '../../../../core/widgets/custom_background.dart';
+import '../../../../core/widgets/premium_subscription_popup.dart';
 import '../../../../core/widgets/support_section.dart';
 import '../../../authentication/data/datasources/auth_local_datasource.dart';
 import '../../../authentication/presentation/bloc/auth_bloc.dart';
@@ -432,42 +433,93 @@ class _SubscriptionsPageContentState extends State<_SubscriptionsPageContent> wi
       context: context,
       barrierDismissible: true,
       builder: (dialogContext) {
-        return AlertDialog(
-          title: const Text(
-            'تسجيل الدخول مطلوب',
-            textAlign: TextAlign.right,
-            style: TextStyle(fontFamily: 'Cairo'),
-          ),
-          content: const Text(
-            'لا يمكنك إتمام عملية الدفع بدون تسجيل الدخول. الرجاء تسجيل الدخول ثم المتابعة.',
-            textAlign: TextAlign.right,
-            style: TextStyle(fontFamily: 'Cairo'),
-          ),
-          actionsAlignment: MainAxisAlignment.spaceBetween,
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(false),
-              child: const Text(
-                'إلغاء',
-                style: TextStyle(fontFamily: 'Cairo'),
-              ),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.of(dialogContext).pop(true);
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-              ),
-              child: const Text(
-                'تسجيل الدخول',
-                style: TextStyle(
-                  fontFamily: 'Cairo',
-                  color: Colors.white,
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          insetPadding: const EdgeInsets.symmetric(horizontal: 24),
+          child: PremiumOvalPopup(
+            showCloseButton: true,
+            onClose: () => Navigator.of(dialogContext).pop(false),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Text(
+                  'تسجيل الدخول مطلوب',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontFamily: 'Cairo',
+                    fontSize: Responsive.fontSize(context, 18),
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textPrimary,
+                  ),
                 ),
-              ),
+                SizedBox(height: Responsive.spacing(context, 12)),
+                Text(
+                  'لا يمكنك إتمام عملية الدفع بدون تسجيل الدخول. الرجاء تسجيل الدخول ثم المتابعة.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontFamily: 'Cairo',
+                    fontSize: Responsive.fontSize(context, 15),
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+                SizedBox(height: Responsive.spacing(context, 24)),
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: () => Navigator.of(dialogContext).pop(false),
+                        style: OutlinedButton.styleFrom(
+                          padding: EdgeInsets.symmetric(
+                            vertical: Responsive.spacing(context, 12),
+                          ),
+                          side: BorderSide(color: AppColors.greyLight),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(
+                              Responsive.radius(context, 28),
+                            ),
+                          ),
+                        ),
+                        child: Text(
+                          'إلغاء',
+                          style: TextStyle(
+                            fontFamily: 'Cairo',
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: Responsive.spacing(context, 12)),
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () => Navigator.of(dialogContext).pop(true),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primary,
+                          padding: EdgeInsets.symmetric(
+                            vertical: Responsive.spacing(context, 12),
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(
+                              Responsive.radius(context, 28),
+                            ),
+                          ),
+                          elevation: 0,
+                        ),
+                        child: const Text(
+                          'تسجيل الدخول',
+                          style: TextStyle(
+                            fontFamily: 'Cairo',
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
-          ],
+          ),
         );
       },
     );
@@ -583,7 +635,7 @@ class _SubscriptionsPageContentState extends State<_SubscriptionsPageContent> wi
                       ),
                       SizedBox(height: Responsive.spacing(ctx, 12)),
                       _PaymentOptionTile(
-                        title: 'بطاقة ائتمانية',
+                        title: 'بطاقه ائتمانيه او محفظة',
                         subtitle: 'ادفع عبر بوابة Kashier',
                         icon: Icons.credit_card,
                         onTap: () {

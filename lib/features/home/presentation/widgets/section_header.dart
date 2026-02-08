@@ -18,20 +18,27 @@ class SectionHeader extends StatelessWidget {
     return Padding(
       padding: Responsive.padding(context, horizontal: 16),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            title,
-            style: TextStyle(
-              fontFamily: 'Cairo',
-              fontSize: Responsive.fontSize(context, 18),
-              fontWeight: FontWeight.bold,
-              color: AppColors.textPrimary,
+          Expanded(
+            child: Text(
+              title,
+              style: TextStyle(
+                fontFamily: 'Cairo',
+                fontSize: Responsive.fontSize(context, 18),
+                fontWeight: FontWeight.bold,
+                color: AppColors.textPrimary,
+              ),
             ),
           ),
-          if (onSeeAll != null)
+          if (onSeeAll != null) ...[
+            SizedBox(width: Responsive.width(context, 8)),
             TextButton(
               onPressed: onSeeAll,
+              style: TextButton.styleFrom(
+                padding: Responsive.padding(context, horizontal: 0, vertical: 4),
+                minimumSize: Size.zero,
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
               child: Text(
                 'اضغط للمزيد',
                 style: TextStyle(
@@ -42,6 +49,7 @@ class SectionHeader extends StatelessWidget {
                 ),
               ),
             ),
+          ],
         ],
       ),
     );
