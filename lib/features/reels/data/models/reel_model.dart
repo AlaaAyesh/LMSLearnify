@@ -11,6 +11,7 @@ class ReelModel extends Reel {
     required super.redirectLink,
     required super.thumbnailUrl,
     required super.bunnyUrl,
+    super.durationSeconds,
     required super.likesCount,
     required super.viewsCount,
     required super.owner,
@@ -30,6 +31,7 @@ class ReelModel extends Reel {
       redirectLink: json['redirect_link']?.toString() ?? '',
       thumbnailUrl: json['thumbnail_url']?.toString() ?? '',
       bunnyUrl: json['bunny_url']?.toString() ?? '',
+      durationSeconds: _parseInt(json['duration_seconds']),
       likesCount: _parseInt(json['likes_count']),
       viewsCount: _parseInt(json['views_count']),
       owner: json['owner'] != null && json['owner'] is Map
@@ -56,6 +58,7 @@ class ReelModel extends Reel {
       'redirect_link': redirectLink,
       'thumbnail_url': thumbnailUrl,
       'bunny_url': bunnyUrl,
+      'duration_seconds': durationSeconds,
       'likes_count': likesCount,
       'views_count': viewsCount,
       'owner': (owner as ReelOwnerModel).toJson(),

@@ -10,6 +10,7 @@ class Reel extends Equatable {
   final String redirectLink;
   final String thumbnailUrl;
   final String bunnyUrl;
+  final int durationSeconds;
   final int likesCount;
   final int viewsCount;
   final ReelOwner owner;
@@ -27,6 +28,7 @@ class Reel extends Equatable {
     required this.redirectLink,
     required this.thumbnailUrl,
     required this.bunnyUrl,
+    this.durationSeconds = 0,
     required this.likesCount,
     required this.viewsCount,
     required this.owner,
@@ -64,6 +66,7 @@ class Reel extends Equatable {
         redirectLink,
         thumbnailUrl,
         bunnyUrl,
+        durationSeconds,
         likesCount,
         viewsCount,
         owner,

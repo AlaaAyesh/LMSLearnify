@@ -1,14 +1,15 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:learnify_lms/core/theme/app_text_styles.dart';
-
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:webview_flutter/webview_flutter.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../../../../core/di/injection_container.dart';
+import '../../../../res/assets_res.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/responsive.dart';
 import '../../../../core/widgets/bunny_video_player.dart';
+import '../../../../core/widgets/custom_app_bar.dart';
 import '../../../authentication/data/datasources/auth_local_datasource.dart';
 import '../../../home/domain/entities/chapter.dart';
 import '../../../home/domain/entities/course.dart';
@@ -16,6 +17,12 @@ import '../../../home/domain/entities/lesson.dart';
 import '../bloc/lesson_bloc.dart';
 import '../bloc/lesson_event.dart';
 import '../bloc/lesson_state.dart';
+
+const Color _durationTagPurple = Color(0xFFA667E4);
+
+const Color _lessonCardBorder = Color(0xFFBDC1CA);
+const Color _lessonCardShadow1 = Color(0x21171a1f);
+const Color _lessonCardShadow2 = Color(0x14171a1f);
 
 class LessonPlayerPage extends StatelessWidget {
   final int lessonId;
@@ -70,12 +77,12 @@ class _LessonPlayerPageContent extends StatefulWidget {
   });
 
   @override
-  State<_LessonPlayerPageContent> createState() => _LessonPlayerPageContentState();
+  State<_LessonPlayerPageContent> createState() =>
+      _LessonPlayerPageContentState();
 }
 
 class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
   bool _hasMarkedAsViewed = false;
-  bool _showLessonsList = true;
   WebViewController? _videoController;
   String? _currentVideoUrl;
 
@@ -112,15 +119,17 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
     }
   }
 
-
   @override
   void dispose() {
     _progressTimer?.cancel();
 
     if (widget.lessonId > 0 && !_hasMarkedAsViewed) {
-      print('LessonPlayerPage: Marking lesson ${widget.lessonId} as viewed on dispose (fallback)');
+      print(
+          'LessonPlayerPage: Marking lesson ${widget.lessonId} as viewed on dispose (fallback)');
       if (mounted) {
-        context.read<LessonBloc>().add(MarkLessonViewedEvent(lessonId: widget.lessonId));
+        context
+            .read<LessonBloc>()
+            .add(MarkLessonViewedEvent(lessonId: widget.lessonId));
       }
       if (widget.onProgressUpdate != null) {
         widget.onProgressUpdate!(1.0);
@@ -153,23 +162,28 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
 
   void _startProgressTracking(Lesson lesson) {
     if (widget.lessonId <= 0) {
-      print('LessonPlayerPage: Skipping progress tracking for invalid lesson ID: ${widget.lessonId}');
+      print(
+          'LessonPlayerPage: Skipping progress tracking for invalid lesson ID: ${widget.lessonId}');
       return;
     }
 
     if (_progressTimer != null && _progressTimer!.isActive) {
-      print('LessonPlayerPage: Progress tracking already started for lesson ${widget.lessonId}');
+      print(
+          'LessonPlayerPage: Progress tracking already started for lesson ${widget.lessonId}');
       return;
     }
-    
-    _videoDurationSeconds = _parseDurationToSeconds(lesson.videoDuration ?? lesson.duration);
+
+    _videoDurationSeconds =
+        _parseDurationToSeconds(lesson.videoDuration ?? lesson.duration);
     if (_videoDurationSeconds == null || _videoDurationSeconds! <= 0) {
-      print('LessonPlayerPage: Cannot start progress tracking - invalid duration for lesson ${widget.lessonId}');
+      print(
+          'LessonPlayerPage: Cannot start progress tracking - invalid duration for lesson ${widget.lessonId}');
       return;
     }
-    
-    print('LessonPlayerPage: Starting progress tracking for lesson ${widget.lessonId} (duration: $_videoDurationSeconds seconds)');
-    
+
+    print(
+        'LessonPlayerPage: Starting progress tracking for lesson ${widget.lessonId} (duration: $_videoDurationSeconds seconds)');
+
     _videoStartTime = DateTime.now();
     _currentProgress = 0.0;
     _hasMarkedAsViewed = false;
@@ -180,10 +194,10 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
         timer.cancel();
         return;
       }
-      
+
       final elapsed = DateTime.now().difference(_videoStartTime!).inSeconds;
       final newProgress = (elapsed / _videoDurationSeconds!).clamp(0.0, 1.0);
-      
+
       if (mounted) {
         setState(() {
           _currentProgress = newProgress;
@@ -191,7 +205,8 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
 
         if (widget.onProgressUpdate != null) {
           widget.onProgressUpdate!(newProgress);
-          print('LessonPlayerPage: Progress update - lesson ${widget.lessonId}, progress: ${(newProgress * 100).toStringAsFixed(1)}%');
+          print(
+              'LessonPlayerPage: Progress update - lesson ${widget.lessonId}, progress: ${(newProgress * 100).toStringAsFixed(1)}%');
         }
       } else {
         timer.cancel();
@@ -202,9 +217,12 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
   void _onVideoLoaded() {
     if (widget.lessonId > 0 && !_hasMarkedAsViewed) {
       _hasMarkedAsViewed = true;
-      print('LessonPlayerPage: Marking lesson ${widget.lessonId} as viewed (video loaded)');
+      print(
+          'LessonPlayerPage: Marking lesson ${widget.lessonId} as viewed (video loaded)');
       if (mounted) {
-        context.read<LessonBloc>().add(MarkLessonViewedEvent(lessonId: widget.lessonId));
+        context
+            .read<LessonBloc>()
+            .add(MarkLessonViewedEvent(lessonId: widget.lessonId));
         if (widget.onProgressUpdate != null) {
           widget.onProgressUpdate!(1.0);
         }
@@ -216,9 +234,9 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
     if (_videoController != null && _currentVideoUrl == videoUrl) {
       return _videoController!;
     }
-    
+
     _currentVideoUrl = videoUrl;
-    
+
     String embedUrl = videoUrl.replaceFirst('/play/', '/embed/');
     if (!embedUrl.contains('?')) {
       embedUrl = '$embedUrl?autoplay=true&responsive=true&aspectRatio=16:9';
@@ -276,7 +294,7 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..setBackgroundColor(Colors.black)
       ..loadHtmlString(html);
-    
+
     return _videoController!;
   }
 
@@ -307,7 +325,7 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
             });
             return _buildLoadingScreen();
           }
-          
+
           if (_canUseInitialLessonForFreeCourse(state.message)) {
             return _buildPlayerPage(widget.initialLesson!);
           }
@@ -322,10 +340,11 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
   }
 
   bool _canUseInitialLessonForFreeCourse(String errorMessage) {
-    final isAccessDenied = errorMessage.toLowerCase().contains('access denied') ||
-        errorMessage.toLowerCase().contains('permission') ||
-        errorMessage.toLowerCase().contains('unauthorized') ||
-        errorMessage.toLowerCase().contains('ليس لديك صلاحية');
+    final isAccessDenied =
+        errorMessage.toLowerCase().contains('access denied') ||
+            errorMessage.toLowerCase().contains('permission') ||
+            errorMessage.toLowerCase().contains('unauthorized') ||
+            errorMessage.toLowerCase().contains('ليس لديك صلاحية');
 
     if (!isAccessDenied) return false;
 
@@ -338,7 +357,8 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
     if (!isFreeCourse) return false;
 
     if (widget.initialLesson == null ||
-        (widget.initialLesson!.bunnyUrl == null || widget.initialLesson!.bunnyUrl!.isEmpty)) {
+        (widget.initialLesson!.bunnyUrl == null ||
+            widget.initialLesson!.bunnyUrl!.isEmpty)) {
       return false;
     }
 
@@ -347,13 +367,10 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
 
   Widget _buildLoadingScreen() {
     return Scaffold(
-      backgroundColor: Colors.black,
-      appBar: AppBar(
-        backgroundColor: Colors.black,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.pop(context, _currentProgress),
-        ),
+      backgroundColor: Colors.white,
+      appBar: CustomAppBar(
+        title: 'جاري التحميل',
+        onBack: () => Navigator.pop(context, _currentProgress),
       ),
       body: Center(
         child: CircularProgressIndicator(color: AppColors.primary),
@@ -374,86 +391,421 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
       });
     }
 
+    final String appBarTitle = widget.course?.nameAr ?? lesson.nameAr;
+
     return Scaffold(
-          backgroundColor: Colors.white,
-          body: SafeArea(
-            child: Column(
-              children: [
-                AspectRatio(
-                  aspectRatio: 16 / 9,
-                  child: Stack(
-                  children: [
-                    BunnyVideoPlayer(
-                      videoUrl: videoUrl,
-                      onVideoLoaded: () {
-                        _onVideoLoaded();
-                        if (widget.lessonId > 0) {
-                          _startProgressTracking(lesson);
-                        }
-                      },
-                    ),
-                    Positioned(
-                      top: 8,
-                      left: 8,
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: Colors.black.withOpacity(0.5),
-                          shape: BoxShape.circle,
-                        ),
-                        child: IconButton(
-                          icon: Icon(Icons.arrow_back, color: Colors.white, size: Responsive.iconSize(context, 20)),
-                          onPressed: () {
-                            if (widget.lessonId > 0 && _videoStartTime != null && _videoDurationSeconds != null && _videoDurationSeconds! > 0) {
-                              final elapsed = DateTime.now().difference(_videoStartTime!).inSeconds;
-                              final finalProgress = (elapsed / _videoDurationSeconds!).clamp(0.0, 1.0);
-                              
-                              print('LessonPlayerPage: Back button pressed - final progress: ${(finalProgress * 100).toStringAsFixed(1)}%');
-
-                              if (!_hasMarkedAsViewed) {
-                                print('LessonPlayerPage: Marking lesson ${widget.lessonId} as viewed on back (fallback)');
-                                _hasMarkedAsViewed = true;
-                                context.read<LessonBloc>().add(MarkLessonViewedEvent(lessonId: widget.lessonId));
-                              }
-
-                              if (widget.onProgressUpdate != null) {
-                                widget.onProgressUpdate!(finalProgress);
-                              }
-                              
-                              Navigator.pop(context, finalProgress);
-                            } else {
-                              Navigator.pop(context, _currentProgress);
-                            }
-                          },
-                        ),
+      backgroundColor: Colors.white,
+      appBar: CustomAppBar(
+        title: appBarTitle,
+        onBack: () => _onBackPressed(lesson),
+      ),
+      body: SafeArea(
+        child: Column(
+          children: [
+            AspectRatio(
+              aspectRatio: 16 / 9,
+              child: BunnyVideoPlayer(
+                videoUrl: videoUrl,
+                onVideoLoaded: () {
+                  _onVideoLoaded();
+                  if (widget.lessonId > 0) {
+                    _startProgressTracking(lesson);
+                  }
+                },
+              ),
+            ),
+            Padding(
+              padding:
+                  Responsive.padding(context, horizontal: 16, vertical: 12),
+              child: Row(
+                children: [
+                  Container(
+                    width: Responsive.width(context, 40),
+                    height: Responsive.width(context, 40),
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: AppColors.primary,
+                        width: 2,
                       ),
                     ),
-                  ],
+                    child: ClipOval(
+                      child: _buildCourseOrLogoImage(lesson),
+                    ),
                   ),
-                ),
-                Expanded(
-                  child: SingleChildScrollView(
+                  SizedBox(width: Responsive.width(context, 12)),
+                  Expanded(
+                    child: Text(
+                      widget.course?.nameAr ?? lesson.nameAr,
+                      style: TextStyle(
+                        fontFamily: 'Cairo',
+                        fontSize: Responsive.fontSize(context, 14),
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textPrimary,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Expanded(
+              child: widget.course != null && widget.course!.chapters.isNotEmpty
+                  ? _buildChaptersLessonsList(lesson)
+                  : _buildFallbackContent(lesson),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _onBackPressed(Lesson lesson) {
+    if (widget.lessonId > 0 &&
+        _videoStartTime != null &&
+        _videoDurationSeconds != null &&
+        _videoDurationSeconds! > 0) {
+      final elapsed = DateTime.now().difference(_videoStartTime!).inSeconds;
+      final finalProgress = (elapsed / _videoDurationSeconds!).clamp(0.0, 1.0);
+      if (!_hasMarkedAsViewed) {
+        _hasMarkedAsViewed = true;
+        if (mounted)
+          context
+              .read<LessonBloc>()
+              .add(MarkLessonViewedEvent(lessonId: widget.lessonId));
+      }
+      if (widget.onProgressUpdate != null)
+        widget.onProgressUpdate!(finalProgress);
+      if (mounted) Navigator.pop(context, finalProgress);
+    } else {
+      Navigator.pop(context, _currentProgress);
+    }
+  }
+
+  Widget _buildCourseOrLogoImage(Lesson lesson) {
+    final courseImageUrl = widget.course?.effectiveThumbnail;
+
+    if (courseImageUrl != null && courseImageUrl.isNotEmpty) {
+      return CachedNetworkImage(
+        imageUrl: courseImageUrl,
+        fit: BoxFit.cover,
+        placeholder: (_, __) => Image.asset(
+          AssetsRes.APP_LOGO,
+          fit: BoxFit.cover,
+        ),
+        errorWidget: (_, __, ___) => Image.asset(
+          AssetsRes.APP_LOGO,
+          fit: BoxFit.cover,
+        ),
+      );
+    }
+
+    return Image.asset(
+      AssetsRes.APP_LOGO,
+      fit: BoxFit.cover,
+    );
+  }
+
+  String _formatDurationToHms(String? duration) {
+    if (duration == null || duration.isEmpty) return '00:00:00';
+    final parts = duration.trim().split(':');
+    int totalSeconds = 0;
+    if (parts.length == 2) {
+      totalSeconds =
+          (int.tryParse(parts[0]) ?? 0) * 60 + (int.tryParse(parts[1]) ?? 0);
+    } else if (parts.length >= 3) {
+      totalSeconds = (int.tryParse(parts[0]) ?? 0) * 3600 +
+          (int.tryParse(parts[1]) ?? 0) * 60 +
+          (int.tryParse(parts[2]) ?? 0);
+    }
+    final h = totalSeconds ~/ 3600;
+    final m = (totalSeconds % 3600) ~/ 60;
+    final s = totalSeconds % 60;
+    return '${h.toString().padLeft(2, '0')}:${m.toString().padLeft(2, '0')}:${s.toString().padLeft(2, '0')}';
+  }
+
+  String _formatCourseTotalDuration() {
+    if (widget.course == null) return '00:00:00';
+    int totalSeconds = 0;
+    for (final chapter in widget.course!.chapters) {
+      for (final l in chapter.lessons) {
+        final d = l.videoDuration ?? l.duration;
+        if (d != null && d.isNotEmpty) {
+          final parts = d.split(':');
+          if (parts.length == 2) {
+            totalSeconds += (int.tryParse(parts[0]) ?? 0) * 60 +
+                (int.tryParse(parts[1]) ?? 0);
+          } else if (parts.length == 3) {
+            totalSeconds += (int.tryParse(parts[0]) ?? 0) * 3600 +
+                (int.tryParse(parts[1]) ?? 0) * 60 +
+                (int.tryParse(parts[2]) ?? 0);
+          }
+        }
+      }
+    }
+    final h = totalSeconds ~/ 3600;
+    final m = (totalSeconds % 3600) ~/ 60;
+    final s = totalSeconds % 60;
+    return '${h.toString().padLeft(2, '0')}:${m.toString().padLeft(2, '0')}:${s.toString().padLeft(2, '0')}';
+  }
+
+  Widget _buildFallbackContent(Lesson lesson) {
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildLessonInfoCard(lesson),
+          if (lesson.description != null && lesson.description!.isNotEmpty)
+            _buildDescriptionSection(lesson),
+          SizedBox(height: Responsive.spacing(context, 24)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDurationChip() {
+    return Container(
+      height: Responsive.height(context, 36),
+      padding: EdgeInsets.symmetric(
+        horizontal: Responsive.width(context, 9),
+      ),
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: _durationTagPurple,
+        borderRadius: BorderRadius.circular(9999),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            _formatCourseTotalDuration(),
+            style: TextStyle(
+              fontFamily: 'Cairo',
+              fontSize: Responsive.fontSize(context, 14),
+              height: 22 / 14,
+              fontWeight: FontWeight.w500,
+              color: Colors.white,
+            ),
+          ),
+          SizedBox(width: Responsive.width(context, 3)),
+          Icon(
+            Icons.schedule,
+            size: Responsive.iconSize(context, 20),
+            color: Colors.white,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildChaptersLessonsList(Lesson currentLesson) {
+    final hasAccess = widget.course!.hasAccess;
+
+    return ListView.builder(
+      padding: Responsive.padding(context, bottom: 24),
+      itemCount: widget.course!.chapters.length,
+      itemBuilder: (context, chapterIndex) {
+        final chapter = widget.course!.chapters[chapterIndex];
+        final isFirstChapter = chapterIndex == 0;
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: Responsive.padding(context,
+                  left: 16, right: 16, top: 16, bottom: 8),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Expanded(
+                    child: Text(
+                      chapter.nameAr,
+                      style: TextStyle(
+                        fontFamily: 'Cairo',
+                        fontSize: Responsive.fontSize(context, 16),
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                  ),
+                  if (isFirstChapter) _buildDurationChip(),
+                ],
+              ),
+            ),
+            ...chapter.lessons.map((lesson) {
+              final isCurrent = lesson.id == currentLesson.id;
+              final isViewed = lesson.viewed;
+              final isLocked =
+                  !hasAccess && lesson.id != currentLesson.id && lesson.id != 0;
+
+              return _buildLessonRow(
+                lesson: lesson,
+                isCurrent: isCurrent,
+                isViewed: isViewed,
+                isLocked: isLocked,
+              );
+            }),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildLessonRow({
+    required Lesson lesson,
+    required bool isCurrent,
+    required bool isViewed,
+    required bool isLocked,
+  }) {
+    final bgColor = isCurrent ? const Color(0xFFFFF2D9) : Colors.white;
+
+    return Container(
+      margin: EdgeInsets.only(
+        left: Responsive.width(context, 10),
+        right: Responsive.width(context, 10),
+      ),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(4),
+        border: Border.all(color: _lessonCardBorder, width: 1),
+        boxShadow: const [
+          BoxShadow(
+            offset: Offset(0, 4),
+            blurRadius: 7,
+            color: _lessonCardShadow1,
+          ),
+          BoxShadow(
+            offset: Offset(0, 0),
+            blurRadius: 2,
+            color: _lessonCardShadow2,
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: isLocked
+              ? null
+              : isCurrent
+                  ? null
+                  : () {
+                      Chapter? targetChapter;
+                      if (widget.course != null) {
+                        try {
+                          targetChapter = widget.course!.chapters.firstWhere(
+                            (c) => c.lessons.any((l) => l.id == lesson.id),
+                          );
+                        } catch (_) {}
+                      }
+                      Navigator.of(context, rootNavigator: true)
+                          .pushReplacement(
+                        MaterialPageRoute(
+                          builder: (_) => LessonPlayerPage(
+                            lessonId: lesson.id,
+                            lesson: lesson,
+                            course: widget.course,
+                            chapter: targetChapter,
+                            onProgressUpdate: widget.onProgressUpdate,
+                          ),
+                        ),
+                      );
+                    },
+          borderRadius: BorderRadius.circular(4),
+          child: ConstrainedBox(
+            constraints:
+                BoxConstraints(minHeight: Responsive.height(context, 74)),
+            child: Padding(
+              padding: Responsive.padding(context,
+                  left: 16, right: 16, vertical: 12),
+              child: Row(
+                children: [
+                  Center(
+                    child: isLocked
+                        ? Container(
+                            width: Responsive.width(context, 40),
+                            height: Responsive.width(context, 40),
+                            decoration: BoxDecoration(
+                              color: Colors.grey[300],
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(
+                              Icons.lock_outline,
+                              color: Colors.grey[600],
+                              size: Responsive.iconSize(context, 35),
+                            ),
+                          )
+                        : isCurrent
+                            ? Container(
+                                width: Responsive.width(context, 40),
+                                height: Responsive.width(context, 40),
+                                decoration: BoxDecoration(
+                                  color: AppColors.primary,
+                                  shape: BoxShape.circle,
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color:
+                                          AppColors.primary.withOpacity(0.35),
+                                      blurRadius: 10,
+                                      spreadRadius: 2,
+                                    ),
+                                  ],
+                                ),
+                                child: Center(
+                                  child: Icon(
+                                    Icons.play_arrow_outlined,
+                                    color: Colors.white,
+                                    size: Responsive.iconSize(context, 35),
+                                  ),
+                                ),
+                              )
+                            : Icon(
+                                Icons.check_circle_outline,
+                                color: AppColors.primary,
+                                size: Responsive.iconSize(context, 35),
+                              ),
+                  ),
+                  SizedBox(width: Responsive.width(context, 12)),
+                  Expanded(
                     child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _buildLessonInfoCard(lesson),
-
-                        if (widget.course != null || widget.chapter != null)
-                          _buildCourseChapterInfo(),
-
-                        if (widget.chapter != null && widget.chapter!.lessons.isNotEmpty)
-                          _buildChapterLessons(lesson),
-
-                        if (lesson.description != null && lesson.description!.isNotEmpty)
-                          _buildDescriptionSection(lesson),
-                        
-                        SizedBox(height: Responsive.spacing(context, 24)),
+                        Text(
+                          lesson.nameAr,
+                          style: TextStyle(
+                            fontFamily: 'Cairo',
+                            fontSize: Responsive.fontSize(context, 14),
+                            fontWeight:
+                                isCurrent ? FontWeight.bold : FontWeight.w500,
+                            color: AppColors.textPrimary,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        if (lesson.videoDuration != null ||
+                            lesson.duration != null) ...[
+                          SizedBox(height: Responsive.height(context, 2)),
+                          Text(
+                            _formatDurationToHms(
+                                lesson.videoDuration ?? lesson.duration),
+                            style: TextStyle(
+                              fontFamily: 'Cairo',
+                              fontSize: Responsive.fontSize(context, 12),
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                        ],
                       ],
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
+        ),
+      ),
     );
   }
 
@@ -477,24 +829,34 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
             children: [
               if (lesson.videoDuration != null) ...[
                 Container(
-                  padding: Responsive.padding(context, horizontal: 8, vertical: 4),
+                  height: Responsive.height(context, 36),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: Responsive.width(context, 9),
+                  ),
+                  alignment: Alignment.center,
                   decoration: BoxDecoration(
-                    color: AppColors.primary.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(Responsive.radius(context, 4)),
+                    color: _durationTagPurple,
+                    borderRadius: BorderRadius.circular(9999),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.access_time, size: Responsive.iconSize(context, 14), color: AppColors.primary),
-                      SizedBox(width: Responsive.width(context, 4)),
                       Text(
-                        lesson.videoDuration!,
+                        _formatDurationToHms(lesson.videoDuration),
                         style: TextStyle(
                           fontFamily: 'Cairo',
-                          fontSize: Responsive.fontSize(context, 12),
-                          color: AppColors.primary,
-                          fontWeight: FontWeight.w600,
+                          fontSize: Responsive.fontSize(context, 14),
+                          height: 22 / 14,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.white,
                         ),
+                      ),
+                      SizedBox(width: Responsive.width(context, 3)),
+                      Icon(
+                        Icons.schedule,
+                        size: Responsive.iconSize(context, 20),
+                        color: Colors.white,
                       ),
                     ],
                   ),
@@ -503,15 +865,19 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
               ],
               if (lesson.viewed) ...[
                 Container(
-                  padding: Responsive.padding(context, horizontal: 8, vertical: 4),
+                  padding:
+                      Responsive.padding(context, horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
                     color: AppColors.success.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(Responsive.radius(context, 4)),
+                    borderRadius:
+                        BorderRadius.circular(Responsive.radius(context, 4)),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.check_circle, size: Responsive.iconSize(context, 14), color: AppColors.success),
+                      Icon(Icons.check_circle,
+                          size: Responsive.iconSize(context, 14),
+                          color: AppColors.success),
                       SizedBox(width: Responsive.width(context, 4)),
                       Text(
                         'تمت المشاهدة',
@@ -533,275 +899,6 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
     );
   }
 
-  Widget _buildCourseChapterInfo() {
-    return Container(
-      margin: Responsive.margin(context, horizontal: 16),
-      padding: Responsive.padding(context, all: 12),
-      decoration: BoxDecoration(
-        color: Colors.grey[50],
-        borderRadius: BorderRadius.circular(Responsive.radius(context, 12)),
-        border: Border.all(color: Colors.grey[200]!),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (widget.course != null) ...[
-            Row(
-              children: [
-                Container(
-                  padding: Responsive.padding(context, all: 8),
-                  decoration: BoxDecoration(
-                    color: AppColors.primary.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(Responsive.radius(context, 8)),
-                  ),
-                  child: Icon(Icons.school, size: Responsive.iconSize(context, 20), color: AppColors.primary),
-                ),
-                SizedBox(width: Responsive.width(context, 12)),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'الدورة',
-                        style: TextStyle(
-                          fontFamily: 'Cairo',
-                          fontSize: Responsive.fontSize(context, 11),
-                          color: AppColors.textSecondary,
-                        ),
-                      ),
-                      Text(
-                        widget.course!.nameAr,
-                        style: TextStyle(
-                          fontFamily: 'Cairo',
-                          fontSize: Responsive.fontSize(context, 14),
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.textPrimary,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ],
-          if (widget.chapter != null) ...[
-            if (widget.course != null) ...[
-              Padding(
-                padding: Responsive.padding(context, vertical: 8),
-                child: Divider(height: Responsive.height(context, 1)),
-              ),
-            ],
-            Row(
-              children: [
-                Container(
-                  padding: Responsive.padding(context, all: 8),
-                  decoration: BoxDecoration(
-                    color: AppColors.warning.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(Responsive.radius(context, 8)),
-                  ),
-                  child: Icon(Icons.folder_outlined, size: Responsive.iconSize(context, 20), color: AppColors.warning),
-                ),
-                SizedBox(width: Responsive.width(context, 12)),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'الفصل',
-                        style: TextStyle(
-                          fontFamily: 'Cairo',
-                          fontSize: Responsive.fontSize(context, 11),
-                          color: AppColors.textSecondary,
-                        ),
-                      ),
-                      Text(
-                        widget.chapter!.nameAr,
-                        style: TextStyle(
-                          fontFamily: 'Cairo',
-                          fontSize: Responsive.fontSize(context, 14),
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.textPrimary,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                  ),
-                ),
-                Container(
-                  padding: Responsive.padding(context, horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: AppColors.primary,
-                    borderRadius: BorderRadius.circular(Responsive.radius(context, 12)),
-                  ),
-                  child: Text(
-                    '${widget.chapter!.lessons.length} دروس',
-                    style: TextStyle(
-                      fontFamily: 'Cairo',
-                      fontSize: Responsive.fontSize(context, 11),
-                      color: Colors.white,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-
-  Widget _buildChapterLessons(Lesson currentLesson) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        InkWell(
-          onTap: () => setState(() => _showLessonsList = !_showLessonsList),
-          child: Padding(
-            padding: Responsive.padding(context, all: 16),
-            child: Row(
-              children: [
-                Icon(Icons.playlist_play, color: AppColors.primary, size: Responsive.iconSize(context, 24)),
-                SizedBox(width: Responsive.width(context, 8)),
-                Expanded(
-                  child: Text(
-                    'دروس الفصل',
-                    style: TextStyle(
-                      fontFamily: 'Cairo',
-                      fontSize: Responsive.fontSize(context, 16),
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimary,
-                    ),
-                  ),
-                ),
-                Icon(
-                  _showLessonsList ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
-                  color: AppColors.textSecondary,
-                  size: Responsive.iconSize(context, 24),
-                ),
-              ],
-            ),
-          ),
-        ),
-        AnimatedCrossFade(
-          firstChild: const SizedBox.shrink(),
-          secondChild: _buildLessonsList(currentLesson),
-          crossFadeState: _showLessonsList ? CrossFadeState.showSecond : CrossFadeState.showFirst,
-          duration: const Duration(milliseconds: 200),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildLessonsList(Lesson currentLesson) {
-    final lessons = widget.chapter!.lessons;
-    final currentIndex = lessons.indexWhere((l) => l.id == currentLesson.id);
-
-    return Container(
-      margin: Responsive.margin(context, horizontal: 16),
-      decoration: BoxDecoration(
-        color: Colors.grey[50],
-        borderRadius: BorderRadius.circular(Responsive.radius(context, 12)),
-      ),
-      child: ListView.separated(
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        itemCount: lessons.length,
-        separatorBuilder: (_, __) => Divider(height: Responsive.height(context, 1), color: Colors.grey[200]),
-        itemBuilder: (context, index) {
-          final lesson = lessons[index];
-          final isCurrentLesson = lesson.id == currentLesson.id;
-
-          return ListTile(
-            onTap: isCurrentLesson
-                ? null
-                : () {
-                    Navigator.of(context, rootNavigator: true).pushReplacement(
-                      MaterialPageRoute(
-                        builder: (_) => LessonPlayerPage(
-                          lessonId: lesson.id,
-                          lesson: lesson,
-                          course: widget.course,
-                          chapter: widget.chapter,
-                        ),
-                      ),
-                    );
-                  },
-            leading: Container(
-              width: Responsive.width(context, 32),
-              height: Responsive.height(context, 32),
-              decoration: BoxDecoration(
-                color: isCurrentLesson
-                    ? AppColors.primary
-                    : lesson.viewed
-                        ? AppColors.success.withOpacity(0.1)
-                        : Colors.grey[200],
-                shape: BoxShape.circle,
-              ),
-              child: Center(
-                child: isCurrentLesson
-                    ? Icon(Icons.play_arrow, color: Colors.white, size: Responsive.iconSize(context, 18))
-                    : lesson.viewed
-                        ? Icon(Icons.check, color: AppColors.success, size: Responsive.iconSize(context, 16))
-                        : Text(
-                            '${index + 1}',
-                            style: TextStyle(
-                              fontFamily: 'Cairo',
-                              fontSize: Responsive.fontSize(context, 12),
-                              fontWeight: FontWeight.w600,
-                              color: Colors.grey[600],
-                            ),
-                          ),
-              ),
-            ),
-            title: Text(
-              lesson.nameAr,
-              style: TextStyle(
-                fontFamily: 'Cairo',
-                fontSize: Responsive.fontSize(context, 14),
-                fontWeight: isCurrentLesson ? FontWeight.bold : FontWeight.w500,
-                color: isCurrentLesson ? AppColors.primary : AppColors.textPrimary,
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-            subtitle: lesson.duration != null
-                ? Text(
-                    lesson.duration!,
-                    style: TextStyle(
-                      fontFamily: 'Cairo',
-                      fontSize: Responsive.fontSize(context, 12),
-                      color: AppColors.textSecondary,
-                    ),
-                  )
-                : null,
-            trailing: isCurrentLesson
-                ? Container(
-                    padding: Responsive.padding(context, horizontal: 8, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: AppColors.primary.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(Responsive.radius(context, 4)),
-                    ),
-                    child: Text(
-                      'الآن',
-                      style: TextStyle(
-                        fontFamily: 'Cairo',
-                        fontSize: Responsive.fontSize(context, 11),
-                        color: AppColors.primary,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  )
-                : Icon(Icons.chevron_left, color: AppColors.textSecondary, size: Responsive.iconSize(context, 20)),
-          );
-        },
-      ),
-    );
-  }
-
   Widget _buildDescriptionSection(Lesson lesson) {
     return Padding(
       padding: Responsive.padding(context, all: 16),
@@ -810,7 +907,9 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
         children: [
           Row(
             children: [
-              Icon(Icons.info_outline, color: AppColors.primary, size: Responsive.iconSize(context, 20)),
+              Icon(Icons.info_outline,
+                  color: AppColors.primary,
+                  size: Responsive.iconSize(context, 20)),
               SizedBox(width: Responsive.width(context, 8)),
               Text(
                 'وصف الدرس',
@@ -828,7 +927,8 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
             padding: Responsive.padding(context, all: 12),
             decoration: BoxDecoration(
               color: Colors.grey[50],
-              borderRadius: BorderRadius.circular(Responsive.radius(context, 8)),
+              borderRadius:
+                  BorderRadius.circular(Responsive.radius(context, 8)),
             ),
             child: Text(
               lesson.description!,
@@ -848,26 +948,17 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
   Widget _buildNoVideoScreen(Lesson lesson) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.primary),
-          onPressed: () => Navigator.pop(context, _currentProgress),
-        ),
-        title: Text(
-          lesson.nameAr,
-          style: TextStyle(
-            color: AppColors.primary,
-            fontFamily: 'Cairo',
-            fontSize: 16,
-          ),
-        ),
+      appBar: CustomAppBar(
+        title: lesson.nameAr,
+        onBack: () => Navigator.pop(context, _currentProgress),
       ),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.video_library_outlined, size: Responsive.iconSize(context, 80), color: Colors.grey[400]),
+            Icon(Icons.video_library_outlined,
+                size: Responsive.iconSize(context, 80),
+                color: Colors.grey[400]),
             SizedBox(height: Responsive.spacing(context, 16)),
             Text(
               'الفيديو غير متاح حالياً',
@@ -881,7 +972,10 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
               SizedBox(height: Responsive.spacing(context, 8)),
               Text(
                 'الحالة: ${lesson.videoStatus}',
-                style: TextStyle(fontFamily: 'Cairo', fontSize: Responsive.fontSize(context, 14), color: Colors.grey[500]),
+                style: TextStyle(
+                    fontFamily: 'Cairo',
+                    fontSize: Responsive.fontSize(context, 14),
+                    color: Colors.grey[500]),
               ),
             ],
           ],
@@ -890,6 +984,3 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
     );
   }
 }
-
-
-

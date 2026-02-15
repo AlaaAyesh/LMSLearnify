@@ -1,13 +1,15 @@
 import 'dart:async';
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:better_player/better_player.dart';
+import 'package:visibility_detector/visibility_detector.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:webview_flutter_android/webview_flutter_android.dart';
 import 'package:webview_flutter_wkwebview/webview_flutter_wkwebview.dart';
 import '../../../../core/utils/responsive.dart';
 import '../../domain/entities/reel.dart';
-import '../../../home/presentation/pages/main_navigation_page.dart';
+import '../player/reel_constants.dart';
+import '../player/reel_controller_pool.dart';
 
 class ReelPlayerWidget extends StatefulWidget {
   final Reel reel;
@@ -15,10 +17,15 @@ class ReelPlayerWidget extends StatefulWidget {
   final int viewCount;
   final int likeCount;
   final bool isActive;
+  final BetterPlayerController? controller;
+  final bool enablePreload;
+  final bool shouldPreload;
+  final String? nextBunnyUrl;
 
   final VoidCallback onLike;
   final VoidCallback onShare;
   final VoidCallback onRedirect;
+  final VoidCallback? onSubscribeClick;
   final VoidCallback onViewed;
   final VoidCallback? onLogoTap;
 
@@ -29,9 +36,14 @@ class ReelPlayerWidget extends StatefulWidget {
     required this.viewCount,
     required this.likeCount,
     required this.isActive,
+    this.controller,
+    this.enablePreload = true,
+    this.shouldPreload = false,
+    this.nextBunnyUrl,
     required this.onLike,
     required this.onShare,
     required this.onRedirect,
+    this.onSubscribeClick,
     required this.onViewed,
     this.onLogoTap,
   });
@@ -42,15 +54,16 @@ class ReelPlayerWidget extends StatefulWidget {
 
 class _ReelPlayerWidgetState extends State<ReelPlayerWidget>
     with WidgetsBindingObserver {
-  WebViewController? _controller;
+  BetterPlayerController? _controller;
+  WebViewController? _webController;
   bool _isLoading = true;
-  bool _showThumbnail = true;
-  bool _isInitialized = false;
-  bool _isPaused = false;
+  bool _showThumbnailOverlay = true;
+  bool _isWebInitialized = false;
+  bool _isUserPaused = false;
+  bool _webIsShowingPausedFrame = false;
+  bool _isVisibleEnough = false;
   bool _showLikeHeart = false;
-  bool _wasActiveBeforeBackground = false;
-  TabIndexNotifier? _tabNotifier;
-  Timer? _tabCheckTimer;
+  bool _wasPlayingBeforeBackground = false;
 
   Timer? _viewTimer;
   bool _hasRecordedView = false;
@@ -59,90 +72,33 @@ class _ReelPlayerWidgetState extends State<ReelPlayerWidget>
   DateTime? _lastTapTime;
   static const _doubleTapDuration = Duration(milliseconds: 300);
 
-  bool get _isShortsTabActive {
-    if (_tabNotifier != null) {
-      return _tabNotifier!.value == 1;
-    }
-    return widget.isActive;
-  }
+  late final ValueNotifier<int> _progressSecondsNotifier;
+  Timer? _progressTimer;
 
+  bool get _shouldPlayNow => widget.isActive && _isVisibleEnough && !_isUserPaused;
 
-  bool get _isOnPausePage {
-    if (!mounted) return false;
-
-    try {
-      final route = ModalRoute.of(context);
-      if (route == null) return false;
-
-      final routeName = route.settings.name;
-      if (routeName != null) {
-        const pauseRoutes = [
-          '/profile',
-          '/subscriptions',
-          '/certificates',
-          '/courses',
-          '/about'
-        ];
-        if (pauseRoutes.contains(routeName)) {
-          return true;
-        }
-      }
-
-      if (_isShortsTabActive) {
-        final navigator = Navigator.of(context, rootNavigator: false);
-        if (navigator.canPop()) {
-          return true;
-        }
-      }
-
-      return false;
-    } catch (e) {
-      return false;
-    }
-  }
-
-  bool get _shouldPlay {
-    if (_isOnPausePage) return false;
-    return widget.isActive && _isShortsTabActive;
-  }
+  int get _durationSeconds =>
+      widget.reel.durationSeconds > 0
+          ? widget.reel.durationSeconds
+          : ReelConstants.defaultDurationSeconds;
 
   @override
   void initState() {
     super.initState();
+    _progressSecondsNotifier = ValueNotifier<int>(0);
     WidgetsBinding.instance.addObserver(this);
-
-    _tabCheckTimer = Timer.periodic(const Duration(milliseconds: 500), (_) {
-      _checkAndStopIfNeeded();
-    });
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    final notifier = TabIndexProvider.of(context);
-    if (notifier != null && _tabNotifier != notifier) {
-      _tabNotifier?.removeListener(_onTabChanged);
-      _tabNotifier = notifier;
-      _tabNotifier!.addListener(_onTabChanged);
-    }
-
-    if (_shouldPlay && widget.reel.bunnyUrl.isNotEmpty && !_isInitialized) {
-      _initializePlayer();
-      _startViewTimer();
+    _controller = widget.controller;
+    final shouldInit = widget.reel.bunnyUrl.isNotEmpty &&
+        (widget.isActive || widget.shouldPreload);
+    if (_controller != null) {
+      _setupCurrent();
+    } else if (shouldInit && !_isDirectStreamUrl(widget.reel.bunnyUrl)) {
+      _initializeWebPlayer();
     }
   }
 
-  void _onTabChanged() {
-    _checkAndStopIfNeeded();
-  }
-
-  void _checkAndStopIfNeeded() {
-    if (!mounted) return;
-
-    if (!_shouldPlay && !_isPaused && _controller != null) {
-      _stopVideo();
-    }
-  }
+  static bool _isDirectStreamUrl(String url) =>
+      ReelControllerPool.isDirectStreamUrl(url);
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
@@ -150,12 +106,10 @@ class _ReelPlayerWidgetState extends State<ReelPlayerWidget>
     if (state == AppLifecycleState.paused ||
         state == AppLifecycleState.inactive ||
         state == AppLifecycleState.hidden) {
-      _wasActiveBeforeBackground = _shouldPlay && !_isPaused;
-      if (_controller != null && !_isPaused) {
-        _stopVideo();
-      }
+      _wasPlayingBeforeBackground = _shouldPlayNow;
+      _pauseVideo();
     } else if (state == AppLifecycleState.resumed) {
-      if (_wasActiveBeforeBackground && _shouldPlay && _isPaused) {
+      if (_wasPlayingBeforeBackground && _shouldPlayNow) {
         _playVideo();
       }
     }
@@ -164,39 +118,229 @@ class _ReelPlayerWidgetState extends State<ReelPlayerWidget>
   @override
   void didUpdateWidget(ReelPlayerWidget oldWidget) {
     super.didUpdateWidget(oldWidget);
-
-    final wasActive = oldWidget.isActive;
-    final nowActive = widget.isActive;
-
-    if (wasActive != nowActive || !_shouldPlay) {
-      if (_shouldPlay) {
-        if (!_isInitialized && widget.reel.bunnyUrl.isNotEmpty) {
-          _initializePlayer();
-        } else if (_controller != null && _isPaused) {
-          _playVideo();
-        }
-        _startViewTimer();
-      } else {
-        _stopVideo();
-        _cancelViewTimer();
+    if (oldWidget.controller != widget.controller) {
+      _controller = widget.controller;
+      _isUserPaused = false;
+      _hasRecordedView = false;
+      if (_controller != null) {
+        _setupCurrent();
+      } else if (widget.reel.bunnyUrl.isNotEmpty && widget.isActive && !_isDirectStreamUrl(widget.reel.bunnyUrl)) {
+        _initializeWebPlayer();
       }
+    }
+    if (oldWidget.reel.id != widget.reel.id ||
+        oldWidget.reel.bunnyUrl != widget.reel.bunnyUrl) {
+      _isUserPaused = false;
+      _hasRecordedView = false;
+      _progressSecondsNotifier.value = 0;
+      _progressTimer?.cancel();
+      if (_controller != null) {
+        _setupCurrent();
+      } else if (widget.reel.bunnyUrl.isNotEmpty && (widget.isActive || widget.shouldPreload) && !_isWebInitialized && !_isDirectStreamUrl(widget.reel.bunnyUrl)) {
+        _initializeWebPlayer();
+      }
+    }
+
+    final shouldInit = widget.reel.bunnyUrl.isNotEmpty &&
+        (widget.isActive || widget.shouldPreload) &&
+        !_isWebInitialized &&
+        !_isDirectStreamUrl(widget.reel.bunnyUrl);
+    if (shouldInit && _controller == null) {
+      _initializeWebPlayer();
+    }
+
+    if (!widget.isActive) {
+      _pauseVideo();
+      _cancelViewTimer();
+      _progressTimer?.cancel();
+    } else {
+      _syncPlaybackState();
+    }
+    _startOrStopProgressTimer();
+
+    if (widget.enablePreload && widget.nextBunnyUrl != oldWidget.nextBunnyUrl) {
+      _preloadNext();
+    }
+  }
+
+  void _startOrStopProgressTimer() {
+    _progressTimer?.cancel();
+    final useNative = _controller != null;
+    final useWeb = _webController != null;
+    if (_shouldPlayNow && (useWeb || useNative)) {
+      _progressTimer = Timer.periodic(const Duration(seconds: 1), (_) {
+        if (!mounted) return;
+        if (!_shouldPlayNow) return;
+        final next = _progressSecondsNotifier.value >= _durationSeconds
+            ? 0
+            : _progressSecondsNotifier.value + 1;
+        _progressSecondsNotifier.value = next;
+      });
     }
   }
 
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
-    _tabNotifier?.removeListener(_onTabChanged);
-    _tabCheckTimer?.cancel();
     _cancelViewTimer();
-    if (_controller != null) {
-      _controller!.runJavaScript('''
+    _progressTimer?.cancel();
+    _progressSecondsNotifier.dispose();
+    if (_webController != null) {
+      _webController!.runJavaScript('''
         var iframe = document.getElementById('bunny-player');
         if (iframe) { iframe.src = "about:blank"; }
       ''');
+      _webController = null;
     }
-    _controller = null;
     super.dispose();
+  }
+
+  Future<void> _setupCurrent() async {
+    if (_controller == null) return;
+    if (widget.reel.bunnyUrl.isEmpty) return;
+
+    setState(() => _isLoading = true);
+    await reelControllerPool.setDataSource(
+      _controller!,
+      url: widget.reel.bunnyUrl,
+      tryHlsFirst: true,
+    );
+
+    if (!mounted) return;
+    setState(() => _isLoading = false);
+    if (widget.enablePreload) {
+      unawaited(_preloadNext());
+    }
+    _syncPlaybackState();
+  }
+
+  String _getEmbedUrl(String url, {bool autoplay = true, int startSeconds = 0}) {
+    String embedUrl = url.replaceFirst('/play/', '/embed/');
+    final safeStart = startSeconds < 0 ? 0 : startSeconds;
+    final params =
+        'autoplay=$autoplay&loop=true&muted=false&preload=true&responsive=true&controls=false&t=$safeStart';
+    if (!embedUrl.contains('?')) {
+      embedUrl = '$embedUrl?$params';
+    } else {
+      embedUrl = '$embedUrl&$params';
+    }
+    return embedUrl;
+  }
+
+  void _initializeWebPlayer() {
+    if (_isWebInitialized || widget.reel.bunnyUrl.isEmpty) return;
+    _isWebInitialized = true;
+    final autoplay = widget.isActive;
+    _webIsShowingPausedFrame = !autoplay;
+    final embedUrl = _getEmbedUrl(
+      widget.reel.bunnyUrl,
+      autoplay: autoplay,
+      startSeconds: 0,
+    );
+    final html = '''
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; background: #000; overflow: hidden; }
+    .video-container { position: relative; width: 100%; height: 100%; overflow: hidden; }
+    iframe {
+      position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+      width: 100%; height: calc(100% + 100px); border: 0; object-fit: cover; margin-bottom: -50px;
+    }
+    .controls-cover { position: absolute; bottom: 0; left: 0; right: 0; height: 60px; background: #000; z-index: 9999; }
+  </style>
+</head>
+<body>
+  <div class="video-container">
+    <iframe id="bunny-player" src="$embedUrl" loading="eager"
+      allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture; fullscreen"
+      allowfullscreen="true" playsinline webkit-playsinline>
+    </iframe>
+    <div class="controls-cover"></div>
+  </div>
+</body>
+</html>
+''';
+    _webController = WebViewController()
+      ..setJavaScriptMode(JavaScriptMode.unrestricted)
+      ..setBackgroundColor(Colors.black)
+      ..setNavigationDelegate(
+        NavigationDelegate(
+          onPageFinished: (_) {
+            if (mounted) {
+              setState(() => _isLoading = false);
+              Future.delayed(const Duration(milliseconds: 800), () {
+                if (mounted) setState(() => _showThumbnailOverlay = false);
+              });
+            }
+          },
+        ),
+      );
+    final platform = _webController!.platform;
+    if (platform is AndroidWebViewController) {
+      platform.setMediaPlaybackRequiresUserGesture(false);
+    }
+    _webController!.loadHtmlString(html);
+    if (mounted) setState(() {});
+  }
+
+  void _playVideoWeb() {
+    if (_webController == null) return;
+    if (!_webIsShowingPausedFrame) return;
+
+    var start = _progressSecondsNotifier.value < 0 ? 0 : _progressSecondsNotifier.value;
+    if (_durationSeconds > 0 && start >= _durationSeconds) {
+      start = (_durationSeconds - 1).clamp(0, _durationSeconds);
+    }
+
+    final playUrl = _getEmbedUrl(
+      widget.reel.bunnyUrl,
+      autoplay: true,
+      startSeconds: start,
+    );
+    _webController!.runJavaScript('''
+      var iframe = document.getElementById('bunny-player');
+      if (iframe) { iframe.src = "$playUrl"; }
+    ''');
+    _webIsShowingPausedFrame = false;
+  }
+
+  void _pauseVideoWeb() {
+    if (_webController == null) return;
+
+    var start = _progressSecondsNotifier.value < 0 ? 0 : _progressSecondsNotifier.value;
+    if (_durationSeconds > 0 && start >= _durationSeconds) {
+      start = (_durationSeconds - 1).clamp(0, _durationSeconds);
+    }
+
+    final pausedUrl = _getEmbedUrl(
+      widget.reel.bunnyUrl,
+      autoplay: false,
+      startSeconds: start,
+    );
+
+    _webController!.runJavaScript('''
+      var iframe = document.getElementById('bunny-player');
+      if (iframe) { iframe.src = "$pausedUrl"; }
+    ''');
+    _webIsShowingPausedFrame = true;
+  }
+
+  Future<void> _preloadNext() async {
+    final nextUrl = widget.nextBunnyUrl;
+    if (nextUrl == null || nextUrl.isEmpty) return;
+    final nextController = reelControllerPool.controllerAt(2);
+
+    await reelControllerPool.setDataSource(
+      nextController,
+      url: nextUrl,
+      tryHlsFirst: true,
+    );
+    await reelControllerPool.warmUp(nextController);
   }
 
   void _startViewTimer() {
@@ -204,7 +348,7 @@ class _ReelPlayerWidgetState extends State<ReelPlayerWidget>
     _cancelViewTimer();
 
     _viewTimer = Timer(_viewDuration, () {
-      if (mounted && _shouldPlay && !_hasRecordedView) {
+      if (mounted && _shouldPlayNow && !_hasRecordedView) {
         _hasRecordedView = true;
         widget.onViewed();
       }
@@ -216,180 +360,43 @@ class _ReelPlayerWidgetState extends State<ReelPlayerWidget>
     _viewTimer = null;
   }
 
-  void _initializePlayer() {
-    if (_isInitialized) return;
-    _isInitialized = true;
-
-    final embedUrl = _getEmbedUrl(widget.reel.bunnyUrl);
-
-    final html = '''
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    html, body { 
-      width: 100%; 
-      height: 100%; 
-      background: #000;
-      overflow: hidden;
-    }
-    .video-container {
-      position: relative;
-      width: 100%;
-      height: 100%;
-      overflow: hidden;
-    }
-    iframe {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      width: 100%;
-      height: calc(100% + 100px);
-      border: 0;
-      object-fit: cover;
-      margin-bottom: -50px;
-    }
-    .controls-cover {
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      height: 60px;
-      background: #000;
-      z-index: 9999;
-    }
-  </style>
-</head>
-<body>
-  <div class="video-container">
-    <iframe 
-      id="bunny-player"
-      src="$embedUrl"
-      loading="eager"
-      allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture; fullscreen"
-      allowfullscreen="true"
-      playsinline
-      webkit-playsinline>
-    </iframe>
-    <div class="controls-cover"></div>
-  </div>
-</body>
-</html>
-''';
-
-    late final PlatformWebViewControllerCreationParams params;
-    if (Platform.isAndroid) {
-      params = AndroidWebViewControllerCreationParams();
-    } else if (Platform.isIOS) {
-      params = WebKitWebViewControllerCreationParams(
-        allowsInlineMediaPlayback: true,
-        mediaTypesRequiringUserAction: const <PlaybackMediaTypes>{},
-      );
-    } else {
-      params = const PlatformWebViewControllerCreationParams();
-    }
-
-    _controller = WebViewController.fromPlatformCreationParams(params)
-      ..setJavaScriptMode(JavaScriptMode.unrestricted)
-      ..setBackgroundColor(Colors.black)
-      ..setNavigationDelegate(
-        NavigationDelegate(
-          onPageFinished: (url) {
-            if (mounted) {
-              setState(() => _isLoading = false);
-              Future.delayed(const Duration(milliseconds: 800), () {
-                if (mounted) {
-                  setState(() => _showThumbnail = false);
-                }
-              });
-            }
-          },
-        ),
-      );
-
-    if (Platform.isAndroid &&
-        _controller!.platform is AndroidWebViewController) {
-      final androidController =
-          _controller!.platform as AndroidWebViewController;
-      androidController.setMediaPlaybackRequiresUserGesture(false);
-    }
-
-    _controller!.loadHtmlString(html);
-
-    if (mounted) setState(() {});
-  }
-
-  String _getEmbedUrl(String url) {
-    String embedUrl = url.replaceFirst('/play/', '/embed/');
-
-    final params = [
-      'autoplay=true',
-      'loop=true',
-      'muted=false',
-      'preload=true',
-      'responsive=true',
-      'controls=false',
-      't=0',
-    ].join('&');
-
-    if (!embedUrl.contains('?')) {
-      embedUrl = '$embedUrl?$params';
-    } else {
-      embedUrl = '$embedUrl&$params';
-    }
-    return embedUrl;
-  }
-
   void _playVideo() {
-    if (_controller == null || !_shouldPlay)
-      return;
-    setState(() => _isPaused = false);
-
-    final playUrl = _getEmbedUrl(widget.reel.bunnyUrl);
-    _controller!.runJavaScript('''
-      var iframe = document.getElementById('bunny-player');
-      if (iframe) {
-        iframe.src = "$playUrl";
-      }
-    ''');
+    if (!_shouldPlayNow) return;
+    if (_controller != null) {
+      _controller!.play();
+      _startViewTimer();
+    } else if (_webController != null) {
+      _playVideoWeb();
+      _startViewTimer();
+    }
+    _startOrStopProgressTimer();
   }
 
   void _pauseVideo() {
-    if (_controller == null) return;
-    setState(() => _isPaused = true);
-
-    _controller!.runJavaScript('''
-      var iframe = document.getElementById('bunny-player');
-      if (iframe) {
-        iframe.src = "about:blank";
-      }
-    ''');
-  }
-
-  void _stopVideo() {
-    if (_controller == null) return;
-    setState(() => _isPaused = true);
-
-    _controller!.runJavaScript('''
-      var iframe = document.getElementById('bunny-player');
-      if (iframe) {
-        iframe.src = "about:blank";
-      }
-    ''');
+    if (_controller != null) {
+      try {
+        _controller!.pause();
+      } catch (_) {}
+    } else if (_webController != null) {
+      _pauseVideoWeb();
+    }
+    _progressTimer?.cancel();
   }
 
   void _togglePlayPause() {
-    if (_controller == null) return;
+    _isUserPaused = !_isUserPaused;
+    _syncPlaybackState();
+  }
 
-    if (_isPaused) {
+  void _syncPlaybackState() {
+    if (!mounted) return;
+    if (_shouldPlayNow) {
       _playVideo();
     } else {
       _pauseVideo();
+      _cancelViewTimer();
     }
+    setState(() {});
   }
 
   void _handleTap() {
@@ -419,37 +426,46 @@ class _ReelPlayerWidgetState extends State<ReelPlayerWidget>
   Widget build(BuildContext context) {
     final bottomPadding = MediaQuery.of(context).padding.bottom;
 
-    return GestureDetector(
-      onTap: _handleTap,
-      behavior: HitTestBehavior.deferToChild,
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          AbsorbPointer(
-            child: widget.reel.bunnyUrl.isNotEmpty &&
-                    _controller != null &&
-                    !_showThumbnail
-                ? WebViewWidget(controller: _controller!)
-                : _buildThumbnail(context),
-          ),
+    final showPausedOverlay = _isUserPaused || (!_shouldPlayNow && widget.isActive);
 
-          if (_isPaused)
-            IgnorePointer(
-              child: Center(
-                child: Container(
-                  padding: Responsive.padding(context, all: 20),
-                  decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.5),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    Icons.play_arrow,
-                    color: Colors.white,
-                    size: Responsive.iconSize(context, 50),
+    return VisibilityDetector(
+      key: ValueKey('reel_visibility_${widget.reel.id}'),
+      onVisibilityChanged: (info) {
+        final nowVisible = info.visibleFraction > 0.6;
+        if (nowVisible == _isVisibleEnough) return;
+        _isVisibleEnough = nowVisible;
+        _syncPlaybackState();
+      },
+      child: GestureDetector(
+        onTap: _handleTap,
+        behavior: HitTestBehavior.translucent,
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            if (_controller != null && widget.reel.bunnyUrl.isNotEmpty)
+              BetterPlayer(controller: _controller!)
+            else if (_webController != null && widget.reel.bunnyUrl.isNotEmpty && !_showThumbnailOverlay)
+              AbsorbPointer(child: WebViewWidget(controller: _webController!))
+            else
+              _buildThumbnail(context),
+
+            if (showPausedOverlay)
+              IgnorePointer(
+                child: Center(
+                  child: Container(
+                    padding: Responsive.padding(context, all: 20),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withOpacity(0.5),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      Icons.play_arrow,
+                      color: Colors.white,
+                      size: Responsive.iconSize(context, 50),
+                    ),
                   ),
                 ),
               ),
-            ),
 
           if (_showLikeHeart)
             IgnorePointer(
@@ -462,7 +478,7 @@ class _ReelPlayerWidgetState extends State<ReelPlayerWidget>
               ),
             ),
 
-          if (_isLoading && widget.reel.bunnyUrl.isNotEmpty && _shouldPlay)
+          if (_isLoading && widget.reel.bunnyUrl.isNotEmpty && widget.isActive)
             IgnorePointer(
               child: Center(
                 child: CircularProgressIndicator(
@@ -494,23 +510,107 @@ class _ReelPlayerWidgetState extends State<ReelPlayerWidget>
           ),
 
           Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: SafeArea(
+              top: false,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  SizedBox(height: Responsive.height(context, 2)),
+                  ValueListenableBuilder<int>(
+                    valueListenable: _progressSecondsNotifier,
+                    builder: (context, seconds, _) {
+                      final progress = _durationSeconds > 0
+                          ? (seconds / _durationSeconds).clamp(0.0, 1.0)
+                          : 0.0;
+                      return LayoutBuilder(
+                        builder: (context, constraints) {
+                          return Row(
+                            children: [
+                              Container(
+                                width: constraints.maxWidth * progress,
+                                height: 3,
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFFFC107),
+                                  borderRadius: BorderRadius.circular(2),
+                                ),
+                              ),
+                              Expanded(
+                                child: Container(
+                                  height: 3,
+                                  decoration: BoxDecoration(
+                                    color: Colors.white24,
+                                    borderRadius: BorderRadius.circular(2),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          );
+                        },
+                      );
+                    },
+                  ),
+                  if (_isUserPaused && _durationSeconds > 0) ...[
+                    SizedBox(height: Responsive.height(context, 6)),
+                    ValueListenableBuilder<int>(
+                      valueListenable: _progressSecondsNotifier,
+                      builder: (context, seconds, _) {
+                        return Padding(
+                          padding: EdgeInsets.only(
+                            top: Responsive.height(context, 6),
+                            left: Responsive.width(context, 16),
+                            right: Responsive.width(context, 16),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                _formatDuration(seconds),
+                                style: TextStyle(
+                                  color: Colors.white70,
+                                  fontSize: Responsive.fontSize(context, 12),
+                                ),
+                              ),
+                              Text(
+                                '${_formatDuration((_durationSeconds - seconds).clamp(0, _durationSeconds))} متبقي',
+                                style: TextStyle(
+                                  color: Colors.white70,
+                                  fontSize: Responsive.fontSize(context, 12),
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ),
+
+          Positioned(
             left: Responsive.width(context, 16),
             right: Responsive.width(context, 16),
             bottom: bottomPadding + Responsive.height(context, 40),
-            child: Builder(
-              builder: (context) {
-                final isTablet = Responsive.isTablet(context);
+            child: IgnorePointer(
+              ignoring: false,
+              child: Builder(
+                builder: (context) {
+                  final isTablet = Responsive.isTablet(context);
 
-                return Row(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        GestureDetector(
-                          onTap: widget.onLogoTap,
-                          child: Row(
+                  return Row(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          GestureDetector(
+                            onTap: widget.onLogoTap,
+                            child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               _buildAvatar(context),
@@ -553,7 +653,16 @@ class _ReelPlayerWidgetState extends State<ReelPlayerWidget>
 
                         SizedBox(height: Responsive.spacing(context, 14)),
                         GestureDetector(
-                          onTap: widget.onRedirect,
+                          onTap: () {
+                            debugPrint('ReelPlayerWidget: Subscribe button tapped');
+                            if (widget.onSubscribeClick != null) {
+                              debugPrint('ReelPlayerWidget: Calling onSubscribeClick');
+                              widget.onSubscribeClick!();
+                            } else {
+                              debugPrint('ReelPlayerWidget: onSubscribeClick is null, calling onRedirect');
+                              widget.onRedirect();
+                            }
+                          },
                           child: Container(
                             padding: Responsive.padding(context,
                                 horizontal: 24, vertical: 12),
@@ -626,8 +735,10 @@ class _ReelPlayerWidgetState extends State<ReelPlayerWidget>
                 );
               },
             ),
+            ),
           ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -733,5 +844,11 @@ class _ReelPlayerWidgetState extends State<ReelPlayerWidget>
       return '${(value / 1000).toStringAsFixed(1)}k';
     }
     return value.toString();
+  }
+
+  String _formatDuration(int seconds) {
+    final m = seconds ~/ 60;
+    final s = seconds % 60;
+    return '${m.toString().padLeft(2, '0')}:${s.toString().padLeft(2, '0')}';
   }
 }

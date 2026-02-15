@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:better_player/better_player.dart';
 import 'package:learnify_lms/core/theme/app_text_styles.dart';
 
 import '../../../../core/constants/api_constants.dart';
@@ -21,6 +22,8 @@ import '../bloc/reels_event.dart';
 import '../bloc/reels_state.dart';
 import '../widgets/reel_paywall_widget.dart';
 import '../widgets/reel_player_widget.dart';
+import '../player/reel_controller_pool.dart';
+import '../player/reel_platform.dart';
 import 'collected_reels_page.dart';
 
 class ReelsFeedPage extends StatefulWidget {
@@ -50,6 +53,8 @@ class _ReelsFeedPageState extends State<ReelsFeedPage>
     with RouteAware, WidgetsBindingObserver {
   late PageController _pageController;
   int _currentIndex = 0;
+  int _playbackIndex = 0;
+  Timer? _pageChangeDebounce;
   int _selectedCategoryIndex = -1;
   bool _showPaywall = false;
   bool _isSubscribed = false;
@@ -71,6 +76,7 @@ class _ReelsFeedPageState extends State<ReelsFeedPage>
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _currentIndex = widget.initialReel != null ? 0 : widget.initialIndex;
+    _playbackIndex = _currentIndex;
     _pageController = PageController(
       initialPage: widget.initialReel != null ? 0 : widget.initialIndex,
     );
@@ -148,7 +154,7 @@ class _ReelsFeedPageState extends State<ReelsFeedPage>
                     _activeCategoryId = null;
                     _lastFilteredCategoryId = null;
                     _pageViewResetToken++;
-
+                    if (isReelNativePlayerSupported) reelControllerPool.disposeAll();
                     bloc.add(
                       const LoadReelsFeedEvent(
                         perPage: 5,
@@ -170,7 +176,7 @@ class _ReelsFeedPageState extends State<ReelsFeedPage>
                     _activeCategoryId = null;
                     _lastFilteredCategoryId = null;
                     _pageViewResetToken++;
-
+                    if (isReelNativePlayerSupported) reelControllerPool.disposeAll();
                     bloc.add(
                       const LoadReelsFeedEvent(
                         perPage: 5,
@@ -207,16 +213,19 @@ class _ReelsFeedPageState extends State<ReelsFeedPage>
         _setDarkStatusBar();
       }
     });
+    if (isReelNativePlayerSupported) reelControllerPool.disposeAll();
   }
 
   @override
   void didPushNext() {
     setState(() => _isPageVisible = false);
+    if (isReelNativePlayerSupported) reelControllerPool.pauseAll();
   }
 
   @override
   void didPop() {
     setState(() => _isPageVisible = false);
+    if (isReelNativePlayerSupported) reelControllerPool.pauseAll();
   }
 
   void _setDarkStatusBar() {
@@ -259,6 +268,7 @@ class _ReelsFeedPageState extends State<ReelsFeedPage>
   }
 
   void _handleSubscribe() async {
+    debugPrint('ReelsFeedPage: _handleSubscribe called');
     setState(() => _isPageVisible = false);
 
     await Future.delayed(const Duration(milliseconds: 100));
@@ -269,21 +279,38 @@ class _ReelsFeedPageState extends State<ReelsFeedPage>
     final token = await authLocalDataSource.getAccessToken();
 
     final isAuthenticated = token != null && token.isNotEmpty;
+    final mainNav = context.mainNavigation;
 
-    if (!isAuthenticated) {
-      final result = await Navigator.pushNamed(
-        context,
-        '/login',
-        arguments: {
-          'returnTo': 'subscriptions',
-        },
-      );
+    try {
+      if (!isAuthenticated) {
+        debugPrint('ReelsFeedPage: User not authenticated, navigating to login');
+        final result = await Navigator.of(context, rootNavigator: true).pushNamed(
+          AppRouter.login,
+          arguments: {
+            'returnTo': 'subscriptions',
+          },
+        );
 
-      if (result == true && mounted) {
-        await Navigator.pushNamed(context, '/subscriptions');
+        if (result == true && mounted) {
+          debugPrint('ReelsFeedPage: Login successful, switching to subscriptions tab');
+          if (mainNav != null) {
+            mainNav.setShowBottomNav(true);
+            mainNav.switchToTab(2);
+          } else {
+            await Navigator.of(context, rootNavigator: true).pushNamed(AppRouter.subscriptions);
+          }
+        }
+      } else {
+        debugPrint('ReelsFeedPage: User authenticated, switching to subscriptions tab');
+        if (mainNav != null) {
+          mainNav.setShowBottomNav(true);
+          mainNav.switchToTab(2);
+        } else {
+          await Navigator.of(context, rootNavigator: true).pushNamed(AppRouter.subscriptions);
+        }
       }
-    } else {
-      await Navigator.pushNamed(context, '/subscriptions');
+    } catch (e) {
+      debugPrint('ReelsFeedPage: Error navigating to subscriptions: $e');
     }
 
     if (mounted) {
@@ -299,9 +326,11 @@ class _ReelsFeedPageState extends State<ReelsFeedPage>
   @override
   void dispose() {
     _filterDebounceTimer?.cancel();
+    _pageChangeDebounce?.cancel();
     WidgetsBinding.instance.removeObserver(this);
     routeObserver.unsubscribe(this);
     _pageController.dispose();
+    if (isReelNativePlayerSupported) reelControllerPool.disposeAll();
     _setLightStatusBar();
     super.dispose();
   }
@@ -353,7 +382,7 @@ class _ReelsFeedPageState extends State<ReelsFeedPage>
                     _activeCategoryId = null;
                     _lastFilteredCategoryId = null;
                     _pageViewResetToken++;
-
+                    if (isReelNativePlayerSupported) reelControllerPool.disposeAll();
                     context.read<ReelsBloc>().add(
                           const LoadReelsFeedEvent(
                             perPage: 10,
@@ -410,9 +439,8 @@ class _ReelsFeedPageState extends State<ReelsFeedPage>
                 if (categoryId != null && categoryId != _lastFilteredCategoryId) {
                   _lastFilteredCategoryId = categoryId;
                 }
-                
                 _isFiltering = false;
-                _pageViewResetToken++;
+                if (isReelNativePlayerSupported) reelControllerPool.disposeAll();
                 WidgetsBinding.instance.addPostFrameCallback((_) {
                   if (mounted) {
                     setState(() {
@@ -435,6 +463,7 @@ class _ReelsFeedPageState extends State<ReelsFeedPage>
                   _pageViewResetToken++;
                   _currentIndex = 0;
                 });
+                if (isReelNativePlayerSupported) reelControllerPool.disposeAll();
               }
 
               if (state is ReelsError && _isFiltering) {
@@ -645,14 +674,24 @@ class _ReelsFeedPageState extends State<ReelsFeedPage>
       return const SizedBox.shrink();
     }
 
+    final double buttonWidth = Responsive.width(context, 68);
+    final double buttonHeight = Responsive.height(context, 26);
+    final double separatorWidth = Responsive.width(context, 10);
+    final double horizontalPaddingBase = Responsive.width(context, 20);
+    final double contentWidth = _categories.length * buttonWidth +
+        (_categories.length - 1) * separatorWidth;
+    final double screenWidth = MediaQuery.sizeOf(context).width;
+    final double horizontalPadding = contentWidth < screenWidth
+        ? (screenWidth - contentWidth) / 2
+        : horizontalPaddingBase;
+
     return SizedBox(
-      height: Responsive.height(context, 36),
+      height: buttonHeight + 6,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
-        padding: Responsive.padding(context, horizontal: 20),
+        padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
         itemCount: _categories.length,
-        separatorBuilder: (_, __) =>
-            SizedBox(width: Responsive.width(context, 10)),
+        separatorBuilder: (_, __) => SizedBox(width: separatorWidth),
         itemBuilder: (context, index) {
           final isSelected = index == _selectedCategoryIndex;
           final category = _categories[index];
@@ -667,7 +706,6 @@ class _ReelsFeedPageState extends State<ReelsFeedPage>
                   _isFiltering = true;
                   _activeCategoryId = null;
                   _lastFilteredCategoryId = null;
-                  _pageViewResetToken++;
                   _shouldResetOnNextLoad = false;
                   _currentIndex = 0;
                 });
@@ -702,7 +740,6 @@ class _ReelsFeedPageState extends State<ReelsFeedPage>
                   _isFiltering = true;
                   _activeCategoryId = category.id;
                   _lastFilteredCategoryId = category.id;
-                  _pageViewResetToken++;
                   _shouldResetOnNextLoad = false;
                   _currentIndex = 0;
                 });
@@ -733,39 +770,51 @@ class _ReelsFeedPageState extends State<ReelsFeedPage>
                 });
               }
             },
-            child: Container(
-              padding: Responsive.padding(context, horizontal: 14, vertical: 6),
-              decoration: BoxDecoration(
-                color: isSelected
-                    ? const Color(0xFF6A4BC3)
-                    : const Color(0xFF2C2C36),
-                borderRadius:
-                    BorderRadius.circular(Responsive.radius(context, 18)),
-              ),
-              child: Center(
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      category.name,
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: Responsive.fontSize(context, 16),
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    if (isSelected && _isFiltering) ...[
-                      SizedBox(width: Responsive.width(context, 8)),
-                      SizedBox(
-                        width: Responsive.width(context, 12),
-                        height: Responsive.height(context, 12),
-                        child: const CircularProgressIndicator(
-                          strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+            child: Opacity(
+              opacity: isSelected ? 1 : 0.57,
+              child: Container(
+                width: buttonWidth,
+                height: buttonHeight,
+                padding: EdgeInsets.symmetric(
+                  horizontal: Responsive.width(context, 12),
+                ),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF6B46C1),
+                  borderRadius: BorderRadius.circular(
+                    Responsive.radius(context, 6),
+                  ),
+                ),
+                child: Center(
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          category.name,
+                          style: TextStyle(
+                            fontFamily: 'Cairo',
+                            fontSize: Responsive.fontSize(context, 13),
+                            height: 1.4,
+                            fontWeight: FontWeight.w400,
+                            color: const Color(0xFFFFFFFF),
+                          ),
                         ),
-                      ),
-                    ],
-                  ],
+                        if (isSelected && _isFiltering) ...[
+                          SizedBox(width: Responsive.width(context, 6)),
+                          SizedBox(
+                            width: Responsive.width(context, 12),
+                            height: Responsive.height(context, 12),
+                            child: const CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
                 ),
               ),
             ),
@@ -786,16 +835,8 @@ class _ReelsFeedPageState extends State<ReelsFeedPage>
                 ? 1
                 : 0);
 
-    final categoryKey = _activeCategoryId ??
-        (_categories.isNotEmpty && 
-         _selectedCategoryIndex >= 0 && 
-         _selectedCategoryIndex < _categories.length
-            ? _categories[_selectedCategoryIndex].id
-            : null);
-    final pageViewKey = ValueKey(
-      'reels_feed_category_${categoryKey ?? "all"}_$_pageViewResetToken',
-    );
-    
+    final pageViewKey = ValueKey('reels_feed_$_pageViewResetToken');
+
     return PageView.builder(
       key: pageViewKey,
       controller: _pageController,
@@ -804,6 +845,17 @@ class _ReelsFeedPageState extends State<ReelsFeedPage>
       itemCount: itemCount,
       onPageChanged: (index) {
         setState(() => _currentIndex = index);
+        _pageChangeDebounce?.cancel();
+        _pageChangeDebounce = Timer(const Duration(milliseconds: 200), () {
+          if (!mounted) return;
+          final prevPlayback = _playbackIndex;
+          setState(() => _playbackIndex = index);
+          if (index > prevPlayback && index - prevPlayback >= 1) {
+            reelControllerPool.releaseSlot(0);
+          } else if (index < prevPlayback && prevPlayback - index >= 1) {
+            reelControllerPool.releaseSlot(2);
+          }
+        });
 
         _checkPaywall(index);
 
@@ -871,16 +923,33 @@ class _ReelsFeedPageState extends State<ReelsFeedPage>
           }
         }
 
+        final bool useNative = ReelControllerPool.isDirectStreamUrl(reel.bunnyUrl);
+        final BetterPlayerController? controller = useNative &&
+                index >= _playbackIndex - 1 &&
+                index <= _playbackIndex + 1
+            ? reelControllerPool.controllerAt(index - _playbackIndex + 1)
+            : null;
+
+        final String? nextBunnyUrl =
+            (index + 1 < state.reels.length) ? state.reels[index + 1].bunnyUrl : null;
+
+        final shouldPreload = index >= _playbackIndex - 1 && index <= _playbackIndex + 2;
+
         return ReelPlayerWidget(
           key: ValueKey('reel_${reel.id}'),
           reel: reel,
           isLiked: isLiked,
           viewCount: viewCount,
           likeCount: likeCount,
-          isActive: index == _currentIndex &&
+          controller: controller,
+          nextBunnyUrl: nextBunnyUrl,
+          enablePreload: index == _playbackIndex,
+          shouldPreload: shouldPreload,
+          isActive: index == _playbackIndex &&
               widget.isTabActive &&
               _isPageVisible &&
               isCategoryAllowed,
+          onSubscribeClick: _handleSubscribe,
           onLike: () {
             if (!mounted) return;
             try {

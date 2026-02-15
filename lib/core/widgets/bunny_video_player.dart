@@ -1,5 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
+import 'package:better_player/better_player.dart';
+
+const BetterPlayerBufferingConfiguration _lessonBufferingConfig =
+    BetterPlayerBufferingConfiguration(
+  minBufferMs: 1000,
+  maxBufferMs: 5000,
+  bufferForPlaybackMs: 250,
+  bufferForPlaybackAfterRebufferMs: 500,
+);
+
+const BetterPlayerCacheConfiguration _lessonCacheConfig =
+    BetterPlayerCacheConfiguration(
+  useCache: true,
+  maxCacheSize: 128 * 1024 * 1024,
+  maxCacheFileSize: 32 * 1024 * 1024,
+  preCacheSize: 6 * 1024 * 1024,
+);
 
 class BunnyVideoPlayer extends StatefulWidget {
   final String videoUrl;
@@ -16,8 +33,14 @@ class BunnyVideoPlayer extends StatefulWidget {
 }
 
 class _BunnyVideoPlayerState extends State<BunnyVideoPlayer> {
-  late final WebViewController controller;
+  WebViewController? _webController;
+  BetterPlayerController? _betterPlayerController;
   bool _isLoading = true;
+
+  static bool _isDirectStreamUrl(String url) {
+    final u = url.trim().toLowerCase();
+    return u.contains('.m3u8') || u.contains('.mp4');
+  }
 
   String _getEmbedUrl(String url) {
     String embedUrl = url.replaceFirst('/play/', '/embed/');
@@ -33,7 +56,54 @@ class _BunnyVideoPlayerState extends State<BunnyVideoPlayer> {
   @override
   void initState() {
     super.initState();
+    if (_isDirectStreamUrl(widget.videoUrl)) {
+      _initNativePlayer();
+    } else {
+      _initWebViewPlayer();
+    }
+  }
 
+  Future<void> _initNativePlayer() async {
+    final controller = BetterPlayerController(
+      BetterPlayerConfiguration(
+        autoPlay: true,
+        looping: false,
+        fit: BoxFit.contain,
+        controlsConfiguration: const BetterPlayerControlsConfiguration(
+          showControls: true,
+          enableFullscreen: true,
+          enablePlayPause: true,
+          enableMute: true,
+          enableProgressText: true,
+          enableProgressBar: true,
+        ),
+      ),
+    );
+
+    final u = widget.videoUrl.trim().toLowerCase();
+    final format = u.contains('.m3u8')
+        ? BetterPlayerVideoFormat.hls
+        : BetterPlayerVideoFormat.other;
+
+    final dataSource = BetterPlayerDataSource(
+      BetterPlayerDataSourceType.network,
+      widget.videoUrl,
+      videoFormat: format,
+      cacheConfiguration: _lessonCacheConfig,
+      bufferingConfiguration: _lessonBufferingConfig,
+    );
+
+    await controller.setupDataSource(dataSource);
+
+    if (!mounted) return;
+    setState(() {
+      _betterPlayerController = controller;
+      _isLoading = false;
+    });
+    widget.onVideoLoaded?.call();
+  }
+
+  void _initWebViewPlayer() {
     final embedUrl = _getEmbedUrl(widget.videoUrl);
 
     final html = '''
@@ -84,16 +154,14 @@ class _BunnyVideoPlayerState extends State<BunnyVideoPlayer> {
 </html>
 ''';
 
-    controller = WebViewController()
+    _webController = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..setBackgroundColor(Colors.black)
       ..setNavigationDelegate(
         NavigationDelegate(
-          onPageFinished: (url) {
+          onPageFinished: (_) {
             if (mounted) {
-              setState(() {
-                _isLoading = false;
-              });
+              setState(() => _isLoading = false);
               widget.onVideoLoaded?.call();
             }
           },
@@ -103,26 +171,33 @@ class _BunnyVideoPlayerState extends State<BunnyVideoPlayer> {
   }
 
   @override
+  void dispose() {
+    _betterPlayerController?.dispose();
+    _betterPlayerController = null;
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
       height: double.infinity,
-        color: Colors.black,
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            WebViewWidget(controller: controller),
-            if (_isLoading)
-              Center(
-                child: CircularProgressIndicator(
-                  color: Colors.white,
-                ),
+      color: Colors.black,
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          if (_betterPlayerController != null)
+            BetterPlayer(controller: _betterPlayerController!)
+          else if (_webController != null)
+            WebViewWidget(controller: _webController!),
+          if (_isLoading)
+            const Center(
+              child: CircularProgressIndicator(
+                color: Colors.white,
               ),
-          ],
+            ),
+        ],
       ),
     );
   }
 }
-
-
-
