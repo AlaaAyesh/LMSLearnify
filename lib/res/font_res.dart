@@ -7,7 +7,7 @@ class FontRes {
   FontRes._();
 
   static const String PLUGIN_NAME = 'learnify_lms';
-  static const String PLUGIN_VERSION = '1.0.0+6';
+  static const String PLUGIN_VERSION = '1.0.0+8';
   static const String CAIRO_BLACK = 'Cairo-Black';
   static const String CAIRO_BOLD = 'Cairo-Bold';
   static const String CAIRO_EXTRABOLD = 'Cairo-ExtraBold';

@@ -733,7 +733,7 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
                             child: Icon(
                               Icons.lock_outline,
                               color: Colors.grey[600],
-                              size: Responsive.iconSize(context, 35),
+                              size: Responsive.iconSize(context, 26),
                             ),
                           )
                         : isCurrent
