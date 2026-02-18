@@ -43,6 +43,7 @@ class ReelControllerPool {
         looping: true,
         handleLifecycle: false,
         autoDetectFullscreenDeviceOrientation: true,
+        aspectRatio: 9 / 16,
         fit: BoxFit.cover,
         controlsConfiguration: const BetterPlayerControlsConfiguration(
           showControls: false,
