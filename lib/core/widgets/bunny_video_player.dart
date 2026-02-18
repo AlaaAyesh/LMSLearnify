@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
-import 'package:better_player/better_player.dart';
+import 'package:better_player_plus/better_player_plus.dart';
 
 const BetterPlayerBufferingConfiguration _lessonBufferingConfig =
     BetterPlayerBufferingConfiguration(
