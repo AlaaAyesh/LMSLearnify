@@ -72,10 +72,41 @@ class _ReelPlayerWidgetState extends State<ReelPlayerWidget>
   DateTime? _lastTapTime;
   static const _doubleTapDuration = Duration(milliseconds: 300);
 
+  bool _descriptionExpanded = false;
+
   late final ValueNotifier<int> _progressSecondsNotifier;
   Timer? _progressTimer;
 
+  void _onBetterPlayerEvent(BetterPlayerEvent event) {
+    if (event.betterPlayerEventType != BetterPlayerEventType.progress) return;
+    final params = event.parameters;
+    if (params == null) return;
+    final progress = params['progress'] as Duration?;
+    final duration = params['duration'] as Duration?;
+    if (progress == null || duration == null || duration.inSeconds <= 0) return;
+    if (!mounted) return;
+    final seconds = progress.inSeconds;
+    final next = seconds >= duration.inSeconds ? 0 : seconds;
+    if (_progressSecondsNotifier.value != next) {
+      _progressSecondsNotifier.value = next;
+    }
+  }
+
   bool get _shouldPlayNow => widget.isActive && _isVisibleEnough && !_isUserPaused;
+
+  /// هل النص سيأخذ أكثر من 70% من ارتفاع الشاشة عند العرض الكامل؟
+  bool _descriptionExceeds70Percent(BuildContext context, String text, TextStyle style) {
+    if (text.isEmpty) return false;
+    final screenHeight = MediaQuery.sizeOf(context).height;
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    final maxWidth = screenWidth * _descriptionMaxWidthFactor;
+    final painter = TextPainter(
+      text: TextSpan(text: text, style: style),
+      textDirection: TextDirection.rtl,
+      maxLines: null,
+    )..layout(maxWidth: maxWidth);
+    return painter.size.height > screenHeight * 0.7;
+  }
 
   int get _durationSeconds =>
       widget.reel.durationSeconds > 0
@@ -119,6 +150,7 @@ class _ReelPlayerWidgetState extends State<ReelPlayerWidget>
   void didUpdateWidget(ReelPlayerWidget oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.controller != widget.controller) {
+      oldWidget.controller?.removeEventsListener(_onBetterPlayerEvent);
       _controller = widget.controller;
       _isUserPaused = false;
       _hasRecordedView = false;
@@ -130,10 +162,12 @@ class _ReelPlayerWidgetState extends State<ReelPlayerWidget>
     }
     if (oldWidget.reel.id != widget.reel.id ||
         oldWidget.reel.bunnyUrl != widget.reel.bunnyUrl) {
+      _descriptionExpanded = false;
       _isUserPaused = false;
       _hasRecordedView = false;
       _progressSecondsNotifier.value = 0;
       _progressTimer?.cancel();
+      _controller?.removeEventsListener(_onBetterPlayerEvent);
       if (_controller != null) {
         _setupCurrent();
       } else if (widget.reel.bunnyUrl.isNotEmpty && (widget.isActive || widget.shouldPreload) && !_isWebInitialized && !_isDirectStreamUrl(widget.reel.bunnyUrl)) {
@@ -165,9 +199,17 @@ class _ReelPlayerWidgetState extends State<ReelPlayerWidget>
 
   void _startOrStopProgressTimer() {
     _progressTimer?.cancel();
+    
     final useNative = _controller != null;
     final useWeb = _webController != null;
-    if (_shouldPlayNow && (useWeb || useNative)) {
+    
+    if (!_shouldPlayNow || (!useNative && !useWeb)) {
+      return;
+    }
+    
+    // Native: progress comes from BetterPlayer addEventsListener (BetterPlayerEventType.progress)
+    // Web: use timer to increment progress
+    if (useWeb) {
       _progressTimer = Timer.periodic(const Duration(seconds: 1), (_) {
         if (!mounted) return;
         if (!_shouldPlayNow) return;
@@ -184,6 +226,7 @@ class _ReelPlayerWidgetState extends State<ReelPlayerWidget>
     WidgetsBinding.instance.removeObserver(this);
     _cancelViewTimer();
     _progressTimer?.cancel();
+    _controller?.removeEventsListener(_onBetterPlayerEvent);
     _progressSecondsNotifier.dispose();
     if (_webController != null) {
       _webController!.runJavaScript('''
@@ -200,6 +243,8 @@ class _ReelPlayerWidgetState extends State<ReelPlayerWidget>
     if (widget.reel.bunnyUrl.isEmpty) return;
 
     setState(() => _isLoading = true);
+    _controller!.removeEventsListener(_onBetterPlayerEvent);
+    _controller!.addEventsListener(_onBetterPlayerEvent);
     await reelControllerPool.setDataSource(
       _controller!,
       url: widget.reel.bunnyUrl,
@@ -413,6 +458,48 @@ class _ReelPlayerWidgetState extends State<ReelPlayerWidget>
     }
   }
 
+  void _onProgressBarTap(double tapPosition, double totalWidth) {
+    if (_durationSeconds <= 0) return;
+    if (totalWidth <= 0) return;
+    
+    // الشريط يبدأ من اليمين وينتهي في اليسار: يمين = بداية (0)، يسار = نهاية (1)
+    final progress = (1.0 - (tapPosition / totalWidth)).clamp(0.0, 1.0);
+    final targetSeconds = (progress * _durationSeconds).round().clamp(0, _durationSeconds);
+    
+    _progressSecondsNotifier.value = targetSeconds;
+    
+    if (_controller != null) {
+      _seekAndResume(targetSeconds);
+    } else if (_webController != null) {
+      final startSeconds = targetSeconds;
+      final playUrl = _getEmbedUrl(
+        widget.reel.bunnyUrl,
+        autoplay: _shouldPlayNow,
+        startSeconds: startSeconds,
+      );
+      _webController!.runJavaScript('''
+        var iframe = document.getElementById('bunny-player');
+        if (iframe) { iframe.src = "$playUrl"; }
+      ''');
+      _webIsShowingPausedFrame = !_shouldPlayNow;
+    }
+  }
+
+  /// تقديم الفيديو ثم استئناف التشغيل فوراً (بدون تجميد) مثل يوتيوب/تيك توك
+  Future<void> _seekAndResume(int targetSeconds) async {
+    final controller = _controller;
+    if (controller == null || !mounted) return;
+    try {
+      await controller.seekTo(Duration(seconds: targetSeconds));
+      if (!mounted) return;
+      if (_shouldPlayNow) {
+        await controller.play();
+      }
+    } catch (e) {
+      if (mounted) debugPrint('ReelPlayerWidget: Seek error: $e');
+    }
+  }
+
   void _showLikeAnimation() {
     setState(() => _showLikeHeart = true);
     Future.delayed(const Duration(milliseconds: 800), () {
@@ -420,6 +507,70 @@ class _ReelPlayerWidgetState extends State<ReelPlayerWidget>
         setState(() => _showLikeHeart = false);
       }
     });
+  }
+
+  static const _descriptionMaxWidthFactor = 0.55;
+  static const _screenHeightThreshold = 0.7;
+
+  Widget _buildDescription(BuildContext context, {double? maxWidth}) {
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    final effectiveMaxWidth = maxWidth ?? (screenWidth * _descriptionMaxWidthFactor);
+    final description = widget.reel.description.isNotEmpty
+        ? widget.reel.description
+        : 'تعلم كيفية نطق الحروف';
+    final style = TextStyle(
+      color: Colors.white.withOpacity(0.7),
+      fontSize: Responsive.fontSize(context, 13),
+    );
+    final shouldTruncate = _descriptionExceeds70Percent(context, description, style) && !_descriptionExpanded;
+    final constraints = BoxConstraints(maxWidth: effectiveMaxWidth);
+
+    if (!shouldTruncate) {
+      return ConstrainedBox(
+        constraints: constraints,
+        child: Text(
+          description,
+          style: style,
+          textAlign: TextAlign.right,
+          textDirection: TextDirection.rtl,
+          softWrap: true,
+          overflow: TextOverflow.clip,
+        ),
+      );
+    }
+
+    return GestureDetector(
+      onTap: () => setState(() => _descriptionExpanded = true),
+      child: ConstrainedBox(
+        constraints: constraints,
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          textDirection: TextDirection.rtl,
+          children: [
+            Flexible(
+              child: Text(
+                description,
+                style: style,
+                textDirection: TextDirection.rtl,
+                textAlign: TextAlign.right,
+                maxLines: 3,
+                overflow: TextOverflow.ellipsis,
+                softWrap: true,
+              ),
+            ),
+            SizedBox(width: Responsive.width(context, 4)),
+            Text(
+              '... المزيد',
+              style: style.copyWith(
+                color: Colors.white.withOpacity(0.9),
+                fontWeight: FontWeight.w500,
+              ),
+              textDirection: TextDirection.rtl,
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   @override
@@ -527,26 +678,46 @@ class _ReelPlayerWidgetState extends State<ReelPlayerWidget>
                           : 0.0;
                       return LayoutBuilder(
                         builder: (context, constraints) {
-                          return Row(
-                            children: [
-                              Container(
-                                width: constraints.maxWidth * progress,
-                                height: 3,
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFFFC107),
-                                  borderRadius: BorderRadius.circular(2),
-                                ),
+                          final barWidth = constraints.maxWidth;
+                          return GestureDetector(
+                            onTap: () {}, // consume tap so parent doesn't toggle play/pause
+                            onTapDown: (details) {
+                              final RenderBox? box = context.findRenderObject() as RenderBox?;
+                              if (box != null && box.hasSize) {
+                                final localPos = box.globalToLocal(details.globalPosition);
+                                final tapX = localPos.dx.clamp(0.0, barWidth);
+                                _onProgressBarTap(tapX, barWidth);
+                              }
+                            },
+                            behavior: HitTestBehavior.opaque,
+                            child: Container(
+                              height: Responsive.height(context, 20),
+                              padding: EdgeInsets.symmetric(
+                                vertical: Responsive.height(context, 8.5),
                               ),
-                              Expanded(
-                                child: Container(
-                                  height: 3,
-                                  decoration: BoxDecoration(
-                                    color: Colors.white24,
-                                    borderRadius: BorderRadius.circular(2),
+                              child: Row(
+                                textDirection: TextDirection.rtl,
+                                children: [
+                                  Container(
+                                    width: barWidth * progress,
+                                    height: 3,
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFFFFC107),
+                                      borderRadius: BorderRadius.circular(2),
+                                    ),
                                   ),
-                                ),
+                                  Expanded(
+                                    child: Container(
+                                      height: 3,
+                                      decoration: BoxDecoration(
+                                        color: Colors.white24,
+                                        borderRadius: BorderRadius.circular(2),
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
-                            ],
+                            ),
                           );
                         },
                       );
@@ -611,45 +782,38 @@ class _ReelPlayerWidgetState extends State<ReelPlayerWidget>
                           GestureDetector(
                             onTap: widget.onLogoTap,
                             child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              _buildAvatar(context),
-                              SizedBox(width: Responsive.width(context, 8)),
-                              Column(
-                                mainAxisAlignment: MainAxisAlignment.start,
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    widget.reel.owner.name.isNotEmpty
-                                        ? widget.reel.owner.name
-                                        : 'ليرنفاي',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize:
-                                          Responsive.fontSize(context, 16),
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  SizedBox(
-                                      height: Responsive.spacing(context, 6)),
-                                  IgnorePointer(
-                                    child: Text(
-                                      widget.reel.description.isNotEmpty
-                                          ? widget.reel.description
-                                          : 'تعلم كيفية نطق الحروف',
-                                      style: TextStyle(
-                                        color: Colors.white.withOpacity(0.7),
-                                        fontSize:
-                                            Responsive.fontSize(context, 13),
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                _buildAvatar(context),
+                                SizedBox(width: Responsive.width(context, 8)),
+                                Flexible(
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.start,
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Text(
+                                        widget.reel.owner.name.isNotEmpty
+                                            ? widget.reel.owner.name
+                                            : 'ليرنفاي',
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize:
+                                              Responsive.fontSize(context, 16),
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                        overflow: TextOverflow.ellipsis,
                                       ),
-                                      textAlign: TextAlign.left,
-                                    ),
+                                      SizedBox(
+                                          height: Responsive.spacing(context, 6)),
+                                      _buildDescription(context),
+                                    ],
                                   ),
-                                ],
-                              ),
-                            ],
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
 
                         SizedBox(height: Responsive.spacing(context, 14)),
                         GestureDetector(

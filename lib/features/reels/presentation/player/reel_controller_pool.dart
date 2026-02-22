@@ -5,9 +5,9 @@ import 'package:flutter/material.dart';
 
 const BetterPlayerBufferingConfiguration _reelBufferingConfig =
     BetterPlayerBufferingConfiguration(
-  minBufferMs: 1000,
-  maxBufferMs: 5000,
-  bufferForPlaybackMs: 250,
+  minBufferMs: 2000,
+  maxBufferMs: 10000,
+  bufferForPlaybackMs: 500,
   bufferForPlaybackAfterRebufferMs: 500,
 );
 
@@ -52,7 +52,7 @@ class ReelControllerPool {
           enableMute: false,
           enableOverflowMenu: false,
           enableProgressText: false,
-          enableProgressBar: false,
+          enableProgressBar: true,
           enableSkips: false,
         ),
       ),
