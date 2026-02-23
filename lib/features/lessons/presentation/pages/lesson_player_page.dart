@@ -634,7 +634,8 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
                 ],
               ),
             ),
-            ...chapter.lessons.map((lesson) {
+            // نعكس ترتيب الدروس داخل كل فصل في شاشة المشغّل أيضاً
+            ...chapter.lessons.reversed.map((lesson) {
               final isCurrent = lesson.id == currentLesson.id;
               final isViewed = lesson.viewed;
               final isLocked =

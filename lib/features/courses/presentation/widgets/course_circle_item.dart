@@ -120,7 +120,8 @@ class CourseCircleItem extends StatelessWidget {
       return CachedNetworkImage(
         imageUrl: thumbnailUrl,
         fit: BoxFit.contain,
-        placeholder: (context, url) => _defaultImage(),
+        // عند وجود صورة من الباك، لا نعرض صورة الديفولت كـ placeholder
+        placeholder: (context, url) => const SizedBox.shrink(),
         errorWidget: (context, url, error) => _defaultImage(),
       );
     }

@@ -1,4 +1,5 @@
 import 'dart:io' show Platform;
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:learnify_lms/core/theme/app_text_styles.dart';
@@ -512,7 +513,9 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
       return CachedNetworkImage(
         imageUrl: thumbnailUrl,
         fit: BoxFit.cover,
-        placeholder: (context, url) => _buildPlaceholder(),
+        // عند وجود صورة من الباك، لا نعرض صورة الديفولت أثناء التحميل
+        // نستخدم خلفية شفافة بسيطة فقط
+        placeholder: (context, url) => Container(color: Colors.transparent),
         errorWidget: (context, url, error) => _buildPlaceholder(),
       );
     }
@@ -561,6 +564,15 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
     final double infoRadius =
         isTablet ? 26.0 : Responsive.radius(context, 20);
 
+    final String aboutText = course.about ??
+        'مقدمة ممتعة وشاملة لتعلم، مع التركيز على الأساسيات بطريقة تفاعلية ومبتكرة.';
+    final TextStyle aboutTextStyle = TextStyle(
+      fontFamily: 'Cairo',
+      fontSize: Responsive.fontSize(context, 14),
+      color: Colors.black,
+      height: 1.6,
+    );
+
     return Container(
       margin:  isTablet ? Responsive.margin(context, horizontal: 10): Responsive.margin(context, horizontal: 16),
       padding: Responsive.padding(context, all: 16),
@@ -568,50 +580,127 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
         color: AppColors.primaryCard,
         borderRadius: BorderRadius.circular(infoRadius),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildAboutText(
-            course.about ??
-                'مقدمة ممتعة وشاملة لتعلم، مع التركيز على الأساسيات بطريقة تفاعلية ومبتكرة.',
-            showExpandButton: learnItems.isEmpty,
-          ),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final maxWidth = constraints.maxWidth.isFinite
+              ? constraints.maxWidth
+              : MediaQuery.sizeOf(context).width - 32;
 
-          if (learnItems.isNotEmpty) ...[
-            SizedBox(height: Responsive.spacing(context, 20)),
-            _buildWhatYouWillLearnList(
-              learnItems,
-              showExpandButton: true,
-            ),
-          ],
-          
-          SizedBox(height: Responsive.spacing(context, 20)),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          // نقرر عرض "المزيد" بناءً على مجموع محتوى about + what_you_will_learn معاً
+          final String combinedText = learnItems.isNotEmpty
+              ? aboutText + '\n' + learnItems.join('\n')
+              : aboutText;
+          final bool combinedExceedsThreeLines =
+              _aboutExceedsThreeLines(combinedText, maxWidth, aboutTextStyle);
+
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildInfoChip(Icons.workspace_premium_outlined, 'شهادة'),
-              _buildInfoChip(
-                  Icons.people_outline, course.specialty?.nameAr ?? '4-13 سنة'),
-              _buildInfoChip(Icons.access_time_rounded, _getSimpleDuration()),
+              _buildAboutText(
+                aboutText,
+                // زر "المزيد/عرض أقل" يتحكم في الوصف + ما سوف تتعلمه معاً
+                showExpandButton: combinedExceedsThreeLines,
+              ),
+              if (learnItems.isNotEmpty) ...[
+                SizedBox(height: Responsive.spacing(context, 20)),
+                _buildWhatYouWillLearnList(
+                  learnItems,
+                  // لا نعرض زر مستقل داخل القائمة؛ نفس الزر في الوصف يتحكم في الكل
+                  showExpandButton: false,
+                ),
+              ],
+              SizedBox(height: Responsive.spacing(context, 20)),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  _buildInfoChip(Icons.workspace_premium_outlined, 'شهادة'),
+                  _buildInfoChip(
+                      Icons.people_outline, course.specialty?.nameAr ?? '4-13 سنة'),
+                  _buildInfoChip(Icons.access_time_rounded, _getSimpleDuration()),
+                ],
+              ),
             ],
-          ),
-        ],
+          );
+        },
       ),
     );
   }
 
   static const int _aboutExpandThreshold = 100;
 
+  /// عدد الكلمات في النص (نستخدمه كقاعدة ثابتة للحكم على عدد الأسطر)
+  int _wordCount(String text) {
+    if (text.trim().isEmpty) return 0;
+    return text
+        .trim()
+        .split(RegExp(r'\s+'))
+        .where((s) => s.isNotEmpty)
+        .length;
+  }
+
+  /// لو مجموع about + what_you_will_learn أكتر من 28 كلمة → نعتبره يتجاوز 3 أسطر
+  bool _aboutExceedsThreeLines(String text, double maxWidth, TextStyle textStyle) {
+    final totalWords = _wordCount(text);
+    return totalWords > 25;
+  }
+
+  /// عدد أحرف الوصف بحيث تبقى " ...... المزيد" في نهاية السطر الثالث
+  int _truncateAboutToFit(String text, TextStyle textStyle, TextStyle linkStyle, double maxWidth) {
+    const dotsAndSpace = '...';
+    const moreText = 'المزيد';
+    final painter = TextPainter(
+      textDirection: TextDirection.rtl,
+      maxLines: 3,
+    );
+    int low = 0;
+    int high = text.length;
+    while (low < high) {
+      final mid = (low + high + 1) >> 1;
+      final truncated = text.substring(0, mid);
+      painter.text = TextSpan(
+        style: textStyle,
+        children: [
+          TextSpan(text: truncated),
+          TextSpan(text: dotsAndSpace, style: textStyle),
+          TextSpan(text: moreText, style: linkStyle),
+        ],
+      );
+      painter.layout(maxWidth: maxWidth);
+      if (painter.didExceedMaxLines) {
+        high = mid - 1;
+        continue;
+      }
+      final suffixStartIndex = truncated.length;
+      final suffixOffset = painter.getOffsetForCaret(
+        TextPosition(offset: suffixStartIndex),
+        Rect.zero,
+      );
+      final thirdLineStartsAt = painter.size.height * (2 / 3);
+      final isOnThirdLine = suffixOffset.dy >= thirdLineStartsAt;
+      if (isOnThirdLine) {
+        low = mid;
+      } else {
+        high = mid - 1;
+      }
+    }
+    return low > 5 ? low - 2 : low;
+  }
+
   Widget _buildAboutText(String text, {required bool showExpandButton}) {
-    final bool isLong = text.length > _aboutExpandThreshold;
     final textStyle = TextStyle(
       fontFamily: 'Cairo',
       fontSize: Responsive.fontSize(context, 14),
       color: Colors.black,
       height: 1.6,
     );
+    final linkStyle = TextStyle(
+      fontFamily: 'Cairo',
+      fontSize: Responsive.fontSize(context, 14),
+      fontWeight: FontWeight.w600,
+      color: AppColors.primary,
+    );
 
-    if (!isLong) {
+    if (!showExpandButton) {
       return Text(
         text,
         style: textStyle,
@@ -621,55 +710,83 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
 
     final bool showButton = showExpandButton;
 
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.end,
-      textDirection: TextDirection.rtl,
-      children: [
-        Expanded(
-          child: Text(
-            text,
-            style: textStyle,
-            textAlign: TextAlign.start,
-            maxLines: _courseInfoExpanded ? null : 3,
-            overflow: _courseInfoExpanded ? null : TextOverflow.ellipsis,
-          ),
-        ),
-        if (showButton)
-          InkWell(
-            onTap: () {
-              setState(() {
-                _courseInfoExpanded = !_courseInfoExpanded;
-              });
-            },
-            borderRadius: BorderRadius.circular(Responsive.radius(context, 8)),
-            child: Padding(
-              padding: Responsive.padding(context, vertical: 4, horizontal: 8),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                textDirection: TextDirection.rtl,
-                children: [
-                  Icon(
-                    _courseInfoExpanded
-                        ? Icons.keyboard_arrow_up
-                        : Icons.keyboard_arrow_down,
-                    size: Responsive.iconSize(context, 20),
-                    color: AppColors.primary,
-                  ),
-                  SizedBox(width: Responsive.width(context, 4)),
-                  Text(
-                    _courseInfoExpanded ? 'عرض أقل' : 'عرض المزيد',
-                    style: TextStyle(
-                      fontFamily: 'Cairo',
-                      fontSize: Responsive.fontSize(context, 14),
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.primary,
-                    ),
-                  ),
-                ],
-              ),
+    // مطوي: نعرض 3 أسطر فقط + " ...... المزيد" في نهاية السطر الثالث
+    if (!_courseInfoExpanded && showButton) {
+      return LayoutBuilder(
+        builder: (context, constraints) {
+          final maxWidth = constraints.maxWidth.isFinite
+              ? constraints.maxWidth
+              : MediaQuery.sizeOf(context).width - 32;
+          final len = _truncateAboutToFit(text, textStyle, linkStyle, maxWidth);
+          final displayText = text.substring(0, len);
+          // إذا لم يتبقّ نص للعرض (len == 0) لا نعرض "المزيد" وحدها — نعرض النص كاملاً بدون توسيع
+          if (displayText.trim().isEmpty) {
+            return Text(
+              text,
+              style: textStyle,
+              textDirection: TextDirection.rtl,
+              textAlign: TextAlign.start,
+            );
+          }
+          return Text.rich(
+            TextSpan(
+              style: textStyle,
+              children: [
+                TextSpan(text: displayText),
+                const TextSpan(text: ' ...... '),
+                TextSpan(
+                  text: 'المزيد',
+                  style: linkStyle,
+                  recognizer: TapGestureRecognizer()
+                    ..onTap = () {
+                      setState(() {
+                        _courseInfoExpanded = !_courseInfoExpanded;
+                      });
+                    },
+                ),
+              ],
             ),
+            textDirection: TextDirection.rtl,
+            textAlign: TextAlign.start,
+          );
+        },
+      );
+    }
+
+    if (_courseInfoExpanded && showButton) {
+      return SizedBox(
+        width: double.infinity,
+        child: Text.rich(
+          TextSpan(
+            style: textStyle,
+            children: [
+              TextSpan(text: text),
+              const TextSpan(text: ' '),
+              TextSpan(
+                text: 'عرض أقل',
+                style: linkStyle,
+                recognizer: TapGestureRecognizer()
+                  ..onTap = () {
+                    setState(() {
+                      _courseInfoExpanded = !_courseInfoExpanded;
+                    });
+                  },
+              ),
+            ],
           ),
-      ],
+          textDirection: TextDirection.rtl,
+          textAlign: TextAlign.start,
+        ),
+      );
+    }
+
+    return SizedBox(
+      width: double.infinity,
+      child: Text(
+        text,
+        style: textStyle,
+        textAlign: TextAlign.start,
+      ),
     );
   }
 
@@ -681,9 +798,7 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> with RouteAware {
         ? items
         : items.take(initialCount).toList();
 
-    final bool needsExpandButton =
-        showExpandButton && (hasMore || course.about != null &&
-            course.about!.length > _aboutExpandThreshold);
+    final bool needsExpandButton = showExpandButton && hasMore;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1751,6 +1866,9 @@ class _ChapterSection extends StatelessWidget {
               childAspectRatio = isLandscape ? 0.95 : 0.8;
             }
 
+            // نعكس ترتيب الدروس داخل كل فصل بحيث آخر درس يظهر أولاً
+            final reversedLessons = chapter.lessons.reversed.toList();
+
             return GridView.builder(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
@@ -1760,9 +1878,9 @@ class _ChapterSection extends StatelessWidget {
                 mainAxisSpacing: spacing,
                 childAspectRatio: childAspectRatio,
               ),
-              itemCount: chapter.lessons.length,
+              itemCount: reversedLessons.length,
               itemBuilder: (context, index) {
-                final lesson = chapter.lessons[index];
+                final lesson = reversedLessons[index];
 
                 final isViewed = isLessonViewed(lesson.id);
 

@@ -154,6 +154,8 @@ class _SingleCategoryPageState extends State<SingleCategoryPage> {
   }
 
   Widget _buildCoursesGrid(BuildContext context, List<Course> courses) {
+    // نعرض الدورات بترتيب عكسي (آخر دورة أولاً)
+    final reversedCourses = courses.reversed.toList();
     return GridView.builder(
       padding: const EdgeInsets.all(24),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -162,9 +164,9 @@ class _SingleCategoryPageState extends State<SingleCategoryPage> {
         crossAxisSpacing: 20,
         mainAxisSpacing: 24,
       ),
-      itemCount: courses.length,
+      itemCount: reversedCourses.length,
       itemBuilder: (context, index) {
-        final course = courses[index];
+        final course = reversedCourses[index];
         return _CourseGridItem(
           course: course,
           onTap: course.soon ? null : () => _onCourseTap(context, course),
@@ -274,7 +276,10 @@ class _CourseGridItem extends StatelessWidget {
       return CachedNetworkImage(
         imageUrl: thumbnailUrl,
         fit: BoxFit.cover,
-        placeholder: (context, url) => _buildPlaceholder(),
+        // عند وجود صورة من الباك، لا نعرض صورة الديفولت أثناء التحميل
+        placeholder: (context, url) => Container(
+          color: Colors.grey.shade100,
+        ),
         errorWidget: (context, url, error) => _buildPlaceholder(),
       );
     }

@@ -291,14 +291,16 @@ class _HomeTabContent extends StatelessWidget {
   }
 
   Widget _buildCoursesGrid(BuildContext context, List<Course> courses) {
+    // نعرض الدورات بترتيب عكسي (آخر دورة أولاً)
+    final reversedCourses = courses.reversed.toList();
     return SizedBox(
       height: Responsive.height(context, 130),
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         padding: Responsive.padding(context, horizontal: 16),
-        itemCount: courses.length,
+        itemCount: reversedCourses.length,
         itemBuilder: (context, index) {
-          final course = courses[index];
+          final course = reversedCourses[index];
           return RepaintBoundary(
             child: Padding(
               padding: Responsive.padding(context, left: 20),

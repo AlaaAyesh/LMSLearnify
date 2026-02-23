@@ -89,7 +89,7 @@ class PopularCourseCard extends StatelessWidget {
                   alignment: Alignment.center,
                   child: Text(
                     course.nameAr,
-                    maxLines: 2,
+                    maxLines: 1,
                     textAlign: TextAlign.right,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
