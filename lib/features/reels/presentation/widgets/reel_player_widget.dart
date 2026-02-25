@@ -76,6 +76,7 @@ class _ReelPlayerWidgetState extends State<ReelPlayerWidget>
 
   late final ValueNotifier<int> _progressSecondsNotifier;
   Timer? _progressTimer;
+  int? _playerDurationSeconds;
 
   void _onBetterPlayerEvent(BetterPlayerEvent event) {
     if (event.betterPlayerEventType != BetterPlayerEventType.progress) return;
@@ -86,9 +87,15 @@ class _ReelPlayerWidgetState extends State<ReelPlayerWidget>
     if (progress == null || duration == null || duration.inSeconds <= 0) return;
     if (!mounted) return;
     final seconds = progress.inSeconds;
-    final next = seconds >= duration.inSeconds ? 0 : seconds;
+    final durationSeconds = duration.inSeconds;
+    final next = seconds.clamp(0, durationSeconds);
     if (_progressSecondsNotifier.value != next) {
       _progressSecondsNotifier.value = next;
+    }
+    if (durationSeconds > 0 && _playerDurationSeconds != durationSeconds) {
+      setState(() {
+        _playerDurationSeconds = durationSeconds;
+      });
     }
   }
 
@@ -108,10 +115,12 @@ class _ReelPlayerWidgetState extends State<ReelPlayerWidget>
     return painter.size.height > screenHeight * 0.7;
   }
 
-  int get _durationSeconds =>
-      widget.reel.durationSeconds > 0
-          ? widget.reel.durationSeconds
-          : ReelConstants.defaultDurationSeconds;
+  int get _durationSeconds {
+    final fromPlayer = _playerDurationSeconds;
+    final fromModel = widget.reel.durationSeconds;
+    final effective = fromPlayer ?? fromModel;
+    return effective > 0 ? effective : ReelConstants.defaultDurationSeconds;
+  }
 
   @override
   void initState() {
@@ -213,9 +222,7 @@ class _ReelPlayerWidgetState extends State<ReelPlayerWidget>
       _progressTimer = Timer.periodic(const Duration(seconds: 1), (_) {
         if (!mounted) return;
         if (!_shouldPlayNow) return;
-        final next = _progressSecondsNotifier.value >= _durationSeconds
-            ? 0
-            : _progressSecondsNotifier.value + 1;
+        final next = (_progressSecondsNotifier.value + 1).clamp(0, _durationSeconds);
         _progressSecondsNotifier.value = next;
       });
     }
