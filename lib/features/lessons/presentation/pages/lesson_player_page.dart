@@ -737,35 +737,41 @@ class _LessonPlayerPageContentState extends State<_LessonPlayerPageContent> {
                               size: Responsive.iconSize(context, 26),
                             ),
                           )
-                        : isCurrent
-                            ? Container(
-                                width: Responsive.width(context, 40),
-                                height: Responsive.width(context, 40),
-                                decoration: BoxDecoration(
-                                  color: AppColors.primary,
-                                  shape: BoxShape.circle,
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color:
-                                          AppColors.primary.withOpacity(0.35),
-                                      blurRadius: 10,
-                                      spreadRadius: 2,
-                                    ),
-                                  ],
-                                ),
-                                child: Center(
-                                  child: Icon(
-                                    Icons.play_arrow_outlined,
-                                    color: Colors.white,
-                                    size: Responsive.iconSize(context, 35),
-                                  ),
-                                ),
-                              )
-                            : Icon(
+                        : isViewed
+                            ? Icon(
                                 Icons.check_circle_outline,
                                 color: AppColors.primary,
                                 size: Responsive.iconSize(context, 35),
-                              ),
+                              )
+                            : isCurrent
+                                ? Container(
+                                    width: Responsive.width(context, 40),
+                                    height: Responsive.width(context, 40),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.primary,
+                                      shape: BoxShape.circle,
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color:
+                                              AppColors.primary.withOpacity(0.35),
+                                          blurRadius: 10,
+                                          spreadRadius: 2,
+                                        ),
+                                      ],
+                                    ),
+                                    child: Center(
+                                      child: Icon(
+                                        Icons.play_arrow_outlined,
+                                        color: Colors.white,
+                                        size: Responsive.iconSize(context, 35),
+                                      ),
+                                    ),
+                                  )
+                                : Icon(
+                                    Icons.play_arrow_outlined,
+                                    color: AppColors.primary,
+                                    size: Responsive.iconSize(context, 35),
+                                  ),
                   ),
                   SizedBox(width: Responsive.width(context, 12)),
                   Expanded(
