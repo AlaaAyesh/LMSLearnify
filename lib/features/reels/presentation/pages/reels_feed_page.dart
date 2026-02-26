@@ -923,7 +923,8 @@ class _ReelsFeedPageState extends State<ReelsFeedPage>
           }
         }
 
-        final bool useNative = ReelControllerPool.isDirectStreamUrl(reel.bunnyUrl);
+        final bool useNative = isReelNativePlayerSupported &&
+            reel.bunnyUrl.trim().isNotEmpty;
         final BetterPlayerController? controller = useNative &&
                 index >= _playbackIndex - 1 &&
                 index <= _playbackIndex + 1

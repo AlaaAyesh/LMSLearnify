@@ -10,6 +10,7 @@ import '../../domain/usecases/get_subscription_by_id_usecase.dart';
 import '../../domain/usecases/get_subscriptions_usecase.dart';
 import '../../domain/usecases/update_subscription_usecase.dart';
 import '../../../../core/services/google_play_billing_service.dart';
+import '../../../../core/services/apple_iap_service.dart';
 import 'subscription_event.dart';
 import 'subscription_state.dart';
 import '../../domain/usecases/verify_iap_receipt_usecase.dart';
@@ -23,7 +24,9 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
   final VerifyIapReceiptUseCase verifyIapReceiptUseCase;
 
   late final GooglePlayBillingService _billingService;
+  late final AppleIAPService _appleIapService;
   bool _billingInitialized = false;
+  bool _appleIapInitialized = false;
   int? _pendingPurchaseId;
   Timer? _paymentTimeoutTimer;
 
@@ -36,6 +39,7 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
     required this.verifyIapReceiptUseCase,
   }) : super(SubscriptionInitial()) {
     _billingService = GooglePlayBillingService();
+    _appleIapService = AppleIAPService();
 
     on<LoadSubscriptionsEvent>(_onLoadSubscriptions);
     on<LoadSubscriptionByIdEvent>(_onLoadSubscriptionById);
@@ -74,6 +78,42 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
     }
   }
 
+  Future<void> _initializeAppleIAP(Emitter<SubscriptionState> emit) async {
+    if (_appleIapInitialized) return;
+
+    print('Initializing Apple IAP...');
+    try {
+      await _appleIapService.initialize(
+        onPurchaseUpdated: (PurchaseDetails purchase) async {
+          print('Apple IAP purchase updated');
+          await _verifyAndCompletePurchase(purchase, emit);
+        },
+        onError: (String error) {
+          print('Apple IAP error: $error');
+          emit(PaymentFailed(error));
+        },
+      );
+      _appleIapInitialized = true;
+      print('Apple IAP initialized successfully');
+    } catch (e) {
+      print('Failed to initialize Apple IAP: $e');
+      emit(PaymentFailed('فشل تهيئة نظام الدفع: $e'));
+      rethrow;
+    }
+  }
+
+  Future<void> _completePurchaseForStore(
+    String store,
+    PurchaseDetails purchaseDetails,
+  ) async {
+    if (!purchaseDetails.pendingCompletePurchase) return;
+    if (store == 'app_store') {
+      await _appleIapService.completePurchase(purchaseDetails);
+    } else {
+      await _billingService.completePurchase(purchaseDetails);
+    }
+  }
+
   Future<void> _verifyAndCompletePurchase(
       PurchaseDetails purchase,
       Emitter<SubscriptionState> emit,
@@ -84,7 +124,10 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
       print('No pending purchase ID found');
       emit(PaymentFailed('خطأ: لم يتم العثور على معرف الدفع'));
       if (purchase.pendingCompletePurchase) {
-        await _billingService.completePurchase(purchase);
+        await _completePurchaseForStore(
+          Platform.isAndroid ? 'google_play' : 'app_store',
+          purchase,
+        );
       }
       return;
     }
@@ -109,7 +152,10 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
       print('Verification error: $e');
       emit(PaymentFailed('فشل التحقق من عملية الشراء: $e'));
       if (purchase.pendingCompletePurchase) {
-        await _billingService.completePurchase(purchase);
+        await _completePurchaseForStore(
+          Platform.isAndroid ? 'google_play' : 'app_store',
+          purchase,
+        );
       }
     }
   }
@@ -138,7 +184,7 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
         print('Verification failed: ${failure.message}');
         emit(IapVerificationFailure(failure.message));
         if (event.purchaseDetails != null && event.purchaseDetails!.pendingCompletePurchase) {
-          _billingService.completePurchase(event.purchaseDetails!);
+          _completePurchaseForStore(event.store, event.purchaseDetails!);
         }
         _pendingPurchaseId = null;
       },
@@ -146,7 +192,7 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
         _paymentTimeoutTimer?.cancel();
         print('Verification successful');
         if (event.purchaseDetails != null && event.purchaseDetails!.pendingCompletePurchase) {
-          _billingService.completePurchase(event.purchaseDetails!);
+          _completePurchaseForStore(event.store, event.purchaseDetails!);
         }
         emit(IapVerificationSuccess());
         emit(PaymentCompleted(
@@ -463,6 +509,103 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
       }
     });
 
+    if (event.service == PaymentService.iap && Platform.isIOS) {
+      try {
+        print('Processing Apple IAP payment...');
+        print('Subscription ID: ${event.subscriptionId}');
+
+        if (event.subscriptionId == null) {
+          print('Subscription ID is null');
+          emit(PaymentFailed('يرجى اختيار باقة أولاً'));
+          return;
+        }
+
+        print('Step 1: Creating payment record in backend...');
+        final request = ProcessPaymentRequest(
+          service: event.service,
+          currency: event.currency,
+          courseId: event.courseId,
+          subscriptionId: event.subscriptionId,
+          phone: event.phone,
+          couponCode: event.couponCode,
+        );
+
+        final paymentResult = await subscriptionRepository.processPayment(request: request);
+
+        await paymentResult.fold(
+          (failure) {
+            _paymentTimeoutTimer?.cancel();
+            print('Failed to create payment record: ${failure.message}');
+            emit(PaymentFailed('فشل إنشاء سجل الدفع: ${failure.message}'));
+          },
+          (response) async {
+            if (response.purchase == null) {
+              print('No purchase ID in response');
+              emit(PaymentFailed('فشل: لم يتم الحصول على معرف الدفع من السيرفر'));
+              return;
+            }
+
+            _pendingPurchaseId = response.purchase!.id;
+            print('Payment record created with ID: $_pendingPurchaseId');
+
+            if (!_appleIapInitialized) {
+              await _initializeAppleIAP(emit);
+            }
+
+            final productId = AppleIAPService.getProductId(event.subscriptionId!);
+
+            if (productId == null) {
+              print('Invalid subscription ID: ${event.subscriptionId}');
+              emit(PaymentFailed(
+                'معرف الباقة غير صحيح.\n'
+                'معرف الباقة: ${event.subscriptionId}\n'
+                'المعرفات المتاحة: ${AppleIAPService.productIdMap.keys.join(', ')}',
+              ));
+              return;
+            }
+
+            print('Apple product ID for subscription ${event.subscriptionId}: $productId');
+
+            final products = await _appleIapService.getProducts([productId]);
+
+            if (products.isEmpty) {
+              print('Product not found in App Store');
+              emit(PaymentFailed(
+                'الباقة غير متوفرة في المتجر.\n'
+                'معرف المنتج: $productId\n'
+                'تأكد من:\n'
+                '1. إنشاء المنتج في App Store Connect (In-App Purchases)\n'
+                '2. ربط المنتج بإصدار التطبيق قبل الإرسال للمراجعة',
+              ));
+              return;
+            }
+
+            final product = products.first;
+            final displayName = AppleIAPService.getDisplayName(
+              product.id,
+              product.title,
+            );
+            print('Product found: ${product.id}, Price: ${product.price}, Title: $displayName');
+
+            print('Step 2: Initiating Apple IAP purchase...');
+            await _appleIapService.purchaseProduct(product);
+
+            _paymentTimeoutTimer?.cancel();
+            emit(PaymentInitiated(
+              purchase: response.purchase,
+              message: 'جارٍ معالجة عملية الشراء عبر App Store...',
+            ));
+          },
+        );
+      } catch (e) {
+        _paymentTimeoutTimer?.cancel();
+        print('Apple IAP payment error: $e');
+        emit(PaymentFailed('فشل عملية الشراء: $e'));
+        _pendingPurchaseId = null;
+      }
+      return;
+    }
+
     if (event.service == PaymentService.gplay) {
       try {
         print('Processing Google Play payment...');
@@ -656,10 +799,10 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
     );
   }
   @override
-  @override
   Future<void> close() {
     _paymentTimeoutTimer?.cancel();
     _billingService.dispose();
+    _appleIapService.dispose();
     return super.close();
   }
 }
