@@ -1866,8 +1866,8 @@ class _ChapterSection extends StatelessWidget {
               childAspectRatio = isLandscape ? 0.95 : 0.8;
             }
 
-            // نعكس ترتيب الدروس داخل كل فصل بحيث آخر درس يظهر أولاً
-            final reversedLessons = chapter.lessons.reversed.toList();
+            // نعرض الدروس بترتيبها من الأقدم إلى الأحدث
+            final orderedLessons = chapter.lessons;
 
             return GridView.builder(
               shrinkWrap: true,
@@ -1878,9 +1878,9 @@ class _ChapterSection extends StatelessWidget {
                 mainAxisSpacing: spacing,
                 childAspectRatio: childAspectRatio,
               ),
-              itemCount: reversedLessons.length,
+              itemCount: orderedLessons.length,
               itemBuilder: (context, index) {
-                final lesson = reversedLessons[index];
+                final lesson = orderedLessons[index];
 
                 final isViewed = isLessonViewed(lesson.id);
 
