@@ -6,6 +6,7 @@ import 'package:visibility_detector/visibility_detector.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:webview_flutter_android/webview_flutter_android.dart';
 import 'package:webview_flutter_wkwebview/webview_flutter_wkwebview.dart';
+import 'package:webview_flutter_platform_interface/webview_flutter_platform_interface.dart';
 import '../../../../core/utils/responsive.dart';
 import '../../domain/entities/reel.dart';
 import '../player/reel_constants.dart';
@@ -317,26 +318,40 @@ class _ReelPlayerWidgetState extends State<ReelPlayerWidget>
 </body>
 </html>
 ''';
-    _webController = WebViewController()
-      ..setJavaScriptMode(JavaScriptMode.unrestricted)
-      ..setBackgroundColor(Colors.black)
-      ..setNavigationDelegate(
-        NavigationDelegate(
-          onPageFinished: (_) {
-            if (mounted) {
-              setState(() => _isLoading = false);
-              Future.delayed(const Duration(milliseconds: 800), () {
-                if (mounted) setState(() => _showThumbnailOverlay = false);
-              });
-            }
-          },
-        ),
+    late final PlatformWebViewControllerCreationParams params;
+    if (WebViewPlatform.instance is WebKitWebViewPlatform) {
+      params = WebKitWebViewControllerCreationParams(
+        allowsInlineMediaPlayback: true,
+        mediaTypesRequiringUserAction: const <PlaybackMediaTypes>{},
       );
+    } else {
+      params = const PlatformWebViewControllerCreationParams();
+    }
+
+    final WebViewController controller =
+        WebViewController.fromPlatformCreationParams(params)
+          ..setJavaScriptMode(JavaScriptMode.unrestricted)
+          ..setBackgroundColor(Colors.black)
+          ..setNavigationDelegate(
+            NavigationDelegate(
+              onPageFinished: (_) {
+                if (mounted) {
+                  setState(() => _isLoading = false);
+                  Future.delayed(const Duration(milliseconds: 800), () {
+                    if (mounted) setState(() => _showThumbnailOverlay = false);
+                  });
+                }
+              },
+            ),
+          )
+          ..loadHtmlString(html);
+
+    _webController = controller;
+
     final platform = _webController!.platform;
     if (platform is AndroidWebViewController) {
       platform.setMediaPlaybackRequiresUserGesture(false);
     }
-    _webController!.loadHtmlString(html);
     if (mounted) setState(() {});
   }
 
