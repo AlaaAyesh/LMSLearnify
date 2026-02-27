@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:math';
 
 import 'package:crypto/crypto.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
@@ -471,9 +472,12 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         },
       );
     } on SignInWithAppleAuthorizationException catch (e) {
+      debugPrint('SignInWithApple error: code=${e.code}, message=${e.message}');
       final errorMessage = _parseAppleSignInError(e);
       emit(AuthError(errorMessage));
-    } catch (e) {
+    } catch (e, st) {
+      debugPrint('Apple sign-in exception: $e');
+      debugPrint('Stack trace: $st');
       emit(AuthError('خطأ في تسجيل الدخول. يرجى المحاولة مرة أخرى.'));
     }
   }
@@ -491,6 +495,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   }
 
   String _parseAppleSignInError(SignInWithAppleAuthorizationException e) {
+    debugPrint('Apple auth error code: ${e.code}, message: ${e.message}');
     switch (e.code) {
       case AuthorizationErrorCode.canceled:
         return 'تم إلغاء تسجيل الدخول';

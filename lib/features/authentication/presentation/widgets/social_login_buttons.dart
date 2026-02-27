@@ -55,7 +55,7 @@ class SocialLoginButtons extends StatelessWidget {
           final isTablet = Responsive.isTablet(context);
           final spacing = isTablet ? 16.0 : Responsive.width(context, 24);
           final showApple = kIsWeb || Platform.isIOS;
-          final showGoogle = kIsWeb || Platform.isAndroid;
+          final showGoogle = kIsWeb || Platform.isAndroid || Platform.isIOS;
 
           final buttons = <Widget>[
             if (showApple)
