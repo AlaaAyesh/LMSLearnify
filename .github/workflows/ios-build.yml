@@ -34,6 +34,12 @@ jobs:
           security default-keychain -s build.keychain
           security unlock-keychain -p "" build.keychain
 
+      # 🔥 الخطوة اللي كانت ناقصة
+      - name: Set keychain settings
+        run: |
+          security set-keychain-settings -lut 21600 build.keychain
+          security list-keychains -d user -s build.keychain
+
       # ✅ Decode Provisioning Profile
       - name: Decode provisioning profile
         run: |
@@ -41,9 +47,9 @@ jobs:
           mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
           cp profile.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/
 
-      # ✅ Build
+      # ✅ Build (مهم نحدد export method)
       - name: Build iOS release
-        run: flutter build ipa --release
+        run: flutter build ipa --release --export-method app-store
 
       # ✅ Upload to TestFlight
       - name: Upload to TestFlight
