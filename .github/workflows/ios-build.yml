@@ -21,13 +21,35 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
+      # ✅ Decode P12 Certificate
+      - name: Decode certificate
+        run: echo "${{ secrets.IOS_P12_BASE64 }}" | base64 --decode > certificate.p12
+
+      # ✅ Install Certificate
+      - name: Install certificate
+        run: |
+          security create-keychain -p "" build.keychain
+          security import certificate.p12 -k build.keychain -P "${{ secrets.IOS_P12_PASSWORD }}" -T /usr/bin/codesign
+          security list-keychains -s build.keychain
+          security default-keychain -s build.keychain
+          security unlock-keychain -p "" build.keychain
+
+      # ✅ Decode Provisioning Profile
+      - name: Decode provisioning profile
+        run: |
+          echo "${{ secrets.APPSTORE_PROVISION_PROFILE }}" | base64 --decode > profile.mobileprovision
+          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+          cp profile.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/
+
+      # ✅ Build
       - name: Build iOS release
         run: flutter build ipa --release
 
+      # ✅ Upload to TestFlight
       - name: Upload to TestFlight
         uses: apple-actions/upload-testflight-build@v1
         with:
           app-path: build/ios/ipa/*.ipa
           issuer-id: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
-          api-key-id: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}   # ✅ هنا التعديل
+          api-key-id: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
           api-private-key: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
